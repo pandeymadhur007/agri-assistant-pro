@@ -78,6 +78,18 @@ export function ChatInterface() {
   );
 }
 
+function formatMessageContent(content: string) {
+  // Replace "quoted text" with bold text
+  const parts = content.split(/(".*?")/g);
+  return parts.map((part, index) => {
+    if (part.startsWith('"') && part.endsWith('"')) {
+      // Remove quotes and make bold
+      return <strong key={index}>{part.slice(1, -1)}</strong>;
+    }
+    return part;
+  });
+}
+
 function ChatMessage({ message }: { message: Message }) {
   const isUser = message.role === 'user';
 
@@ -99,7 +111,7 @@ function ChatMessage({ message }: { message: Message }) {
           isUser ? 'bg-primary text-primary-foreground' : 'bg-muted'
         )}
       >
-        <p className="whitespace-pre-wrap">{message.content}</p>
+        <p className="whitespace-pre-wrap">{isUser ? message.content : formatMessageContent(message.content)}</p>
       </div>
     </div>
   );
