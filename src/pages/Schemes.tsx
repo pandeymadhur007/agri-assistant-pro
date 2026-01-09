@@ -25,12 +25,12 @@ const Schemes = () => {
         <h1 className="text-3xl font-bold mb-6">{t('schemes')}</h1>
         
         <div className="mb-6">
-          <Select value={category} onValueChange={setCategory}>
+          <Select value={category} onValueChange={(val) => setCategory(val === 'all' ? '' : val)}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder={t('allCategories')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">{t('allCategories')}</SelectItem>
+              <SelectItem value="all">{t('allCategories')}</SelectItem>
               {categories.map(cat => (
                 <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
               ))}
