@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Loader2 } from 'lucide-react';
+import { Send, Loader2, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useChat, Message } from '@/hooks/useChat';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
+import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis';
 import { cn } from '@/lib/utils';
 
 export function ChatInterface() {
@@ -11,16 +13,57 @@ export function ChatInterface() {
   const { messages, isLoading, sendMessage } = useChat();
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const lastMessageRef = useRef<string>('');
+  
+  // Voice features
+  const { isListening, transcript, isSupported: micSupported, startListening, stopListening, resetTranscript } = useSpeechRecognition();
+  const { isSpeaking, isSupported: ttsSupported, speak, stop: stopSpeaking } = useSpeechSynthesis();
+  const [autoSpeak, setAutoSpeak] = useState(true);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Update input when transcript changes
+  useEffect(() => {
+    if (transcript) {
+      setInput(transcript);
+    }
+  }, [transcript]);
+
+  // Auto-speak new assistant messages
+  useEffect(() => {
+    if (autoSpeak && messages.length > 0 && !isLoading) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage.role === 'assistant' && lastMessage.content !== lastMessageRef.current) {
+        lastMessageRef.current = lastMessage.content;
+        speak(lastMessage.content);
+      }
+    }
+  }, [messages, isLoading, autoSpeak, speak]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
+    stopListening();
+    resetTranscript();
     sendMessage(input.trim());
     setInput('');
+  };
+
+  const toggleMic = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  };
+
+  const toggleAutoSpeak = () => {
+    if (isSpeaking) {
+      stopSpeaking();
+    }
+    setAutoSpeak(!autoSpeak);
   };
 
   return (
@@ -53,10 +96,23 @@ export function ChatInterface() {
 
       <form onSubmit={handleSubmit} className="border-t bg-background p-4">
         <div className="flex gap-2">
+          {/* Mic button */}
+          {micSupported && (
+            <Button
+              type="button"
+              size="icon"
+              variant={isListening ? "destructive" : "outline"}
+              onClick={toggleMic}
+              className={isListening ? "animate-pulse" : ""}
+            >
+              {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+            </Button>
+          )}
+          
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={t('chatPlaceholder')}
+            placeholder={isListening ? "Listening..." : t('chatPlaceholder')}
             className="min-h-[50px] max-h-[200px] resize-none"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
@@ -65,6 +121,7 @@ export function ChatInterface() {
               }
             }}
           />
+          
           <Button type="submit" size="icon" disabled={!input.trim() || isLoading}>
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -72,6 +129,19 @@ export function ChatInterface() {
               <Send className="h-4 w-4" />
             )}
           </Button>
+          
+          {/* TTS toggle button */}
+          {ttsSupported && (
+            <Button
+              type="button"
+              size="icon"
+              variant={autoSpeak ? "default" : "outline"}
+              onClick={toggleAutoSpeak}
+              title={autoSpeak ? "Voice on" : "Voice off"}
+            >
+              {autoSpeak ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            </Button>
+          )}
         </div>
       </form>
     </div>
