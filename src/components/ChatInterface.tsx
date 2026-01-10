@@ -31,13 +31,29 @@ export function ChatInterface() {
     }
   }, [transcript]);
 
+  // Strip markdown for TTS
+  const stripMarkdown = (text: string): string => {
+    return text
+      .replace(/\*\*([^*]+)\*\*/g, '$1') // **bold**
+      .replace(/\*([^*]+)\*/g, '$1')     // *italic*
+      .replace(/__([^_]+)__/g, '$1')     // __bold__
+      .replace(/_([^_]+)_/g, '$1')       // _italic_
+      .replace(/~~([^~]+)~~/g, '$1')     // ~~strikethrough~~
+      .replace(/`([^`]+)`/g, '$1')       // `code`
+      .replace(/#+\s/g, '')              // # headers
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // [links](url)
+      .replace(/[•\-]\s/g, '')           // bullet points
+      .trim();
+  };
+
   // Auto-speak new assistant messages
   useEffect(() => {
     if (autoSpeak && messages.length > 0 && !isLoading) {
       const lastMessage = messages[messages.length - 1];
       if (lastMessage.role === 'assistant' && lastMessage.content !== lastMessageRef.current) {
         lastMessageRef.current = lastMessage.content;
-        speak(lastMessage.content);
+        const cleanText = stripMarkdown(lastMessage.content);
+        speak(cleanText, 'hi-IN'); // Hindi voice
       }
     }
   }, [messages, isLoading, autoSpeak, speak]);
