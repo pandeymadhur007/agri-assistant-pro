@@ -53,7 +53,7 @@ export function ChatInterface() {
       if (lastMessage.role === 'assistant' && lastMessage.content !== lastMessageRef.current) {
         lastMessageRef.current = lastMessage.content;
         const cleanText = stripMarkdown(lastMessage.content);
-        speak(cleanText, 'hi-IN'); // Hindi voice
+        speak(cleanText, 'en-IN'); // Indian English voice
       }
     }
   }, [messages, isLoading, autoSpeak, speak]);
