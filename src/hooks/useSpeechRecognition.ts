@@ -61,7 +61,7 @@ export function useSpeechRecognition() {
       const recognition = new SpeechRecognitionAPI();
       recognition.continuous = false;
       recognition.interimResults = true;
-      recognition.lang = 'hi-IN'; // Support Hindi
+      recognition.lang = 'en-IN'; // Indian English for better recognition
       
       recognition.onresult = (event: SpeechRecognitionEvent) => {
         let finalTranscript = '';

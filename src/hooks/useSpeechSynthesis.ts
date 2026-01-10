@@ -8,7 +8,7 @@ export function useSpeechSynthesis() {
     setIsSupported('speechSynthesis' in window);
   }, []);
 
-  const speak = useCallback((text: string, lang: string = 'hi-IN') => {
+  const speak = useCallback((text: string, lang: string = 'en-IN') => {
     if (!('speechSynthesis' in window)) return;
     
     // Cancel any ongoing speech
@@ -16,17 +16,33 @@ export function useSpeechSynthesis() {
     
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = lang;
-    utterance.rate = 0.9;
-    utterance.pitch = 1;
+    utterance.rate = 0.85; // Slightly slower for clarity
+    utterance.pitch = 1.1; // Slightly higher for natural Indian accent
     
-    // Try to find a suitable voice for Hindi
-    const voices = window.speechSynthesis.getVoices();
-    const preferredVoice = voices.find(v => 
-      v.lang.includes('hi') || v.lang.includes('Hindi')
-    ) || voices.find(v => v.lang.startsWith('hi'));
+    // Wait for voices to load and find best Indian English voice
+    const setVoice = () => {
+      const voices = window.speechSynthesis.getVoices();
+      // Prefer Indian English voices (Google's are best quality)
+      const indianVoice = voices.find(v => 
+        v.lang === 'en-IN' && v.name.includes('Google')
+      ) || voices.find(v => 
+        v.lang === 'en-IN'
+      ) || voices.find(v => 
+        v.lang.startsWith('en') && v.name.toLowerCase().includes('india')
+      ) || voices.find(v => 
+        v.lang.startsWith('en')
+      );
+      
+      if (indianVoice) {
+        utterance.voice = indianVoice;
+      }
+    };
     
-    if (preferredVoice) {
-      utterance.voice = preferredVoice;
+    // Voices may not be loaded yet
+    if (window.speechSynthesis.getVoices().length > 0) {
+      setVoice();
+    } else {
+      window.speechSynthesis.onvoiceschanged = setVoice;
     }
     
     utterance.onstart = () => setIsSpeaking(true);
