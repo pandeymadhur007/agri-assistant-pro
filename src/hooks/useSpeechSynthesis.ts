@@ -8,7 +8,7 @@ export function useSpeechSynthesis() {
     setIsSupported('speechSynthesis' in window);
   }, []);
 
-  const speak = useCallback((text: string, lang: string = 'en-IN') => {
+  const speak = useCallback((text: string, lang: string = 'hi-IN') => {
     if (!('speechSynthesis' in window)) return;
     
     // Cancel any ongoing speech
@@ -19,11 +19,11 @@ export function useSpeechSynthesis() {
     utterance.rate = 0.9;
     utterance.pitch = 1;
     
-    // Try to find a suitable voice
+    // Try to find a suitable voice for Hindi
     const voices = window.speechSynthesis.getVoices();
     const preferredVoice = voices.find(v => 
-      v.lang.startsWith('en') && v.name.includes('India')
-    ) || voices.find(v => v.lang.startsWith('en'));
+      v.lang.includes('hi') || v.lang.includes('Hindi')
+    ) || voices.find(v => v.lang.startsWith('hi'));
     
     if (preferredVoice) {
       utterance.voice = preferredVoice;
