@@ -62,6 +62,54 @@ export type Database = {
         }
         Relationships: []
       }
+      crop_scans: {
+        Row: {
+          cause: string | null
+          created_at: string
+          crop_name: string | null
+          disease_name: string | null
+          id: string
+          image_url: string
+          language: string
+          pesticide: string | null
+          prevention: string | null
+          raw_result: Json | null
+          session_id: string
+          severity: string | null
+          treatment: string | null
+        }
+        Insert: {
+          cause?: string | null
+          created_at?: string
+          crop_name?: string | null
+          disease_name?: string | null
+          id?: string
+          image_url: string
+          language?: string
+          pesticide?: string | null
+          prevention?: string | null
+          raw_result?: Json | null
+          session_id: string
+          severity?: string | null
+          treatment?: string | null
+        }
+        Update: {
+          cause?: string | null
+          created_at?: string
+          crop_name?: string | null
+          disease_name?: string | null
+          id?: string
+          image_url?: string
+          language?: string
+          pesticide?: string | null
+          prevention?: string | null
+          raw_result?: Json | null
+          session_id?: string
+          severity?: string | null
+          treatment?: string | null
+        }
+        Relationships: []
+      }
       crops: {
         Row: {
           created_at: string
