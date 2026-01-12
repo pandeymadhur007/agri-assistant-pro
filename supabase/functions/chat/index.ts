@@ -14,17 +14,82 @@ const LANGUAGE_PROMPTS: Record<string, string> = {
   bn: "আপনি গ্রাম AI। বাংলায় উত্তর দিন। সংক্ষিপ্ত, স্পষ্ট উত্তর দিন - সর্বোচ্চ ২-৪ বাক্য। তালিকার জন্য বুলেট পয়েন্ট ব্যবহার করুন।",
 };
 
+const VALID_LANGUAGES = ["en", "hi", "mr", "te", "ta", "bn"];
+const MAX_MESSAGES = 50;
+const MAX_MESSAGE_LENGTH = 5000;
+
+// Validate message format
+interface ChatMessage {
+  role: string;
+  content: string;
+}
+
+function validateMessages(messages: unknown): { valid: boolean; error?: string } {
+  if (!Array.isArray(messages)) {
+    return { valid: false, error: "Invalid messages format" };
+  }
+
+  if (messages.length > MAX_MESSAGES) {
+    return { valid: false, error: "Too many messages in history" };
+  }
+
+  for (const msg of messages) {
+    if (!msg || typeof msg !== "object") {
+      return { valid: false, error: "Invalid message format" };
+    }
+
+    const message = msg as ChatMessage;
+    
+    if (!message.role || !message.content) {
+      return { valid: false, error: "Invalid message format" };
+    }
+
+    if (message.role !== "user" && message.role !== "assistant") {
+      return { valid: false, error: "Invalid message role" };
+    }
+
+    if (typeof message.content !== "string" || message.content.length > MAX_MESSAGE_LENGTH) {
+      return { valid: false, error: "Message content too long" };
+    }
+  }
+
+  return { valid: true };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { messages, language = "en" } = await req.json();
+    const body = await req.json();
+    const { messages, language = "en" } = body;
+
+    // Input validation
+    const messagesValidation = validateMessages(messages);
+    if (!messagesValidation.valid) {
+      return new Response(
+        JSON.stringify({ error: messagesValidation.error }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate language
+    if (!VALID_LANGUAGES.includes(language)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid language" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+      console.error("API key not configured");
+      return new Response(
+        JSON.stringify({ error: "Service configuration error" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const systemPrompt = LANGUAGE_PROMPTS[language] || LANGUAGE_PROMPTS.en;
@@ -46,34 +111,37 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
+      // Log minimal info for debugging without exposing details
+      console.error("AI gateway error:", response.status);
+      
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limits exceeded, please try again later." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({ error: "Rate limits exceeded, please try again later." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Service temporarily unavailable." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({ error: "Service temporarily unavailable." }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
-      const text = await response.text();
-      console.error("AI gateway error:", response.status, text);
-      return new Response(JSON.stringify({ error: "AI service error" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      
+      return new Response(
+        JSON.stringify({ error: "AI service error" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     return new Response(response.body, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (e) {
-    console.error("chat error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    // Log error type only, not full message to avoid leaking internal details
+    console.error("chat error:", e instanceof Error ? e.name : "Unknown");
+    return new Response(
+      JSON.stringify({ error: "Unable to process request" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   }
 });
