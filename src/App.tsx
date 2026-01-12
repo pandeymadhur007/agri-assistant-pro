@@ -7,6 +7,9 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import Index from "./pages/Index";
 import Chat from "./pages/Chat";
 import Schemes from "./pages/Schemes";
+import Scan from "./pages/Scan";
+import ScanResult from "./pages/ScanResult";
+import ScanHistory from "./pages/ScanHistory";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +30,9 @@ const App = () => (
             <Route path="/crop-guidance" element={<Chat />} />
             <Route path="/pest-disease" element={<Chat />} />
             <Route path="/soil-irrigation" element={<Chat />} />
+            <Route path="/scan" element={<Scan />} />
+            <Route path="/scan/result" element={<ScanResult />} />
+            <Route path="/scan/history" element={<ScanHistory />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
