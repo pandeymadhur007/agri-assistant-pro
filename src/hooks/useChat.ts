@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { getSessionId } from '@/lib/sessionSupabase';
 
 export interface Message {
   role: 'user' | 'assistant';
@@ -30,11 +31,13 @@ export function useChat() {
     };
 
     try {
+      const sessionId = getSessionId();
       const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          'x-session-id': sessionId,
         },
         body: JSON.stringify({ 
           messages: [...messages, userMsg],
