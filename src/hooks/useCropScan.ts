@@ -56,11 +56,16 @@ export const useCropScan = () => {
         throw new Error(uploadError.message);
       }
 
-      const { data: urlData } = supabase.storage
+      // Use signed URL since bucket is now private (1 hour expiry)
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
         .from('crop-images')
-        .getPublicUrl(data.path);
+        .createSignedUrl(data.path, 3600);
 
-      return urlData.publicUrl;
+      if (signedUrlError) {
+        throw new Error(signedUrlError.message);
+      }
+
+      return signedUrlData.signedUrl;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to upload image');
       return null;
@@ -132,6 +137,25 @@ export const useCropScan = () => {
     }
   };
 
+  // Helper to get signed URL for stored images
+  const getSignedImageUrl = async (storedUrl: string): Promise<string> => {
+    try {
+      // Extract the path from the stored URL
+      const urlMatch = storedUrl.match(/crop-images\/(.+)/);
+      if (!urlMatch) return storedUrl;
+      
+      const filePath = urlMatch[1].split('?')[0]; // Remove any query params
+      const { data, error } = await supabase.storage
+        .from('crop-images')
+        .createSignedUrl(filePath, 3600);
+      
+      if (error || !data) return storedUrl;
+      return data.signedUrl;
+    } catch {
+      return storedUrl;
+    }
+  };
+
   const getScanHistory = async (): Promise<ScanResult[]> => {
     try {
       const { data, error: queryError } = await supabase
@@ -144,21 +168,26 @@ export const useCropScan = () => {
         throw new Error(queryError.message);
       }
 
-      return (data || []).map(scan => ({
-        id: scan.id,
-        image_url: scan.image_url,
-        diagnosis: {
-          is_plant: true,
-          crop_name: scan.crop_name || '',
-          disease_name: scan.disease_name || '',
-          severity: (scan.severity as CropDiagnosis['severity']) || 'healthy',
-          cause: scan.cause || '',
-          treatment: scan.treatment || '',
-          pesticide: scan.pesticide || '',
-          prevention: scan.prevention || '',
-        },
-        created_at: scan.created_at,
-      }));
+      // Get signed URLs for all images
+      const results = await Promise.all(
+        (data || []).map(async scan => ({
+          id: scan.id,
+          image_url: await getSignedImageUrl(scan.image_url),
+          diagnosis: {
+            is_plant: true,
+            crop_name: scan.crop_name || '',
+            disease_name: scan.disease_name || '',
+            severity: (scan.severity as CropDiagnosis['severity']) || 'healthy',
+            cause: scan.cause || '',
+            treatment: scan.treatment || '',
+            pesticide: scan.pesticide || '',
+            prevention: scan.prevention || '',
+          },
+          created_at: scan.created_at,
+        }))
+      );
+
+      return results;
     } catch (err) {
       console.error('Failed to fetch scan history:', err);
       return [];
@@ -177,9 +206,12 @@ export const useCropScan = () => {
         throw new Error(queryError.message);
       }
 
+      // Get signed URL for the image
+      const signedImageUrl = await getSignedImageUrl(data.image_url);
+
       return {
         id: data.id,
-        image_url: data.image_url,
+        image_url: signedImageUrl,
         diagnosis: {
           is_plant: true,
           crop_name: data.crop_name || '',
