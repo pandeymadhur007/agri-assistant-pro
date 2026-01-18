@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { getSessionSupabase, getSessionId } from '@/lib/sessionSupabase';
 
 export interface CropDiagnosis {
   is_plant: boolean;
@@ -21,16 +21,6 @@ export interface ScanResult {
   created_at: string;
 }
 
-// Generate or retrieve session ID
-const getSessionId = (): string => {
-  let sessionId = localStorage.getItem('gram_session_id');
-  if (!sessionId) {
-    sessionId = crypto.randomUUID();
-    localStorage.setItem('gram_session_id', sessionId);
-  }
-  return sessionId;
-};
-
 export const useCropScan = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -42,8 +32,10 @@ export const useCropScan = () => {
     setError(null);
 
     try {
+      const supabase = getSessionSupabase();
+      const sessionId = getSessionId();
       const fileExt = file.name.split('.').pop();
-      const fileName = `${getSessionId()}/${Date.now()}.${fileExt}`;
+      const fileName = `${sessionId}/${Date.now()}.${fileExt}`;
 
       const { data, error: uploadError } = await supabase.storage
         .from('crop-images')
@@ -79,6 +71,7 @@ export const useCropScan = () => {
     setError(null);
 
     try {
+      const sessionId = getSessionId();
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/scan-crop`,
         {
@@ -86,6 +79,7 @@ export const useCropScan = () => {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            'x-session-id': sessionId,
           },
           body: JSON.stringify({ imageUrl, language }),
         }
@@ -108,10 +102,13 @@ export const useCropScan = () => {
 
   const saveScanResult = async (imageUrl: string, diagnosis: CropDiagnosis): Promise<string | null> => {
     try {
+      const supabase = getSessionSupabase();
+      const sessionId = getSessionId();
+      
       const { data, error: insertError } = await supabase
         .from('crop_scans')
         .insert([{
-          session_id: getSessionId(),
+          session_id: sessionId,
           image_url: imageUrl,
           crop_name: diagnosis.crop_name,
           disease_name: diagnosis.disease_name,
@@ -140,6 +137,7 @@ export const useCropScan = () => {
   // Helper to get signed URL for stored images
   const getSignedImageUrl = async (storedUrl: string): Promise<string> => {
     try {
+      const supabase = getSessionSupabase();
       // Extract the path from the stored URL
       const urlMatch = storedUrl.match(/crop-images\/(.+)/);
       if (!urlMatch) return storedUrl;
@@ -158,10 +156,13 @@ export const useCropScan = () => {
 
   const getScanHistory = async (): Promise<ScanResult[]> => {
     try {
+      const supabase = getSessionSupabase();
+      const sessionId = getSessionId();
+      
       const { data, error: queryError } = await supabase
         .from('crop_scans')
         .select('*')
-        .eq('session_id', getSessionId())
+        .eq('session_id', sessionId)
         .order('created_at', { ascending: false });
 
       if (queryError) {
@@ -196,14 +197,20 @@ export const useCropScan = () => {
 
   const getScanById = async (id: string): Promise<ScanResult | null> => {
     try {
+      const supabase = getSessionSupabase();
+      
       const { data, error: queryError } = await supabase
         .from('crop_scans')
         .select('*')
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
       if (queryError) {
         throw new Error(queryError.message);
+      }
+
+      if (!data) {
+        return null;
       }
 
       // Get signed URL for the image
