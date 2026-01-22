@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useChat, Message } from '@/hooks/useChat';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
+import { useCloudSpeechRecognition } from '@/hooks/useCloudSpeechRecognition';
 import { useMurfTTS } from '@/hooks/useMurfTTS';
 import { cn } from '@/lib/utils';
 
@@ -16,9 +16,12 @@ export function ChatInterface() {
   const lastMessageRef = useRef<string>('');
   
   // Voice features
-  const { isListening, transcript, isSupported: micSupported, startListening, stopListening, resetTranscript } = useSpeechRecognition();
+  const { isRecording, isProcessing, transcript, isSupported: micSupported, startRecording, stopRecording, resetTranscript } = useCloudSpeechRecognition();
   const { isPlaying, isLoading: ttsLoading, isSupported: ttsSupported, speak, stop: stopSpeaking } = useMurfTTS();
   const [autoSpeak, setAutoSpeak] = useState(true);
+  
+  // Derived state for mic button
+  const isListening = isRecording || isProcessing;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -61,17 +64,17 @@ export function ChatInterface() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
-    stopListening();
+    stopRecording();
     resetTranscript();
     sendMessage(input.trim());
     setInput('');
   };
 
   const toggleMic = () => {
-    if (isListening) {
-      stopListening();
+    if (isRecording) {
+      stopRecording();
     } else {
-      startListening();
+      startRecording(language);
     }
   };
 
@@ -119,16 +122,23 @@ export function ChatInterface() {
               size="icon"
               variant={isListening ? "destructive" : "outline"}
               onClick={toggleMic}
-              className={isListening ? "animate-pulse" : ""}
+              className={isRecording ? "animate-pulse" : ""}
+              disabled={isProcessing}
             >
-              {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              {isProcessing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : isRecording ? (
+                <MicOff className="h-4 w-4" />
+              ) : (
+                <Mic className="h-4 w-4" />
+              )}
             </Button>
           )}
           
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={isListening ? "Listening..." : t('chatPlaceholder')}
+            placeholder={isRecording ? "Recording..." : isProcessing ? "Transcribing..." : t('chatPlaceholder')}
             className="min-h-[50px] max-h-[200px] resize-none"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
