@@ -1,1 +1,4 @@
 project_id = "wxkfpvapboxerzlsqopq"
+
+[functions.murf-tts]
+verify_jwt = false

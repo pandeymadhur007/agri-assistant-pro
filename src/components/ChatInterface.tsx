@@ -5,11 +5,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { useChat, Message } from '@/hooks/useChat';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
-import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis';
+import { useMurfTTS } from '@/hooks/useMurfTTS';
 import { cn } from '@/lib/utils';
 
 export function ChatInterface() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { messages, isLoading, sendMessage } = useChat();
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -17,7 +17,7 @@ export function ChatInterface() {
   
   // Voice features
   const { isListening, transcript, isSupported: micSupported, startListening, stopListening, resetTranscript } = useSpeechRecognition();
-  const { isSpeaking, isSupported: ttsSupported, speak, stop: stopSpeaking } = useSpeechSynthesis();
+  const { isPlaying, isLoading: ttsLoading, isSupported: ttsSupported, speak, stop: stopSpeaking } = useMurfTTS();
   const [autoSpeak, setAutoSpeak] = useState(true);
 
   useEffect(() => {
@@ -53,10 +53,10 @@ export function ChatInterface() {
       if (lastMessage.role === 'assistant' && lastMessage.content !== lastMessageRef.current) {
         lastMessageRef.current = lastMessage.content;
         const cleanText = stripMarkdown(lastMessage.content);
-        speak(cleanText, 'en-IN'); // Indian English voice
+        speak(cleanText, language); // Use current app language
       }
     }
-  }, [messages, isLoading, autoSpeak, speak]);
+  }, [messages, isLoading, autoSpeak, speak, language]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,7 +76,7 @@ export function ChatInterface() {
   };
 
   const toggleAutoSpeak = () => {
-    if (isSpeaking) {
+    if (isPlaying) {
       stopSpeaking();
     }
     setAutoSpeak(!autoSpeak);
@@ -154,8 +154,15 @@ export function ChatInterface() {
               variant={autoSpeak ? "default" : "outline"}
               onClick={toggleAutoSpeak}
               title={autoSpeak ? "Voice on" : "Voice off"}
+              disabled={ttsLoading}
             >
-              {autoSpeak ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+              {ttsLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : autoSpeak ? (
+                <Volume2 className="h-4 w-4" />
+              ) : (
+                <VolumeX className="h-4 w-4" />
+              )}
             </Button>
           )}
         </div>
