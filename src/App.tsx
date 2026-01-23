@@ -10,6 +10,9 @@ import Schemes from "./pages/Schemes";
 import Scan from "./pages/Scan";
 import ScanResult from "./pages/ScanResult";
 import ScanHistory from "./pages/ScanHistory";
+import CropGuidance from "./pages/CropGuidance";
+import PestDisease from "./pages/PestDisease";
+import Weather from "./pages/Weather";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,9 +30,9 @@ const App = () => (
             <Route path="/chat" element={<Chat />} />
             <Route path="/schemes" element={<Schemes />} />
             <Route path="/schemes/:category" element={<Schemes />} />
-            <Route path="/crop-guidance" element={<Chat />} />
-            <Route path="/pest-disease" element={<Chat />} />
-            <Route path="/soil-irrigation" element={<Chat />} />
+            <Route path="/crop-guidance" element={<CropGuidance />} />
+            <Route path="/pest-disease" element={<PestDisease />} />
+            <Route path="/weather" element={<Weather />} />
             <Route path="/scan" element={<Scan />} />
             <Route path="/scan/result" element={<ScanResult />} />
             <Route path="/scan/history" element={<ScanHistory />} />

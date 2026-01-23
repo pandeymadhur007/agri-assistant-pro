@@ -13,7 +13,7 @@ const Index = () => {
     { icon: Camera, title: t('scanCrop'), description: '', to: '/scan', color: 'bg-emerald-600' },
     { icon: Sprout, title: t('cropGuidance'), description: '', to: '/crop-guidance', color: 'bg-green-600' },
     { icon: Bug, title: t('pestDisease'), description: '', to: '/pest-disease', color: 'bg-amber-600' },
-    { icon: Droplets, title: t('soilIrrigation'), description: '', to: '/soil-irrigation', color: 'bg-blue-600' },
+    { icon: Droplets, title: t('weatherForecast') || 'Weather', description: '', to: '/weather', color: 'bg-blue-600' },
     { icon: FileText, title: t('schemes'), description: '', to: '/schemes', color: 'bg-purple-600' },
   ];
 
