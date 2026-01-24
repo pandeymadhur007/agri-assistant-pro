@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 interface QuickActionCardProps {
   icon: LucideIcon;
   title: string;
-  description: string;
+  description?: string;
   to: string;
   color?: string;
 }
@@ -14,14 +14,16 @@ interface QuickActionCardProps {
 export function QuickActionCard({ icon: Icon, title, description, to, color = 'bg-primary' }: QuickActionCardProps) {
   return (
     <Link to={to}>
-      <Card className="h-full transition-all hover:shadow-lg hover:scale-[1.02] cursor-pointer border-2 hover:border-primary">
-        <CardContent className="p-6 flex flex-col items-center text-center gap-4">
-          <div className={cn('p-4 rounded-full', color)}>
-            <Icon className="h-8 w-8 text-primary-foreground" />
+      <Card className="h-full transition-all hover:shadow-lg hover:scale-[1.02] cursor-pointer border hover:border-primary/50">
+        <CardContent className="p-4 flex flex-col items-center text-center gap-3">
+          <div className={cn('p-3 rounded-full', color)}>
+            <Icon className="h-6 w-6 text-primary-foreground" />
           </div>
           <div>
-            <h3 className="font-semibold text-lg">{title}</h3>
-            <p className="text-sm text-muted-foreground mt-1">{description}</p>
+            <h3 className="font-semibold text-base">{title}</h3>
+            {description && (
+              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{description}</p>
+            )}
           </div>
         </CardContent>
       </Card>

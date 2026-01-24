@@ -13,6 +13,12 @@ export default {
       },
     },
     extend: {
+      fontWeight: {
+        normal: '450',
+        medium: '500',
+        semibold: '600',
+        bold: '700',
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
