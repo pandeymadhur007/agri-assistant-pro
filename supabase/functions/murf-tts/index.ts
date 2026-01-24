@@ -52,7 +52,13 @@ serve(async (req: Request) => {
     // Get voice ID for the language
     const voiceId = VOICE_MAP[language] || VOICE_MAP["en"];
     
-    console.log(`Generating speech: lang=${language}, voice=${voiceId}, text length=${trimmedText.length}`);
+    // Add a small pause at the start for English to prevent first word being cut off
+    // For other languages, use the text as-is
+    const paddedText = language === "en" 
+      ? `... ${trimmedText}` 
+      : trimmedText;
+    
+    console.log(`Generating speech: lang=${language}, voice=${voiceId}, text length=${paddedText.length}`);
 
     const murfResponse = await fetch("https://api.murf.ai/v1/speech/generate", {
       method: "POST",
@@ -61,7 +67,7 @@ serve(async (req: Request) => {
         "api-key": MURF_API_KEY,
       },
       body: JSON.stringify({
-        text: trimmedText,
+        text: paddedText,
         voiceId: voiceId,
         format: "MP3",
         encodeAsBase64: true,
