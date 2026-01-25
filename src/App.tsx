@@ -13,6 +13,14 @@ import ScanHistory from "./pages/ScanHistory";
 import CropGuidance from "./pages/CropGuidance";
 import PestDisease from "./pages/PestDisease";
 import Weather from "./pages/Weather";
+import MarketPrices from "./pages/MarketPrices";
+import MarketPriceCrop from "./pages/MarketPriceCrop";
+import Calendar from "./pages/Calendar";
+import CalendarCrop from "./pages/CalendarCrop";
+import Community from "./pages/Community";
+import CommunityPost from "./pages/CommunityPost";
+import CommunityPostDetail from "./pages/CommunityPostDetail";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +44,14 @@ const App = () => (
             <Route path="/scan" element={<Scan />} />
             <Route path="/scan/result" element={<ScanResult />} />
             <Route path="/scan/history" element={<ScanHistory />} />
+            <Route path="/market-prices" element={<MarketPrices />} />
+            <Route path="/market-prices/crop/:name" element={<MarketPriceCrop />} />
+            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/calendar/crop/:name" element={<CalendarCrop />} />
+            <Route path="/community" element={<Community />} />
+            <Route path="/community/post" element={<CommunityPost />} />
+            <Route path="/community/post/:id" element={<CommunityPostDetail />} />
+            <Route path="/auth" element={<Auth />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

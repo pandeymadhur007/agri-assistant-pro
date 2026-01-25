@@ -49,6 +49,9 @@ export const translations: Record<Language, Record<string, string>> = {
     suggestedQ2: 'Best time to sow wheat?',
     suggestedQ3: 'PM-KISAN eligibility?',
     suggestedQ4: 'Cure for leaf blight?',
+    marketPrices: 'Market Prices',
+    calendar: 'Calendar',
+    community: 'Community',
   },
   hi: {
     appName: 'ग्राम AI',
@@ -89,6 +92,9 @@ export const translations: Record<Language, Record<string, string>> = {
     suggestedQ2: 'गेहूं बोने का सही समय?',
     suggestedQ3: 'PM-KISAN पात्रता?',
     suggestedQ4: 'पत्ती झुलसा का इलाज?',
+    marketPrices: 'मंडी भाव',
+    calendar: 'कैलेंडर',
+    community: 'समुदाय',
   },
   mr: {
     appName: 'ग्राम AI',
@@ -129,6 +135,9 @@ export const translations: Record<Language, Record<string, string>> = {
     suggestedQ2: 'गहू पेरण्याची वेळ?',
     suggestedQ3: 'PM-KISAN पात्रता?',
     suggestedQ4: 'पान करपा उपचार?',
+    marketPrices: 'बाजारभाव',
+    calendar: 'कॅलेंडर',
+    community: 'समुदाय',
   },
   te: {
     appName: 'గ్రామ్ AI',
@@ -169,6 +178,9 @@ export const translations: Record<Language, Record<string, string>> = {
     suggestedQ2: 'గోధుమ విత్తే సమయం?',
     suggestedQ3: 'PM-KISAN అర్హత?',
     suggestedQ4: 'ఆకు ఎండు చికిత్స?',
+    marketPrices: 'మార్కెట్ ధరలు',
+    calendar: 'క్యాలెండర్',
+    community: 'సంఘం',
   },
   ta: {
     appName: 'கிராம AI',
@@ -209,6 +221,9 @@ export const translations: Record<Language, Record<string, string>> = {
     suggestedQ2: 'கோதுமை விதைக்கும் நேரம்?',
     suggestedQ3: 'PM-KISAN தகுதி?',
     suggestedQ4: 'இலை எரிப்பு சிகிச்சை?',
+    marketPrices: 'சந்தை விலை',
+    calendar: 'நாட்காட்டி',
+    community: 'சமூகம்',
   },
   bn: {
     appName: 'গ্রাম AI',
@@ -249,6 +264,9 @@ export const translations: Record<Language, Record<string, string>> = {
     suggestedQ2: 'গম বোনার সময়?',
     suggestedQ3: 'PM-KISAN যোগ্যতা?',
     suggestedQ4: 'পাতা পোড়া চিকিৎসা?',
+    marketPrices: 'বাজার দর',
+    calendar: 'ক্যালেন্ডার',
+    community: 'সম্প্রদায়',
   },
 };
 
