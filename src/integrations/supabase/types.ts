@@ -62,6 +62,143 @@ export type Database = {
         }
         Relationships: []
       }
+      community_posts: {
+        Row: {
+          content: string
+          created_at: string
+          crop_category: string | null
+          id: string
+          image_url: string | null
+          is_resolved: boolean | null
+          reply_count: number | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          upvotes: number | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          crop_category?: string | null
+          id?: string
+          image_url?: string | null
+          is_resolved?: boolean | null
+          reply_count?: number | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          upvotes?: number | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          crop_category?: string | null
+          id?: string
+          image_url?: string | null
+          is_resolved?: boolean | null
+          reply_count?: number | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          upvotes?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      community_replies: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_accepted: boolean | null
+          is_expert_answer: boolean | null
+          post_id: string
+          upvotes: number | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_accepted?: boolean | null
+          is_expert_answer?: boolean | null
+          post_id: string
+          upvotes?: number | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_accepted?: boolean | null
+          is_expert_answer?: boolean | null
+          post_id?: string
+          upvotes?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_replies_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crop_calendar: {
+        Row: {
+          created_at: string
+          crop_name: string
+          crop_name_hi: string | null
+          fertilizer_months: number[] | null
+          harvest_end_month: number | null
+          harvest_start_month: number | null
+          id: string
+          irrigation_frequency: string | null
+          notes_en: string | null
+          notes_hi: string | null
+          pest_risk_months: number[] | null
+          region: string[] | null
+          sowing_end_month: number | null
+          sowing_start_month: number | null
+        }
+        Insert: {
+          created_at?: string
+          crop_name: string
+          crop_name_hi?: string | null
+          fertilizer_months?: number[] | null
+          harvest_end_month?: number | null
+          harvest_start_month?: number | null
+          id?: string
+          irrigation_frequency?: string | null
+          notes_en?: string | null
+          notes_hi?: string | null
+          pest_risk_months?: number[] | null
+          region?: string[] | null
+          sowing_end_month?: number | null
+          sowing_start_month?: number | null
+        }
+        Update: {
+          created_at?: string
+          crop_name?: string
+          crop_name_hi?: string | null
+          fertilizer_months?: number[] | null
+          harvest_end_month?: number | null
+          harvest_start_month?: number | null
+          id?: string
+          irrigation_frequency?: string | null
+          notes_en?: string | null
+          notes_hi?: string | null
+          pest_risk_months?: number[] | null
+          region?: string[] | null
+          sowing_end_month?: number | null
+          sowing_start_month?: number | null
+        }
+        Relationships: []
+      }
       crop_scans: {
         Row: {
           cause: string | null
@@ -155,6 +292,81 @@ export type Database = {
         }
         Relationships: []
       }
+      market_prices: {
+        Row: {
+          created_at: string
+          crop_name: string
+          crop_name_hi: string | null
+          district: string
+          id: string
+          mandi: string
+          price: number
+          price_date: string
+          price_trend: string | null
+          state: string
+          unit: string | null
+        }
+        Insert: {
+          created_at?: string
+          crop_name: string
+          crop_name_hi?: string | null
+          district: string
+          id?: string
+          mandi: string
+          price: number
+          price_date?: string
+          price_trend?: string | null
+          state: string
+          unit?: string | null
+        }
+        Update: {
+          created_at?: string
+          crop_name?: string
+          crop_name_hi?: string | null
+          district?: string
+          id?: string
+          mandi?: string
+          price?: number
+          price_date?: string
+          price_trend?: string | null
+          state?: string
+          unit?: string | null
+        }
+        Relationships: []
+      }
+      msp_rates: {
+        Row: {
+          created_at: string
+          crop_name: string
+          crop_name_hi: string | null
+          id: string
+          msp_price: number
+          season: string | null
+          unit: string | null
+          year: string
+        }
+        Insert: {
+          created_at?: string
+          crop_name: string
+          crop_name_hi?: string | null
+          id?: string
+          msp_price: number
+          season?: string | null
+          unit?: string | null
+          year: string
+        }
+        Update: {
+          created_at?: string
+          crop_name?: string
+          crop_name_hi?: string | null
+          id?: string
+          msp_price?: number
+          season?: string | null
+          unit?: string | null
+          year?: string
+        }
+        Relationships: []
+      }
       pests: {
         Row: {
           affected_crops: string[] | null
@@ -200,6 +412,45 @@ export type Database = {
           name_te?: string | null
           treatment_en?: string | null
           treatment_hi?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          district: string | null
+          id: string
+          language: string | null
+          phone: string | null
+          state: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          district?: string | null
+          id?: string
+          language?: string | null
+          phone?: string | null
+          state?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          district?: string | null
+          id?: string
+          language?: string | null
+          phone?: string | null
+          state?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -272,15 +523,120 @@ export type Database = {
         }
         Relationships: []
       }
+      upvotes: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string | null
+          reply_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id?: string | null
+          reply_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string | null
+          reply_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upvotes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upvotes_reply_id_fkey"
+            columns: ["reply_id"]
+            isOneToOne: false
+            referencedRelation: "community_replies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_reminders: {
+        Row: {
+          created_at: string
+          crop_name: string
+          id: string
+          is_completed: boolean | null
+          message: string | null
+          reminder_date: string
+          reminder_type: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          crop_name: string
+          id?: string
+          is_completed?: boolean | null
+          message?: string | null
+          reminder_date: string
+          reminder_type?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          crop_name?: string
+          id?: string
+          is_completed?: boolean | null
+          message?: string | null
+          reminder_date?: string
+          reminder_type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
       get_session_id: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "farmer" | "expert" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -407,6 +763,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["farmer", "expert", "admin"],
+    },
   },
 } as const
