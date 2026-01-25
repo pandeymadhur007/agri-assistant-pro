@@ -17,6 +17,9 @@ export function Navbar() {
   const navItems = [
     { path: '/', icon: Home, label: 'home' },
     { path: '/assistant', icon: MessageCircle, label: 'assistant' },
+    { path: '/market-prices', icon: FileText, label: 'marketPrices' },
+    { path: '/calendar', icon: FileText, label: 'calendar' },
+    { path: '/community', icon: FileText, label: 'community' },
     { path: '/schemes', icon: FileText, label: 'schemes' },
   ];
 
