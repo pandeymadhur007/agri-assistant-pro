@@ -115,9 +115,10 @@ If you cannot understand the audio or it's silent, return an empty string.`
     );
 
   } catch (error) {
-    console.error('Speech-to-text error:', error);
+    // Log error type only, not full message to avoid leaking internal details
+    console.error('Speech-to-text error:', error instanceof Error ? error.name : 'Unknown');
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ error: 'Unable to process audio' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
