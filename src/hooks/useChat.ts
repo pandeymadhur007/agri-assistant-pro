@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { getSessionId } from '@/lib/sessionSupabase';
+import { ensureAnonymousSession, cacheUserId } from '@/lib/sessionSupabase';
 
 export interface Message {
   role: 'user' | 'assistant';
@@ -11,6 +11,19 @@ export function useChat() {
   const { language } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+
+  // Initialize session on mount
+  useEffect(() => {
+    const initSession = async () => {
+      const id = await ensureAnonymousSession();
+      if (id) {
+        setSessionId(id);
+        cacheUserId(id);
+      }
+    };
+    initSession();
+  }, []);
 
   const sendMessage = useCallback(async (input: string) => {
     const userMsg: Message = { role: 'user', content: input };
@@ -31,13 +44,24 @@ export function useChat() {
     };
 
     try {
-      const sessionId = getSessionId();
+      // Ensure we have a session
+      const currentSessionId = sessionId || await ensureAnonymousSession();
+      if (!currentSessionId) {
+        throw new Error('Failed to create session');
+      }
+      
+      // Update session ID if it changed
+      if (currentSessionId !== sessionId) {
+        setSessionId(currentSessionId);
+        cacheUserId(currentSessionId);
+      }
+
       const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          'x-session-id': sessionId,
+          'x-session-id': currentSessionId,
         },
         body: JSON.stringify({ 
           messages: [...messages, userMsg],
@@ -89,7 +113,7 @@ export function useChat() {
     } finally {
       setIsLoading(false);
     }
-  }, [messages, language]);
+  }, [messages, language, sessionId]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);
