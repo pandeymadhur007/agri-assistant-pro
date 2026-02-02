@@ -21,6 +21,7 @@ export type Database = {
           id: string
           role: string
           session_id: string
+          user_id: string | null
         }
         Insert: {
           content: string
@@ -28,6 +29,7 @@ export type Database = {
           id?: string
           role: string
           session_id: string
+          user_id?: string | null
         }
         Update: {
           content?: string
@@ -35,6 +37,7 @@ export type Database = {
           id?: string
           role?: string
           session_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -45,6 +48,7 @@ export type Database = {
           language: string
           session_id: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -52,6 +56,7 @@ export type Database = {
           language?: string
           session_id: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -59,6 +64,7 @@ export type Database = {
           language?: string
           session_id?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -214,6 +220,7 @@ export type Database = {
           session_id: string
           severity: string | null
           treatment: string | null
+          user_id: string | null
         }
         Insert: {
           cause?: string | null
@@ -229,6 +236,7 @@ export type Database = {
           session_id: string
           severity?: string | null
           treatment?: string | null
+          user_id?: string | null
         }
         Update: {
           cause?: string | null
@@ -244,6 +252,7 @@ export type Database = {
           session_id?: string
           severity?: string | null
           treatment?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
