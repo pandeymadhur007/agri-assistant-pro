@@ -52,6 +52,8 @@ export const translations: Record<Language, Record<string, string>> = {
     marketPrices: 'Market Prices',
     calendar: 'Calendar',
     community: 'Community',
+    installApp: 'Install App',
+    installAppDesc: 'Works offline, no download needed',
   },
   hi: {
     appName: 'ग्राम AI',
@@ -95,6 +97,8 @@ export const translations: Record<Language, Record<string, string>> = {
     marketPrices: 'मंडी भाव',
     calendar: 'कैलेंडर',
     community: 'समुदाय',
+    installApp: 'ऐप इंस्टॉल करें',
+    installAppDesc: 'ऑफलाइन काम करता है, डाउनलोड की जरूरत नहीं',
   },
   mr: {
     appName: 'ग्राम AI',
@@ -138,6 +142,8 @@ export const translations: Record<Language, Record<string, string>> = {
     marketPrices: 'बाजारभाव',
     calendar: 'कॅलेंडर',
     community: 'समुदाय',
+    installApp: 'अॅप इंस्टॉल करा',
+    installAppDesc: 'ऑफलाइन काम करते, डाउनलोडची गरज नाही',
   },
   te: {
     appName: 'గ్రామ్ AI',
@@ -181,6 +187,8 @@ export const translations: Record<Language, Record<string, string>> = {
     marketPrices: 'మార్కెట్ ధరలు',
     calendar: 'క్యాలెండర్',
     community: 'సంఘం',
+    installApp: 'యాప్ ఇన్స్టాల్ చేయండి',
+    installAppDesc: 'ఆఫ్‌లైన్‌లో పనిచేస్తుంది, డౌన్‌లోడ్ అవసరం లేదు',
   },
   ta: {
     appName: 'கிராம AI',
@@ -224,6 +232,8 @@ export const translations: Record<Language, Record<string, string>> = {
     marketPrices: 'சந்தை விலை',
     calendar: 'நாட்காட்டி',
     community: 'சமூகம்',
+    installApp: 'ஆப்பை நிறுவு',
+    installAppDesc: 'ஆஃப்லைனில் வேலை செய்யும், பதிவிறக்கம் தேவையில்லை',
   },
   bn: {
     appName: 'গ্রাম AI',
@@ -267,6 +277,8 @@ export const translations: Record<Language, Record<string, string>> = {
     marketPrices: 'বাজার দর',
     calendar: 'ক্যালেন্ডার',
     community: 'সম্প্রদায়',
+    installApp: 'অ্যাপ ইনস্টল করুন',
+    installAppDesc: 'অফলাইনে কাজ করে, ডাউনলোডের প্রয়োজন নেই',
   },
 };
 
