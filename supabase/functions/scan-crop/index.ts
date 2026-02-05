@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-session-id",
 };
 
 const LANGUAGE_PROMPTS: Record<string, string> = {
@@ -59,9 +59,18 @@ serve(async (req) => {
 
     const systemPrompt = `You are an expert agricultural scientist and plant pathologist. Analyze the uploaded crop/plant image and identify any diseases, pests, or health issues. ${langPrompt}
 
-You MUST respond using the suggest_diagnosis tool with your analysis. Be specific and practical for Indian farmers.
+Provide your analysis as a JSON object with these exact fields:
+- is_plant: boolean (whether the image contains a plant/crop)
+- crop_name: string (name of the crop/plant identified)
+- disease_name: string (name of the disease or "Healthy" if no disease)
+- severity: string (one of: "healthy", "mild", "moderate", "severe", "critical")
+- cause: string (what causes this disease)
+- treatment: string (recommended treatment steps)
+- pesticide: string (specific pesticide/fungicide with dosage)
+- prevention: string (how to prevent this disease)
+- additional_notes: string (any additional helpful information)
 
-If the image is not a plant/crop, still use the tool but set is_plant to false and provide a helpful message.`;
+Be specific and practical for Indian farmers.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -71,6 +80,7 @@ If the image is not a plant/crop, still use the tool but set is_plant to false a
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
+        response_format: { type: "json_object" },
         messages: [
           { role: "system", content: systemPrompt },
           { 
@@ -78,7 +88,7 @@ If the image is not a plant/crop, still use the tool but set is_plant to false a
             content: [
               {
                 type: "text",
-                text: "Analyze this crop/plant image for diseases, pests, or health issues. Provide a complete diagnosis with treatment recommendations suitable for Indian farmers."
+                text: "Analyze this crop/plant image for diseases, pests, or health issues. Provide a complete diagnosis with treatment recommendations suitable for Indian farmers. Return your response as a JSON object."
               },
               {
                 type: "image_url",
@@ -89,65 +99,12 @@ If the image is not a plant/crop, still use the tool but set is_plant to false a
             ]
           }
         ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "suggest_diagnosis",
-              description: "Return the crop disease diagnosis and treatment recommendations",
-              parameters: {
-                type: "object",
-                properties: {
-                  is_plant: {
-                    type: "boolean",
-                    description: "Whether the image contains a plant/crop"
-                  },
-                  crop_name: {
-                    type: "string",
-                    description: "Name of the crop/plant identified (e.g., Tomato, Rice, Wheat)"
-                  },
-                  disease_name: {
-                    type: "string",
-                    description: "Name of the disease or issue detected (e.g., Leaf Blight, Powdery Mildew, Healthy)"
-                  },
-                  severity: {
-                    type: "string",
-                    enum: ["healthy", "mild", "moderate", "severe", "critical"],
-                    description: "Severity level of the disease"
-                  },
-                  cause: {
-                    type: "string",
-                    description: "What causes this disease (e.g., Fungal infection, Bacterial, Viral, Nutrient deficiency)"
-                  },
-                  treatment: {
-                    type: "string",
-                    description: "Recommended treatment steps for the farmer"
-                  },
-                  pesticide: {
-                    type: "string",
-                    description: "Specific pesticide, fungicide, or fertilizer to use with dosage"
-                  },
-                  prevention: {
-                    type: "string",
-                    description: "How to prevent this disease in the future"
-                  },
-                  additional_notes: {
-                    type: "string",
-                    description: "Any additional helpful information for the farmer"
-                  }
-                },
-                required: ["is_plant", "crop_name", "disease_name", "severity", "cause", "treatment", "pesticide", "prevention"],
-                additionalProperties: false
-              }
-            }
-          }
-        ],
-        tool_choice: { type: "function", function: { name: "suggest_diagnosis" } }
       }),
     });
 
     if (!response.ok) {
-      console.error("AI gateway error:", response.status);
+      const errorText = await response.text();
+      console.error("AI gateway error:", response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
@@ -170,17 +127,27 @@ If the image is not a plant/crop, still use the tool but set is_plant to false a
 
     const data = await response.json();
     
-    // Extract tool call result
-    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-    if (!toolCall || toolCall.function.name !== "suggest_diagnosis") {
-      console.error("Unexpected response format");
+    // Extract response content
+    const content = data.choices?.[0]?.message?.content;
+    if (!content) {
+      console.error("Unexpected response format - no content");
       return new Response(
         JSON.stringify({ error: "Failed to analyze image" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const diagnosis = JSON.parse(toolCall.function.arguments);
+    // Parse the JSON response
+    let diagnosis;
+    try {
+      diagnosis = JSON.parse(content);
+    } catch {
+      console.error("Failed to parse AI response as JSON");
+      return new Response(
+        JSON.stringify({ error: "Failed to analyze image" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     return new Response(
       JSON.stringify({ 
