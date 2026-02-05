@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, Upload, Loader2, History, Leaf } from 'lucide-react';
+import { Camera, Upload, Loader2, History, Leaf, Sparkles, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -11,14 +11,14 @@ import { Footer } from '@/components/Footer';
 
 const translations = {
   en: {
-    title: 'Crop Disease Scanner',
+    title: 'AI Crop Doctor',
     subtitle: 'Upload or capture a photo of your crop to detect diseases and get treatment advice',
     takePhoto: 'Take Photo',
     uploadImage: 'Upload Image',
     scanCrop: 'Scan Crop',
     viewHistory: 'View History',
     uploading: 'Uploading...',
-    analyzing: 'Analyzing...',
+    analyzing: 'AI is analyzing your crop...',
     dropHere: 'Drop image here or click to upload',
     supportedFormats: 'Supported: JPG, PNG, WebP (max 5MB)',
     tips: 'Tips for best results',
@@ -28,14 +28,14 @@ const translations = {
     tip4: 'Capture close-up shots of symptoms',
   },
   hi: {
-    title: 'फसल रोग स्कैनर',
+    title: 'AI फसल डॉक्टर',
     subtitle: 'रोग का पता लगाने और उपचार सलाह पाने के लिए अपनी फसल की फोटो अपलोड करें',
     takePhoto: 'फोटो लें',
     uploadImage: 'इमेज अपलोड करें',
     scanCrop: 'फसल स्कैन करें',
     viewHistory: 'इतिहास देखें',
     uploading: 'अपलोड हो रहा है...',
-    analyzing: 'विश्लेषण हो रहा है...',
+    analyzing: 'AI आपकी फसल का विश्लेषण कर रहा है...',
     dropHere: 'यहाँ इमेज डालें या अपलोड करने के लिए क्लिक करें',
     supportedFormats: 'समर्थित: JPG, PNG, WebP (अधिकतम 5MB)',
     tips: 'बेहतर परिणामों के लिए टिप्स',
@@ -45,14 +45,14 @@ const translations = {
     tip4: 'लक्षणों की क्लोज-अप तस्वीरें लें',
   },
   mr: {
-    title: 'पीक रोग स्कॅनर',
+    title: 'AI पीक डॉक्टर',
     subtitle: 'रोग शोधण्यासाठी आणि उपचार सल्ला मिळवण्यासाठी तुमच्या पिकाचा फोटो अपलोड करा',
     takePhoto: 'फोटो काढा',
     uploadImage: 'इमेज अपलोड करा',
     scanCrop: 'पीक स्कॅन करा',
     viewHistory: 'इतिहास पहा',
     uploading: 'अपलोड होत आहे...',
-    analyzing: 'विश्लेषण होत आहे...',
+    analyzing: 'AI तुमच्या पिकाचे विश्लेषण करत आहे...',
     dropHere: 'येथे इमेज टाका किंवा अपलोड करण्यासाठी क्लिक करा',
     supportedFormats: 'समर्थित: JPG, PNG, WebP (कमाल 5MB)',
     tips: 'चांगल्या परिणामांसाठी टिप्स',
@@ -62,14 +62,14 @@ const translations = {
     tip4: 'लक्षणांचे क्लोज-अप फोटो घ्या',
   },
   te: {
-    title: 'పంట వ్యాధి స్కానర్',
+    title: 'AI పంట డాక్టర్',
     subtitle: 'వ్యాధులను గుర్తించడానికి మరియు చికిత్స సలహా పొందడానికి మీ పంట ఫోటోను అప్‌లోడ్ చేయండి',
     takePhoto: 'ఫోటో తీయండి',
     uploadImage: 'చిత్రాన్ని అప్‌లోడ్ చేయండి',
     scanCrop: 'పంటను స్కాన్ చేయండి',
     viewHistory: 'చరిత్ర చూడండి',
     uploading: 'అప్‌లోడ్ అవుతోంది...',
-    analyzing: 'విశ్లేషిస్తోంది...',
+    analyzing: 'AI మీ పంటను విశ్లేషిస్తోంది...',
     dropHere: 'ఇక్కడ చిత్రాన్ని వదలండి లేదా అప్‌లోడ్ చేయడానికి క్లిక్ చేయండి',
     supportedFormats: 'సపోర్ట్: JPG, PNG, WebP (గరిష్టంగా 5MB)',
     tips: 'మంచి ఫలితాల కోసం చిట్కాలు',
@@ -79,14 +79,14 @@ const translations = {
     tip4: 'లక్షణాల క్లోజ్-అప్ షాట్లు తీయండి',
   },
   ta: {
-    title: 'பயிர் நோய் ஸ்கேனர்',
+    title: 'AI பயிர் மருத்துவர்',
     subtitle: 'நோய்களைக் கண்டறிய மற்றும் சிகிச்சை ஆலோசனை பெற உங்கள் பயிரின் புகைப்படத்தை பதிவேற்றவும்',
     takePhoto: 'புகைப்படம் எடுக்கவும்',
     uploadImage: 'படத்தை பதிவேற்றவும்',
     scanCrop: 'பயிரை ஸ்கேன் செய்யவும்',
     viewHistory: 'வரலாற்றைக் காண்க',
     uploading: 'பதிவேற்றுகிறது...',
-    analyzing: 'பகுப்பாய்வு செய்கிறது...',
+    analyzing: 'AI உங்கள் பயிரை பகுப்பாய்வு செய்கிறது...',
     dropHere: 'படத்தை இங்கே விடுங்கள் அல்லது பதிவேற்ற கிளிக் செய்யவும்',
     supportedFormats: 'ஆதரவு: JPG, PNG, WebP (அதிகபட்சம் 5MB)',
     tips: 'சிறந்த முடிவுகளுக்கான குறிப்புகள்',
@@ -96,14 +96,14 @@ const translations = {
     tip4: 'அறிகுறிகளின் க்ளோஸ்-அப் ஷாட்களை எடுங்கள்',
   },
   bn: {
-    title: 'ফসল রোগ স্ক্যানার',
+    title: 'AI ফসল ডাক্তার',
     subtitle: 'রোগ সনাক্ত করতে এবং চিকিৎসার পরামর্শ পেতে আপনার ফসলের ছবি আপলোড করুন',
     takePhoto: 'ছবি তুলুন',
     uploadImage: 'ছবি আপলোড করুন',
     scanCrop: 'ফসল স্ক্যান করুন',
     viewHistory: 'ইতিহাস দেখুন',
     uploading: 'আপলোড হচ্ছে...',
-    analyzing: 'বিশ্লেষণ হচ্ছে...',
+    analyzing: 'AI আপনার ফসল বিশ্লেষণ করছে...',
     dropHere: 'এখানে ছবি ফেলুন বা আপলোড করতে ক্লিক করুন',
     supportedFormats: 'সমর্থিত: JPG, PNG, WebP (সর্বোচ্চ 5MB)',
     tips: 'ভালো ফলাফলের জন্য টিপস',
@@ -205,68 +205,80 @@ const Scan = () => {
   const isLoading = isUploading || isAnalyzing;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50 to-white flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Leaf className="w-8 h-8 text-green-600" />
+            <div className="relative inline-block mb-4">
+              <div className="w-20 h-20 bg-gradient-to-br from-primary to-primary/80 rounded-3xl flex items-center justify-center shadow-xl shadow-primary/25">
+                <Leaf className="w-10 h-10 text-primary-foreground" />
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-accent rounded-xl flex items-center justify-center shadow-lg">
+                <Sparkles className="w-4 h-4 text-accent-foreground" />
+              </div>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{t.title}</h1>
-            <p className="text-gray-600">{t.subtitle}</p>
+            <h1 className="text-3xl md:text-4xl font-bold mb-2 gradient-text">{t.title}</h1>
+            <p className="text-muted-foreground max-w-md mx-auto">{t.subtitle}</p>
           </div>
 
           {/* Upload Area */}
-          <Card className="mb-6">
+          <Card className="mb-6 border-0 shadow-xl">
             <CardContent className="p-6">
               {isLoading ? (
                 <div className="text-center py-12">
-                  <Loader2 className="w-12 h-12 animate-spin text-green-600 mx-auto mb-4" />
-                  <p className="text-lg font-medium text-gray-700">
+                  <div className="relative inline-block">
+                    <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                    </div>
+                    {previewUrl && (
+                      <img 
+                        src={previewUrl} 
+                        alt="Preview" 
+                        className="absolute -bottom-2 -right-2 w-12 h-12 object-cover rounded-xl border-4 border-background shadow-lg"
+                      />
+                    )}
+                  </div>
+                  <p className="text-lg font-medium text-foreground mt-6">
                     {isUploading ? t.uploading : t.analyzing}
                   </p>
-                  {previewUrl && (
-                    <img 
-                      src={previewUrl} 
-                      alt="Preview" 
-                      className="w-32 h-32 object-cover rounded-lg mx-auto mt-4"
-                    />
-                  )}
+                  <p className="text-sm text-muted-foreground mt-2">This may take a few seconds...</p>
                 </div>
               ) : (
                 <>
                   {/* Drop Zone */}
                   <div
-                    className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer ${
+                    className={`border-2 border-dashed rounded-2xl p-10 text-center transition-all cursor-pointer ${
                       isDragging 
-                        ? 'border-green-500 bg-green-50' 
-                        : 'border-gray-300 hover:border-green-400'
+                        ? 'border-primary bg-primary/5 scale-[1.02]' 
+                        : 'border-border hover:border-primary/50 hover:bg-secondary/30'
                     }`}
                     onDrop={handleDrop}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600 mb-2">{t.dropHere}</p>
-                    <p className="text-sm text-gray-400">{t.supportedFormats}</p>
+                    <div className="w-16 h-16 bg-secondary rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <Upload className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                    <p className="text-foreground font-medium mb-2">{t.dropHere}</p>
+                    <p className="text-sm text-muted-foreground">{t.supportedFormats}</p>
                   </div>
 
                   {/* Action Buttons */}
                   <div className="grid grid-cols-2 gap-4 mt-6">
                     <Button
                       variant="outline"
-                      className="h-14 text-lg"
+                      className="h-14 text-base rounded-xl border-2 hover:bg-secondary"
                       onClick={() => cameraInputRef.current?.click()}
                     >
                       <Camera className="w-5 h-5 mr-2" />
                       {t.takePhoto}
                     </Button>
                     <Button
-                      className="h-14 text-lg bg-green-600 hover:bg-green-700"
+                      className="h-14 text-base rounded-xl bg-gradient-to-r from-primary to-primary/90 hover:shadow-lg hover:shadow-primary/25 transition-all"
                       onClick={() => fileInputRef.current?.click()}
                     >
                       <Upload className="w-5 h-5 mr-2" />
@@ -298,7 +310,7 @@ const Scan = () => {
           {/* History Button */}
           <Button
             variant="outline"
-            className="w-full mb-6"
+            className="w-full mb-6 h-12 rounded-xl border-2"
             onClick={() => navigate('/scan/history')}
           >
             <History className="w-5 h-5 mr-2" />
@@ -306,26 +318,19 @@ const Scan = () => {
           </Button>
 
           {/* Tips Card */}
-          <Card className="bg-green-50 border-green-200">
+          <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
             <CardContent className="p-6">
-              <h3 className="font-semibold text-green-800 mb-3">{t.tips}</h3>
-              <ul className="space-y-2 text-sm text-green-700">
-                <li className="flex items-start gap-2">
-                  <span className="text-green-500">•</span>
-                  {t.tip1}
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-500">•</span>
-                  {t.tip2}
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-500">•</span>
-                  {t.tip3}
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-500">•</span>
-                  {t.tip4}
-                </li>
+              <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                <span className="text-lg">💡</span>
+                {t.tips}
+              </h3>
+              <ul className="space-y-3">
+                {[t.tip1, t.tip2, t.tip3, t.tip4].map((tip, i) => (
+                  <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
+                    <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                    {tip}
+                  </li>
+                ))}
               </ul>
             </CardContent>
           </Card>

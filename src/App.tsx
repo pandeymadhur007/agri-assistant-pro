@@ -21,10 +21,7 @@ import Community from "./pages/Community";
 import CommunityPost from "./pages/CommunityPost";
 import CommunityPostDetail from "./pages/CommunityPostDetail";
 import Auth from "./pages/Auth";
-import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
-
-import { OfflineIndicator } from "@/components/OfflineIndicator";
 
 const queryClient = new QueryClient();
 
@@ -34,7 +31,6 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <OfflineIndicator />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
@@ -56,7 +52,6 @@ const App = () => (
             <Route path="/community/post" element={<CommunityPost />} />
             <Route path="/community/post/:id" element={<CommunityPostDetail />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/install" element={<Install />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
