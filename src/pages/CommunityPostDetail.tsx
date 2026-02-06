@@ -110,8 +110,9 @@ const CommunityPostDetail = () => {
       const uniqueIds = [...new Set(userIds)];
       
       if (uniqueIds.length > 0) {
+        // Use public_profiles view for privacy - excludes phone numbers
         const { data: profilesData } = await supabase
-          .from('profiles')
+          .from('public_profiles')
           .select('user_id, display_name')
           .in('user_id', uniqueIds);
         
