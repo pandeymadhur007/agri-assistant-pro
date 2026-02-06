@@ -12,6 +12,10 @@ import { ArrowLeft, ThumbsUp, MessageSquare, Send, Loader2, Clock, BadgeCheck, C
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 
+// Validation constants for replies
+const REPLY_MIN_LENGTH = 10;
+const REPLY_MAX_LENGTH = 3000;
+
 interface CommunityPost {
   id: string;
   title: string;
@@ -176,8 +180,38 @@ const CommunityPostDetail = () => {
     }
   };
 
+  const isReplyValid = () => {
+    const trimmedContent = replyContent.trim();
+    return trimmedContent.length >= REPLY_MIN_LENGTH && trimmedContent.length <= REPLY_MAX_LENGTH;
+  };
+
   const handleReply = async () => {
-    if (!user || !replyContent.trim() || !id) return;
+    if (!user || !id) return;
+
+    const trimmedContent = replyContent.trim();
+    
+    // Validate reply
+    if (trimmedContent.length < REPLY_MIN_LENGTH) {
+      toast({
+        title: language === 'hi' ? 'सत्यापन त्रुटि' : 'Validation Error',
+        description: language === 'hi' 
+          ? `जवाब कम से कम ${REPLY_MIN_LENGTH} अक्षरों का होना चाहिए।`
+          : `Reply must be at least ${REPLY_MIN_LENGTH} characters.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    if (trimmedContent.length > REPLY_MAX_LENGTH) {
+      toast({
+        title: language === 'hi' ? 'सत्यापन त्रुटि' : 'Validation Error',
+        description: language === 'hi'
+          ? `जवाब ${REPLY_MAX_LENGTH} अक्षरों से अधिक नहीं हो सकता।`
+          : `Reply cannot exceed ${REPLY_MAX_LENGTH} characters.`,
+        variant: 'destructive',
+      });
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -186,7 +220,7 @@ const CommunityPostDetail = () => {
       await supabase.from('community_replies').insert({
         post_id: id,
         user_id: user.id,
-        content: replyContent.trim(),
+        content: trimmedContent.slice(0, REPLY_MAX_LENGTH),
         is_expert_answer: isExpert,
       });
 
@@ -334,15 +368,20 @@ const CommunityPostDetail = () => {
           <CardContent className="pt-6">
             <Textarea
               value={replyContent}
-              onChange={(e) => setReplyContent(e.target.value)}
+              onChange={(e) => setReplyContent(e.target.value.slice(0, REPLY_MAX_LENGTH))}
               placeholder={l.writeReply}
               rows={3}
               disabled={!user}
+              minLength={REPLY_MIN_LENGTH}
+              maxLength={REPLY_MAX_LENGTH}
             />
-            <div className="mt-3 flex justify-end">
+            <div className="mt-2 flex justify-between items-center">
+              <p className="text-xs text-muted-foreground">
+                {replyContent.length}/{REPLY_MAX_LENGTH} ({language === 'hi' ? `न्यूनतम ${REPLY_MIN_LENGTH}` : `min ${REPLY_MIN_LENGTH}`})
+              </p>
               <Button
                 onClick={user ? handleReply : () => navigate('/auth')}
-                disabled={submitting || (user && !replyContent.trim())}
+                disabled={submitting || (user && !isReplyValid())}
                 className="gap-2"
               >
                 {submitting ? (
