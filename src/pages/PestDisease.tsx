@@ -9,6 +9,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 
+// Import pest images
+import bollwormImage from '@/assets/pests/bollworm.jpg';
+import whiteflyImage from '@/assets/pests/whitefly.jpg';
 const translations = {
   en: {
     title: 'Pest & Disease Guide',
@@ -208,7 +211,7 @@ const pests = [
     id: 3,
     name: { en: 'Bollworm', hi: 'बॉलवर्म', mr: 'बोंडअळी', te: 'కాయ తొలిచే పురుగు', ta: 'காய்ப்புழு', bn: 'বলওয়ার্ম' },
     affectedCrops: ['Cotton', 'Chickpea', 'Tomato', 'Okra'],
-    image: 'https://images.unsplash.com/photo-1594071318976-2859628d34f3?w=400&h=300&fit=crop',
+    image: bollwormImage,
     damage: {
       en: 'Larvae bore into bolls/fruits/pods causing shedding, rotting, and major yield loss (up to 50%)',
       hi: 'लार्वा बॉल/फल/फली में छेद करके गिरना, सड़न और बड़ी उपज हानि (50% तक) करते हैं',
@@ -227,7 +230,7 @@ const pests = [
     id: 4,
     name: { en: 'Whitefly', hi: 'सफेद मक्खी', mr: 'पांढरी माशी', te: 'తెల్ల దోమ', ta: 'வெள்ளை ஈ', bn: 'সাদা মাছি' },
     affectedCrops: ['Cotton', 'Tomato', 'Brinjal', 'Chilli'],
-    image: 'https://images.unsplash.com/photo-1591824438708-ce405f36ba3d?w=400&h=300&fit=crop',
+    image: whiteflyImage,
     damage: {
       en: 'Suck sap causing leaf yellowing, sooty mold growth, transmit deadly viral diseases like leaf curl',
       hi: 'रस चूसकर पत्ती का पीलापन, काली फफूंद वृद्धि, लीफ कर्ल जैसी घातक वायरल बीमारियां फैलाते हैं',
