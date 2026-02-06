@@ -69,8 +69,9 @@ const Community = () => {
         // Fetch profiles for all post authors
         const userIds = [...new Set(postsData.map(p => p.user_id))];
         if (userIds.length > 0) {
+          // Use public_profiles view for privacy - excludes phone numbers
           const { data: profilesData } = await supabase
-            .from('profiles')
+            .from('public_profiles')
             .select('user_id, display_name')
             .in('user_id', userIds);
           
