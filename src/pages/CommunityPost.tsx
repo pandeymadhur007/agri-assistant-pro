@@ -13,6 +13,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft, Send, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
+// Validation constants
+const TITLE_MIN_LENGTH = 10;
+const TITLE_MAX_LENGTH = 200;
+const CONTENT_MIN_LENGTH = 20;
+const CONTENT_MAX_LENGTH = 5000;
+const MAX_TAGS = 5;
+const TAG_MAX_LENGTH = 30;
+
 const CROP_CATEGORIES = [
   { en: 'Wheat', hi: 'गेहूं' },
   { en: 'Rice/Paddy', hi: 'धान' },
@@ -49,18 +57,83 @@ const CommunityNewPost = () => {
     setUser(user);
   };
 
+  // Validation helper
+  const validateForm = (): string | null => {
+    const trimmedTitle = title.trim();
+    const trimmedContent = content.trim();
+    
+    if (trimmedTitle.length < TITLE_MIN_LENGTH) {
+      return language === 'hi' 
+        ? `शीर्षक कम से कम ${TITLE_MIN_LENGTH} अक्षरों का होना चाहिए।`
+        : `Title must be at least ${TITLE_MIN_LENGTH} characters.`;
+    }
+    if (trimmedTitle.length > TITLE_MAX_LENGTH) {
+      return language === 'hi'
+        ? `शीर्षक ${TITLE_MAX_LENGTH} अक्षरों से अधिक नहीं हो सकता।`
+        : `Title cannot exceed ${TITLE_MAX_LENGTH} characters.`;
+    }
+    if (trimmedContent.length < CONTENT_MIN_LENGTH) {
+      return language === 'hi'
+        ? `विवरण कम से कम ${CONTENT_MIN_LENGTH} अक्षरों का होना चाहिए।`
+        : `Details must be at least ${CONTENT_MIN_LENGTH} characters.`;
+    }
+    if (trimmedContent.length > CONTENT_MAX_LENGTH) {
+      return language === 'hi'
+        ? `विवरण ${CONTENT_MAX_LENGTH} अक्षरों से अधिक नहीं हो सकता।`
+        : `Details cannot exceed ${CONTENT_MAX_LENGTH} characters.`;
+    }
+    
+    const tagsArray = tags.split(',').map(t => t.trim()).filter(t => t);
+    if (tagsArray.length > MAX_TAGS) {
+      return language === 'hi'
+        ? `अधिकतम ${MAX_TAGS} टैग की अनुमति है।`
+        : `Maximum ${MAX_TAGS} tags allowed.`;
+    }
+    if (tagsArray.some(t => t.length > TAG_MAX_LENGTH)) {
+      return language === 'hi'
+        ? `प्रत्येक टैग ${TAG_MAX_LENGTH} अक्षरों से कम होना चाहिए।`
+        : `Each tag must be less than ${TAG_MAX_LENGTH} characters.`;
+    }
+    
+    return null;
+  };
+
+  const isFormValid = () => {
+    const trimmedTitle = title.trim();
+    const trimmedContent = content.trim();
+    return trimmedTitle.length >= TITLE_MIN_LENGTH && 
+           trimmedTitle.length <= TITLE_MAX_LENGTH &&
+           trimmedContent.length >= CONTENT_MIN_LENGTH && 
+           trimmedContent.length <= CONTENT_MAX_LENGTH;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !title.trim() || !content.trim()) return;
+    if (!user) return;
+
+    const validationError = validateForm();
+    if (validationError) {
+      toast({
+        title: language === 'hi' ? 'सत्यापन त्रुटि' : 'Validation Error',
+        description: validationError,
+        variant: 'destructive',
+      });
+      return;
+    }
 
     setLoading(true);
     try {
-      const tagsArray = tags.split(',').map(t => t.trim()).filter(t => t);
+      // Process and validate tags
+      const tagsArray = tags
+        .split(',')
+        .map(t => t.trim().slice(0, TAG_MAX_LENGTH))
+        .filter(t => t)
+        .slice(0, MAX_TAGS);
       
       const { error } = await supabase.from('community_posts').insert({
         user_id: user.id,
-        title: title.trim(),
-        content: content.trim(),
+        title: title.trim().slice(0, TITLE_MAX_LENGTH),
+        content: content.trim().slice(0, CONTENT_MAX_LENGTH),
         crop_category: cropCategory || null,
         tags: tagsArray.length > 0 ? tagsArray : null,
       });
@@ -142,10 +215,15 @@ const CommunityNewPost = () => {
                 <Input
                   id="title"
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  onChange={(e) => setTitle(e.target.value.slice(0, TITLE_MAX_LENGTH))}
                   placeholder={l.questionTitlePlaceholder}
                   required
+                  minLength={TITLE_MIN_LENGTH}
+                  maxLength={TITLE_MAX_LENGTH}
                 />
+                <p className="text-xs text-muted-foreground">
+                  {title.length}/{TITLE_MAX_LENGTH} ({language === 'hi' ? `न्यूनतम ${TITLE_MIN_LENGTH}` : `min ${TITLE_MIN_LENGTH}`})
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -153,11 +231,16 @@ const CommunityNewPost = () => {
                 <Textarea
                   id="content"
                   value={content}
-                  onChange={(e) => setContent(e.target.value)}
+                  onChange={(e) => setContent(e.target.value.slice(0, CONTENT_MAX_LENGTH))}
                   placeholder={l.detailsPlaceholder}
                   rows={6}
                   required
+                  minLength={CONTENT_MIN_LENGTH}
+                  maxLength={CONTENT_MAX_LENGTH}
                 />
+                <p className="text-xs text-muted-foreground">
+                  {content.length}/{CONTENT_MAX_LENGTH} ({language === 'hi' ? `न्यूनतम ${CONTENT_MIN_LENGTH}` : `min ${CONTENT_MIN_LENGTH}`})
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -186,7 +269,7 @@ const CommunityNewPost = () => {
                 />
               </div>
 
-              <Button type="submit" className="w-full gap-2" disabled={loading || !title.trim() || !content.trim()}>
+              <Button type="submit" className="w-full gap-2" disabled={loading || !isFormValid()}>
                 {loading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
