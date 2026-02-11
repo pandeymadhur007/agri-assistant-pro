@@ -7,8 +7,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TrendingUp, TrendingDown, Minus, Store, MapPin, Search, IndianRupee, Wheat } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Store, MapPin, Search, IndianRupee, Wheat, RefreshCw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 interface MarketPrice {
   id: string;
@@ -31,9 +33,11 @@ interface MSPRate {
 const MarketPrices = () => {
   const { language, t } = useLanguage();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [prices, setPrices] = useState<MarketPrice[]>([]);
   const [mspRates, setMspRates] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedState, setSelectedState] = useState<string>('all');
   const [selectedCrop, setSelectedCrop] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -62,6 +66,33 @@ const MarketPrices = () => {
       console.error('Error fetching market data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const refreshPrices = async () => {
+    setRefreshing(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fetch-market-prices`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+        }
+      );
+      const data = await response.json();
+      if (response.ok && data.success) {
+        toast({ title: language === 'hi' ? 'भाव अपडेट हुए' : 'Prices Updated', description: `${data.count} prices fetched from government mandi data` });
+        await fetchData();
+      } else {
+        toast({ title: 'Update failed', description: data.error || 'Could not fetch latest prices', variant: 'destructive' });
+      }
+    } catch (err) {
+      toast({ title: 'Error', description: 'Failed to refresh prices', variant: 'destructive' });
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -131,14 +162,26 @@ const MarketPrices = () => {
       <main className="flex-1 container mx-auto px-4 py-6">
         {/* Header */}
         <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-full bg-primary/10">
-              <Store className="h-6 w-6 text-primary" />
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-full bg-primary/10">
+                <Store className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-semibold text-foreground">{l.title}</h1>
+                <p className="text-sm text-muted-foreground">{l.subtitle}</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-semibold text-foreground">{l.title}</h1>
-              <p className="text-sm text-muted-foreground">{l.subtitle}</p>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={refreshPrices}
+              disabled={refreshing}
+              className="shrink-0"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+              {refreshing ? (language === 'hi' ? 'अपडेट हो रहा...' : 'Updating...') : (language === 'hi' ? 'लाइव भाव लाएं' : 'Fetch Live Prices')}
+            </Button>
           </div>
         </div>
 
