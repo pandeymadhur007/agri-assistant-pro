@@ -12,6 +12,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 // Import pest images
 import bollwormImage from '@/assets/pests/bollworm.jpg';
 import whiteflyImage from '@/assets/pests/whitefly.jpg';
+import stemBorerImage from '@/assets/pests/stem-borer.jpg';
+import aphidsImage from '@/assets/pests/aphids.jpg';
 const translations = {
   en: {
     title: 'Pest & Disease Guide',
@@ -173,7 +175,7 @@ const pests = [
     id: 1,
     name: { en: 'Stem Borer', hi: 'तना छेदक', mr: 'खोड किडा', te: 'కాండం తొలిచే పురుగు', ta: 'தண்டுத் துளைப்பான்', bn: 'কান্ড ছিদ্রকারী' },
     affectedCrops: ['Rice', 'Maize', 'Sugarcane'],
-    image: 'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=400&h=300&fit=crop',
+    image: stemBorerImage,
     damage: {
       en: 'Larvae bore into stems causing "dead heart" in young plants and "white ear" in mature plants',
       hi: 'लार्वा तनों में छेद करके युवा पौधों में "डेड हार्ट" और परिपक्व पौधों में "वाइट ईयर" का कारण बनता है',
@@ -192,7 +194,7 @@ const pests = [
     id: 2,
     name: { en: 'Aphids', hi: 'माहू', mr: 'मावा', te: 'పేను', ta: 'அசுவினி', bn: 'জাব পোকা' },
     affectedCrops: ['Mustard', 'Wheat', 'Vegetables', 'Cotton'],
-    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop',
+    image: aphidsImage,
     damage: {
       en: 'Suck plant sap causing yellowing, curling leaves, stunted growth, and transmit viral diseases',
       hi: 'पौधे का रस चूसकर पीलापन, पत्तियों का मुड़ना, रुकी हुई वृद्धि और वायरल रोग फैलाते हैं',
