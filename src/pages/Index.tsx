@@ -24,9 +24,9 @@ const Index = () => {
   ];
 
   const featureCards = [
-    { icon: Camera, title: 'AI Crop Doctor', desc: 'Instant disease detection with treatment recommendations', gradient: 'from-emerald-400 to-green-600' },
-    { icon: TrendingUp, title: 'Live Mandi Prices', desc: 'Real-time market prices from mandis across India', gradient: 'from-orange-400 to-amber-600' },
-    { icon: CloudSun, title: 'Smart Weather', desc: 'Farm-focused forecasts with crop advisory', gradient: 'from-blue-400 to-indigo-600' },
+    { icon: Camera, title: 'AI Crop Doctor', desc: 'Instant disease detection with treatment recommendations', gradient: 'from-emerald-400 to-green-600', to: '/scan' },
+    { icon: TrendingUp, title: 'Live Mandi Prices', desc: 'Real-time market prices from mandis across India', gradient: 'from-orange-400 to-amber-600', to: '/market-prices' },
+    { icon: CloudSun, title: 'Smart Weather', desc: 'Farm-focused forecasts with crop advisory', gradient: 'from-blue-400 to-indigo-600', to: '/weather' },
   ];
 
   return (
@@ -165,27 +165,29 @@ const Index = () => {
               <StaggerContainer className="grid md:grid-cols-3 gap-6">
                 {featureCards.map((feature, index) => (
                   <StaggerItem key={feature.title}>
-                    <motion.div
-                      whileHover={{ y: -6 }}
-                      transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                    >
-                      <Card className="border-0 shadow-lg card-gradient h-full">
-                        <CardContent className="p-6 text-center">
-                          <motion.div 
-                            className={cn(
-                              'w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg bg-gradient-to-br',
-                              feature.gradient
-                            )}
-                            whileHover={{ scale: 1.1, rotate: -5 }}
-                            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                          >
-                            <feature.icon className="w-8 h-8 text-white" />
-                          </motion.div>
-                          <h3 className="font-bold text-lg mb-2">{feature.title}</h3>
-                          <p className="text-muted-foreground text-sm">{feature.desc}</p>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
+                    <Link to={feature.to}>
+                      <motion.div
+                        whileHover={{ y: -6 }}
+                        transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                      >
+                        <Card className="border-0 shadow-lg card-gradient h-full cursor-pointer">
+                          <CardContent className="p-6 text-center">
+                            <motion.div 
+                              className={cn(
+                                'w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg bg-gradient-to-br',
+                                feature.gradient
+                              )}
+                              whileHover={{ scale: 1.1, rotate: -5 }}
+                              transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                            >
+                              <feature.icon className="w-8 h-8 text-white" />
+                            </motion.div>
+                            <h3 className="font-bold text-lg mb-2">{feature.title}</h3>
+                            <p className="text-muted-foreground text-sm">{feature.desc}</p>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    </Link>
                   </StaggerItem>
                 ))}
               </StaggerContainer>
