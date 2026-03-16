@@ -151,20 +151,9 @@ const Scan = () => {
     reader.onload = (e) => setPreviewUrl(e.target?.result as string);
     reader.readAsDataURL(file);
 
-    // Upload image
-    const imageUrl = await uploadImage(file);
-    if (!imageUrl) {
-      toast({
-        title: 'Upload failed',
-        description: error || 'Failed to upload image',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    // Analyze image
-    const diagnosis = await analyzeImage(imageUrl);
-    if (!diagnosis) {
+    // Scan image (upload + analyze in one step)
+    const result = await scanImage(file);
+    if (!result) {
       toast({
         title: 'Analysis failed',
         description: error || 'Failed to analyze image',
@@ -174,14 +163,14 @@ const Scan = () => {
     }
 
     // Save result
-    const scanId = await saveScanResult(imageUrl, diagnosis);
+    const scanId = await saveScanResult(result.imageDataUrl, result.diagnosis);
     
     // Navigate to result page
     navigate('/scan/result', { 
       state: { 
         scanId,
-        imageUrl, 
-        diagnosis,
+        imageUrl: result.imageDataUrl, 
+        diagnosis: result.diagnosis,
       } 
     });
   };
