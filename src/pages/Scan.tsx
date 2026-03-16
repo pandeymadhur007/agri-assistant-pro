@@ -120,7 +120,7 @@ const Scan = () => {
   const { language } = useLanguage();
   const t = translations[language as keyof typeof translations] || translations.en;
   
-  const { uploadImage, analyzeImage, saveScanResult, isUploading, isAnalyzing, error } = useCropScan();
+  const { scanImage, saveScanResult, isAnalyzing, error } = useCropScan();
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
