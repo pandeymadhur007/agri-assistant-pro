@@ -231,7 +231,7 @@ const Scan = () => {
                     )}
                   </div>
                   <p className="text-lg font-medium text-foreground mt-6">
-                    {isUploading ? t.uploading : t.analyzing}
+                    {t.analyzing}
                   </p>
                   <p className="text-sm text-muted-foreground mt-2">This may take a few seconds...</p>
                 </div>
