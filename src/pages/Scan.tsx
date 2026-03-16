@@ -191,7 +191,7 @@ const Scan = () => {
     setIsDragging(false);
   };
 
-  const isLoading = isUploading || isAnalyzing;
+  const isLoading = isAnalyzing;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
