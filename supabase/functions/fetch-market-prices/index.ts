@@ -98,17 +98,39 @@ Make prices realistic per quintal: Rice 2000-3500, Wheat 2200-2800, Onion 1500-4
       );
     }
 
-    const priceRows = (parsed.prices || []).map((p: any) => ({
-      crop_name: p.crop_name,
-      crop_name_hi: p.crop_name_hi || null,
-      state: p.state,
-      district: p.district,
-      mandi: p.mandi,
-      price: p.price,
-      unit: "quintal",
-      price_date: today,
-      price_trend: p.price_trend || null,
-    }));
+    // Price validation ranges per crop
+    const priceRanges: Record<string, [number, number]> = {
+      "Sugarcane": [200, 500],
+      "Rice": [1500, 4500],
+      "Wheat": [1800, 3500],
+      "Onion": [800, 6000],
+      "Tomato": [500, 8000],
+      "Potato": [500, 3500],
+      "Cotton": [5000, 9000],
+      "Soyabean": [3000, 7000],
+      "Maize": [1200, 3000],
+    };
+
+    const priceRows = (parsed.prices || [])
+      .filter((p: any) => {
+        const range = priceRanges[p.crop_name];
+        if (range && (p.price < range[0] || p.price > range[1])) {
+          console.warn(`Rejected outlier: ${p.crop_name} ₹${p.price} (valid: ${range[0]}-${range[1]})`);
+          return false;
+        }
+        return p.crop_name && p.state && p.district && p.mandi && p.price > 0;
+      })
+      .map((p: any) => ({
+        crop_name: p.crop_name,
+        crop_name_hi: p.crop_name_hi || null,
+        state: p.state,
+        district: p.district,
+        mandi: p.mandi,
+        price: p.price,
+        unit: "quintal",
+        price_date: today,
+        price_trend: p.price_trend || null,
+      }));
 
     if (priceRows.length === 0) {
       return new Response(
