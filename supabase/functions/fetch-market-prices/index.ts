@@ -56,7 +56,7 @@ Return JSON with a "prices" array where each entry has:
 - price: modal price in INR per quintal (realistic range for that crop)
 - price_trend: "up", "down", or "stable"
 
-Make prices realistic: Rice 2000-3500, Wheat 2200-2800, Onion 1500-4000, Tomato 1000-5000, Potato 800-2500, Cotton 6000-7500, Soyabean 4000-5500, etc. Vary by region.`
+Make prices realistic per quintal: Rice 2000-3500, Wheat 2200-2800, Onion 1500-4000, Tomato 1000-5000, Potato 800-2500, Cotton 6000-7500, Soyabean 4000-5500, Sugarcane 280-400 (based on FRP ₹315/quintal), Maize 1800-2500, Bajra 2000-2800, Jowar 2500-3500, Arhar Dal 6000-9000, Chana Dal 4500-6500, Moong Dal 7000-9000, Urad Dal 6000-8500, Masoor Dal 4500-6500, Mustard 4500-6000, Groundnut 5000-7000, Green Chilli 2000-5000, Turmeric 8000-15000, Garlic 3000-8000, Banana 1500-3500, Apple 5000-12000, Mango 2000-6000. IMPORTANT: Sugarcane price must be between 280-400 per quintal. Vary by region.`
           }
         ],
       }),

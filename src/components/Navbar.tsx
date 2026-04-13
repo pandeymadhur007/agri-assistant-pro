@@ -1,5 +1,5 @@
-import { Link, useLocation } from 'react-router-dom';
-import { Home, MessageCircle, FileText, Globe } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Globe, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -12,17 +12,6 @@ import { LANGUAGES, Language } from '@/lib/i18n';
 
 export function Navbar() {
   const { language, setLanguage, t } = useLanguage();
-  const location = useLocation();
-
-  const navItems = [
-    { path: '/', icon: Home, label: 'home' },
-    { path: '/assistant', icon: MessageCircle, label: 'assistant' },
-    { path: '/market-prices', icon: FileText, label: 'marketPrices' },
-    { path: '/calendar', icon: FileText, label: 'calendar' },
-    { path: '/community', icon: FileText, label: 'community' },
-    { path: '/schemes', icon: FileText, label: 'schemes' },
-  ];
-
   const currentLang = LANGUAGES.find(l => l.code === language);
 
   return (
@@ -35,39 +24,30 @@ export function Navbar() {
           <span className="text-xl font-bold text-primary">{t('appName')}</span>
         </Link>
 
-        <div className="flex items-center gap-2">
-          {navItems.map(item => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path;
-            return (
-              <Link key={item.path} to={item.path}>
-                <Button
-                  variant={isActive ? 'default' : 'ghost'}
-                  size="sm"
-                  className="gap-2"
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="hidden sm:inline">{t(item.label)}</span>
-                </Button>
-              </Link>
-            );
-          })}
+        <div className="flex items-center gap-3">
+          <Link to="/">
+            <Button variant="ghost" size="sm" className="gap-2">
+              <Home className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('home')}</span>
+            </Button>
+          </Link>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Globe className="h-4 w-4" />
-                <span className="hidden sm:inline">{currentLang?.nativeName}</span>
+              <Button variant="outline" size="default" className="gap-2 border-primary/50 text-primary font-medium px-4">
+                <Globe className="h-5 w-5" />
+                <span className="text-sm font-semibold">{currentLang?.nativeName}</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="w-48">
               {LANGUAGES.map(lang => (
                 <DropdownMenuItem
                   key={lang.code}
                   onClick={() => setLanguage(lang.code as Language)}
-                  className={language === lang.code ? 'bg-accent' : ''}
+                  className={`cursor-pointer ${language === lang.code ? 'bg-accent font-semibold' : ''}`}
                 >
-                  {lang.nativeName} ({lang.name})
+                  <span className="font-medium">{lang.nativeName}</span>
+                  <span className="ml-auto text-xs text-muted-foreground">({lang.name})</span>
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
