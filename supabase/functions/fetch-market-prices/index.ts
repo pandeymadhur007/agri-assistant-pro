@@ -56,7 +56,7 @@ Return JSON with a "prices" array where each entry has:
 - price: modal price in INR per quintal (realistic range for that crop)
 - price_trend: "up", "down", or "stable"
 
-Make prices realistic: Rice 2000-3500, Wheat 2200-2800, Onion 1500-4000, Tomato 1000-5000, Potato 800-2500, Cotton 6000-7500, Soyabean 4000-5500, etc. Vary by region.`
+Make prices realistic per quintal: Rice 2000-3500, Wheat 2200-2800, Onion 1500-4000, Tomato 1000-5000, Potato 800-2500, Cotton 6000-7500, Soyabean 4000-5500, Sugarcane 280-400 (based on FRP ₹315/quintal), Maize 1800-2500, Bajra 2000-2800, Jowar 2500-3500, Arhar Dal 6000-9000, Chana Dal 4500-6500, Moong Dal 7000-9000, Urad Dal 6000-8500, Masoor Dal 4500-6500, Mustard 4500-6000, Groundnut 5000-7000, Green Chilli 2000-5000, Turmeric 8000-15000, Garlic 3000-8000, Banana 1500-3500, Apple 5000-12000, Mango 2000-6000. IMPORTANT: Sugarcane price must be between 280-400 per quintal. Vary by region.`
           }
         ],
       }),
@@ -98,17 +98,39 @@ Make prices realistic: Rice 2000-3500, Wheat 2200-2800, Onion 1500-4000, Tomato 
       );
     }
 
-    const priceRows = (parsed.prices || []).map((p: any) => ({
-      crop_name: p.crop_name,
-      crop_name_hi: p.crop_name_hi || null,
-      state: p.state,
-      district: p.district,
-      mandi: p.mandi,
-      price: p.price,
-      unit: "quintal",
-      price_date: today,
-      price_trend: p.price_trend || null,
-    }));
+    // Price validation ranges per crop
+    const priceRanges: Record<string, [number, number]> = {
+      "Sugarcane": [200, 500],
+      "Rice": [1500, 4500],
+      "Wheat": [1800, 3500],
+      "Onion": [800, 6000],
+      "Tomato": [500, 8000],
+      "Potato": [500, 3500],
+      "Cotton": [5000, 9000],
+      "Soyabean": [3000, 7000],
+      "Maize": [1200, 3000],
+    };
+
+    const priceRows = (parsed.prices || [])
+      .filter((p: any) => {
+        const range = priceRanges[p.crop_name];
+        if (range && (p.price < range[0] || p.price > range[1])) {
+          console.warn(`Rejected outlier: ${p.crop_name} ₹${p.price} (valid: ${range[0]}-${range[1]})`);
+          return false;
+        }
+        return p.crop_name && p.state && p.district && p.mandi && p.price > 0;
+      })
+      .map((p: any) => ({
+        crop_name: p.crop_name,
+        crop_name_hi: p.crop_name_hi || null,
+        state: p.state,
+        district: p.district,
+        mandi: p.mandi,
+        price: p.price,
+        unit: "quintal",
+        price_date: today,
+        price_trend: p.price_trend || null,
+      }));
 
     if (priceRows.length === 0) {
       return new Response(
