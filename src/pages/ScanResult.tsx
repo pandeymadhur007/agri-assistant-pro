@@ -159,12 +159,25 @@ const ScanResult = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { language } = useLanguage();
+  const { getScanHistory } = useCropScan();
   const t = translations[language as keyof typeof translations] || translations.en;
-  
-  const { imageUrl, diagnosis } = location.state as { 
-    imageUrl: string; 
+  const [pastScans, setPastScans] = useState<ScanRecord[]>([]);
+
+  const { imageUrl, diagnosis } = location.state as {
+    imageUrl: string;
     diagnosis: CropDiagnosis;
   } || {};
+
+  useEffect(() => {
+    if (!diagnosis?.crop_name) return;
+    getScanHistory().then(history => {
+      const sameCrop = history
+        .filter(s => s.diagnosis.crop_name?.toLowerCase() === diagnosis.crop_name?.toLowerCase())
+        .slice(1, 4);
+      setPastScans(sameCrop);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [diagnosis?.crop_name]);
 
   if (!diagnosis) {
     navigate('/scan');
