@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MessageCircle, FileText, Sprout, Bug, CloudSun, Camera, TrendingUp, CalendarDays, Users, Sparkles } from 'lucide-react';
+import { MessageCircle, FileText, Sprout, Bug, CloudSun, Camera, TrendingUp, CalendarDays, Users, Sparkles, Lightbulb } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { WeatherWidget } from '@/components/WeatherWidget';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { PageTransition, StaggerContainer, StaggerItem, FadeIn } from '@/components/PageTransition';
@@ -14,6 +15,7 @@ const Index = () => {
   const quickActions = [
     { icon: MessageCircle, title: t('startChat'), to: '/chat', gradient: 'from-emerald-500 to-green-600' },
     { icon: Camera, title: t('scanCrop'), to: '/scan', gradient: 'from-teal-500 to-cyan-600' },
+    { icon: Lightbulb, title: t('smartRec'), to: '/recommendations', gradient: 'from-yellow-500 to-amber-600' },
     { icon: TrendingUp, title: t('marketPrices'), to: '/market-prices', gradient: 'from-orange-500 to-amber-600' },
     { icon: CalendarDays, title: t('calendar'), to: '/calendar', gradient: 'from-blue-500 to-indigo-600' },
     { icon: Users, title: t('community'), to: '/community', gradient: 'from-purple-500 to-violet-600' },
@@ -115,6 +117,13 @@ const Index = () => {
                   </motion.button>
                 </Link>
               </FadeIn>
+            </div>
+          </section>
+
+          {/* Weather Alert Widget */}
+          <section className="px-4 -mt-6 relative z-20">
+            <div className="container mx-auto max-w-3xl">
+              <WeatherWidget />
             </div>
           </section>
 
