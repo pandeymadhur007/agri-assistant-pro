@@ -1,216 +1,201 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  // NOTE: must include any custom headers sent by the browser (e.g. x-session-id)
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-session-id",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// Comprehensive agricultural knowledge base for the AI
 const FARMING_KNOWLEDGE = `
 STUBBLE/PARALI (पराली) REMOVAL METHODS:
-1. Happy Seeder: Machine that sows wheat directly into rice stubble without burning. Best method - saves time, money, improves soil.
-2. Super SMS (Straw Management System): Attachment for combine harvester that chops and spreads straw evenly.
-3. Rotavator/Rotary Tiller: Mixes stubble into soil in 2-3 passes. Wait 15-20 days before sowing.
-4. Paddy Straw Chopper: Cuts stubble into small pieces for easy decomposition.
-5. Mulching: Leave chopped stubble as mulch - retains moisture, adds organic matter.
-6. Baling: Use baler to collect straw for fodder, mushroom cultivation, or selling to power plants.
-7. Composting: Mix stubble with cow dung, urea (10kg/acre), and water. Ready in 45-60 days.
-8. Bio-decomposer: PUSA decomposer spray (4 capsules + 100L water/acre) decomposes stubble in 20-25 days.
-
-WHY NOT TO BURN STUBBLE:
-- Kills beneficial soil organisms and earthworms
-- Destroys nitrogen, phosphorus, potassium worth ₹2000-3000/acre
-- Causes air pollution and health problems
-- Illegal - can result in fines up to ₹15,000
-
-GOVERNMENT SUBSIDIES FOR STUBBLE MANAGEMENT:
-- 50-80% subsidy on Happy Seeder, Super SMS, Rotavator
-- Apply at nearest Krishi Vigyan Kendra or agriculture department
+1. Happy Seeder, Super SMS, Rotavator, Paddy Straw Chopper, Mulching, Baling, Composting, PUSA Bio-decomposer.
+WHY NOT TO BURN: Kills soil organisms, destroys nutrients, illegal (fines up to ₹15,000), causes pollution.
+GOVT SUBSIDIES: 50-80% on stubble equipment via Krishi Vigyan Kendra.
 
 CROP DISEASES, PESTS, PESTICIDES, FERTILIZERS:
-- Provide specific advice on crop diseases and treatments
-- Recommend appropriate pesticides with dosage
-- Suggest organic and chemical fertilizer applications
-- Guide on integrated pest management (IPM)
+- Specific Indian commercial product names with dosage
+- Organic and chemical options
+- Integrated Pest Management (IPM)
 
-SEASONAL FARMING ADVICE:
-- Kharif, Rabi, and Zaid crop guidance
-- Irrigation and water management
-- Soil health and testing recommendations
+SEASONAL FARMING:
+- Kharif (Jun-Oct): rice, cotton, maize, soybean, sugarcane
+- Rabi (Nov-Apr): wheat, mustard, gram, barley
+- Zaid (Mar-Jun): watermelon, cucumber, fodder
 `;
 
-// Plain text instruction to avoid markdown formatting
 const PLAIN_TEXT_INSTRUCTION = `
-IMPORTANT FORMATTING RULES:
-- Respond in clean plain text only. Do NOT use markdown formatting.
-- Do NOT use **, *, #, -, or bullet symbols.
-- Use simple numbered lists (1, 2, 3) when listing steps.
-- Keep responses short: 2-5 sentences maximum.
-- Be direct and practical.
+FORMATTING RULES:
+- Plain text only. NO markdown (**, *, #, -, bullets).
+- Numbered lists (1, 2, 3) only when listing steps.
+- Keep responses 2-5 sentences. Direct, practical, specific.
+`;
+
+const HINGLISH_INSTRUCTION = `
+LANGUAGE STYLE:
+- If the user mixes English with Hindi/Marathi/Telugu/Tamil/Bengali words (Hinglish), respond in the SAME mixed style they used.
+- Use simple, conversational tone — like a knowledgeable village friend, not a textbook.
+- Match the user's vocabulary level and code-switching pattern.
 `;
 
 const LANGUAGE_PROMPTS: Record<string, string> = {
-  en: `You are Gram AI, an expert farming assistant for Indian farmers. You have deep knowledge about:
+  en: `You are Gram AI, expert farming assistant for Indian farmers.
 ${FARMING_KNOWLEDGE}
 ${PLAIN_TEXT_INSTRUCTION}
-Respond in English. Give practical, actionable advice. Be helpful and specific about stubble management, crop diseases, pesticides, and farming techniques.`,
-  
-  hi: `आप ग्राम AI हैं, भारतीय किसानों के लिए कृषि विशेषज्ञ सहायक। आपको इन विषयों की गहरी जानकारी है:
+${HINGLISH_INSTRUCTION}
+Default to English but switch to mixed Hindi-English (Hinglish) if the user does.`,
+
+  hi: `आप ग्राम AI हैं, भारतीय किसानों के विशेषज्ञ सहायक।
 ${FARMING_KNOWLEDGE}
 ${PLAIN_TEXT_INSTRUCTION}
-हिंदी में जवाब दें। पराली प्रबंधन, फसल रोग, कीटनाशक और खेती तकनीकों पर व्यावहारिक सलाह दें। 2-5 वाक्यों में स्पष्ट जवाब दें।`,
-  
-  mr: `तुम्ही ग्राम AI आहात, भारतीय शेतकऱ्यांसाठी कृषी तज्ञ सहाय्यक. तुम्हाला या विषयांचे सखोल ज्ञान आहे:
+${HINGLISH_INSTRUCTION}
+मुख्यतः हिंदी में जवाब दें। अगर यूज़र Hinglish में बात करे तो आप भी Hinglish में जवाब दें।`,
+
+  mr: `तुम्ही ग्राम AI आहात, भारतीय शेतकऱ्यांचे तज्ञ सहाय्यक.
 ${FARMING_KNOWLEDGE}
 ${PLAIN_TEXT_INSTRUCTION}
-मराठीत उत्तर द्या. पऱ्हाटी व्यवस्थापन, पीक रोग, कीटकनाशके आणि शेती तंत्रांबद्दल व्यावहारिक सल्ला द्या.`,
-  
-  te: `మీరు గ్రామ్ AI, భారతీయ రైతులకు వ్యవసాయ నిపుణుల సహాయకుడు. మీకు ఈ అంశాలపై లోతైన జ్ఞానం ఉంది:
+${HINGLISH_INSTRUCTION}
+मुख्यतः मराठीत उत्तर द्या. वापरकर्ता मिश्र भाषेत बोलल्यास तसेच उत्तर द्या.`,
+
+  te: `మీరు గ్రామ్ AI, భారతీయ రైతులకు నిపుణుల సహాయకుడు.
 ${FARMING_KNOWLEDGE}
 ${PLAIN_TEXT_INSTRUCTION}
-తెలుగులో సమాధానం ఇవ్వండి. కొయ్య నిర్వహణ, పంట వ్యాధులు, పురుగుమందులు మరియు వ్యవసాయ పద్ధతులపై ఆచరణాత్మక సలహా ఇవ్వండి.`,
-  
-  ta: `நீங்கள் கிராம AI, இந்திய விவசாயிகளுக்கான விவசாய நிபுணர் உதவியாளர். உங்களுக்கு இந்த தலைப்புகளில் ஆழமான அறிவு உள்ளது:
+${HINGLISH_INSTRUCTION}
+ప్రధానంగా తెలుగులో సమాధానం ఇవ్వండి. వినియోగదారు మిశ్రమ భాషలో మాట్లాడితే మీరు కూడా అదే స్టైల్‌లో జవాబు ఇవ్వండి.`,
+
+  ta: `நீங்கள் கிராம AI, இந்திய விவசாயிகளுக்கான நிபுணர் உதவியாளர்.
 ${FARMING_KNOWLEDGE}
 ${PLAIN_TEXT_INSTRUCTION}
-தமிழில் பதில் அளிக்கவும். தாள் மேலாண்மை, பயிர் நோய்கள், பூச்சிக்கொல்லிகள் மற்றும் விவசாய நுட்பங்கள் பற்றி நடைமுறை ஆலோசனை வழங்கவும்.`,
-  
-  bn: `আপনি গ্রাম AI, ভারতীয় কৃষকদের জন্য কৃষি বিশেষজ্ঞ সহকারী। আপনার এই বিষয়গুলিতে গভীর জ্ঞান আছে:
+${HINGLISH_INSTRUCTION}
+முதன்மையாக தமிழில் பதிலளிக்கவும். பயனர் கலப்பு மொழியில் பேசினால் அதே பாணியில் பதிலளிக்கவும்.`,
+
+  bn: `আপনি গ্রাম AI, ভারতীয় কৃষকদের বিশেষজ্ঞ সহায়ক।
 ${FARMING_KNOWLEDGE}
 ${PLAIN_TEXT_INSTRUCTION}
-বাংলায় উত্তর দিন। নাড়া ব্যবস্থাপনা, ফসলের রোগ, কীটনাশক এবং চাষের কৌশল সম্পর্কে ব্যবহারিক পরামর্শ দিন।`,
+${HINGLISH_INSTRUCTION}
+মূলত বাংলায় উত্তর দিন। ব্যবহারকারী মিশ্র ভাষায় কথা বললে একই স্টাইলে উত্তর দিন।`,
 };
 
 const VALID_LANGUAGES = ["en", "hi", "mr", "te", "ta", "bn"];
 const MAX_MESSAGES = 50;
 const MAX_MESSAGE_LENGTH = 5000;
 
-// Validate message format
-interface ChatMessage {
-  role: string;
-  content: string;
-}
+interface ChatMessage { role: string; content: string; }
 
 function validateMessages(messages: unknown): { valid: boolean; error?: string } {
-  if (!Array.isArray(messages)) {
-    return { valid: false, error: "Invalid messages format" };
-  }
-
-  if (messages.length > MAX_MESSAGES) {
-    return { valid: false, error: "Too many messages in history" };
-  }
-
+  if (!Array.isArray(messages)) return { valid: false, error: "Invalid messages format" };
+  if (messages.length > MAX_MESSAGES) return { valid: false, error: "Too many messages" };
   for (const msg of messages) {
-    if (!msg || typeof msg !== "object") {
-      return { valid: false, error: "Invalid message format" };
-    }
-
-    const message = msg as ChatMessage;
-    
-    if (!message.role || !message.content) {
-      return { valid: false, error: "Invalid message format" };
-    }
-
-    if (message.role !== "user" && message.role !== "assistant") {
-      return { valid: false, error: "Invalid message role" };
-    }
-
-    if (typeof message.content !== "string" || message.content.length > MAX_MESSAGE_LENGTH) {
-      return { valid: false, error: "Message content too long" };
+    if (!msg || typeof msg !== "object") return { valid: false, error: "Invalid message" };
+    const m = msg as ChatMessage;
+    if (!m.role || !m.content) return { valid: false, error: "Invalid message" };
+    if (m.role !== "user" && m.role !== "assistant") return { valid: false, error: "Invalid role" };
+    if (typeof m.content !== "string" || m.content.length > MAX_MESSAGE_LENGTH) {
+      return { valid: false, error: "Message too long" };
     }
   }
-
   return { valid: true };
 }
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+function getSeasonContext(): string {
+  const month = new Date().getMonth() + 1;
+  if (month >= 6 && month <= 10) return `Current season: Kharif (Monsoon) — month ${month}. Focus on rice, cotton, maize, soybean, sugarcane.`;
+  if (month >= 11 || month <= 3) return `Current season: Rabi (Winter) — month ${month}. Focus on wheat, mustard, gram, barley, peas.`;
+  return `Current season: Zaid (Summer) — month ${month}. Focus on watermelon, cucumber, fodder crops.`;
+}
+
+async function fetchRecentScans(sessionId: string): Promise<string> {
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !supabaseKey) return "";
+    const sb = createClient(supabaseUrl, supabaseKey);
+    const { data } = await sb
+      .from("crop_scans")
+      .select("crop_name, disease_name, severity, created_at")
+      .eq("session_id", sessionId)
+      .order("created_at", { ascending: false })
+      .limit(5);
+    if (!data || data.length === 0) return "";
+    const summary = data.map((s, i) => 
+      `${i + 1}. ${s.crop_name || "unknown crop"} — ${s.disease_name || "unknown"} (${s.severity || "n/a"}) on ${new Date(s.created_at).toLocaleDateString()}`
+    ).join("\n");
+    return `\n\nUSER'S RECENT CROP SCANS (use this context if relevant):\n${summary}\n`;
+  } catch (e) {
+    console.error("scan fetch failed:", e instanceof Error ? e.name : "?");
+    return "";
   }
+}
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const body = await req.json();
-    const { messages, language = "en" } = body;
+    const { messages, language = "en", location } = body;
+    const sessionId = req.headers.get("x-session-id") || "";
 
-    // Input validation
-    const messagesValidation = validateMessages(messages);
-    if (!messagesValidation.valid) {
-      return new Response(
-        JSON.stringify({ error: messagesValidation.error }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    const v = validateMessages(messages);
+    if (!v.valid) {
+      return new Response(JSON.stringify({ error: v.error }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
-
-    // Validate language
     if (!VALID_LANGUAGES.includes(language)) {
-      return new Response(
-        JSON.stringify({ error: "Invalid language" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Invalid language" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    
     if (!LOVABLE_API_KEY) {
-      console.error("API key not configured");
-      return new Response(
-        JSON.stringify({ error: "Service configuration error" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Service config error" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    const systemPrompt = LANGUAGE_PROMPTS[language] || LANGUAGE_PROMPTS.en;
+    // Build dynamic context
+    const seasonCtx = getSeasonContext();
+    const scanCtx = sessionId ? await fetchRecentScans(sessionId) : "";
+    const locCtx = location ? `\nUser approximate location: ${location}` : "";
+
+    const systemPrompt = (LANGUAGE_PROMPTS[language] || LANGUAGE_PROMPTS.en) +
+      `\n\nCURRENT CONTEXT:\n${seasonCtx}${locCtx}${scanCtx}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
+      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          ...messages,
-        ],
+        messages: [{ role: "system", content: systemPrompt }, ...messages],
         stream: true,
       }),
     });
 
     if (!response.ok) {
-      // Log minimal info for debugging without exposing details
       console.error("AI gateway error:", response.status);
-      
       if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limits exceeded, please try again later." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ error: "Rate limits exceeded, please try again later." }), {
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
       if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Service temporarily unavailable." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ error: "Service temporarily unavailable." }), {
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
-      
-      return new Response(
-        JSON.stringify({ error: "AI service error" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "AI service error" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     return new Response(response.body, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (e) {
-    // Log error type only, not full message to avoid leaking internal details
     console.error("chat error:", e instanceof Error ? e.name : "Unknown");
-    return new Response(
-      JSON.stringify({ error: "Unable to process request" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Unable to process request" }), {
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
