@@ -21,6 +21,7 @@ import CalendarCrop from "./pages/CalendarCrop";
 import Community from "./pages/Community";
 import CommunityPost from "./pages/CommunityPost";
 import CommunityPostDetail from "./pages/CommunityPostDetail";
+import SmartRecommendations from "./pages/SmartRecommendations";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -51,6 +52,7 @@ function AnimatedRoutes() {
         <Route path="/community/post" element={<CommunityPost />} />
         <Route path="/community/post/:id" element={<CommunityPostDetail />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/recommendations" element={<SmartRecommendations />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>
