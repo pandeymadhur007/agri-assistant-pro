@@ -321,14 +321,52 @@ const ScanResult = () => {
             </>
           )}
 
-          {/* Scan Another Button */}
-          <Button 
-            className="w-full h-14 text-lg bg-green-600 hover:bg-green-700"
-            onClick={() => navigate('/scan')}
-          >
-            <Camera className="w-5 h-5 mr-2" />
-            {t.scanAnother}
-          </Button>
+          {/* Past scans for same crop */}
+          {pastScans.length > 0 && (
+            <Card className="mb-4 border-amber-200 bg-amber-50/40">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <History className="w-4 h-4 text-amber-600" />
+                  Previous {diagnosis.crop_name} scans
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {pastScans.map(scan => (
+                  <div key={scan.id} className="flex items-center justify-between text-sm bg-white rounded-md p-2 border">
+                    <div>
+                      <div className="font-medium">{scan.diagnosis.disease_name}</div>
+                      <div className="text-xs text-muted-foreground">{new Date(scan.created_at).toLocaleDateString()}</div>
+                    </div>
+                    <Badge variant="outline" className={getSeverityColor(scan.diagnosis.severity)}>
+                      {scan.diagnosis.severity}
+                    </Badge>
+                  </div>
+                ))}
+                {pastScans.some(s => s.diagnosis.disease_name === diagnosis.disease_name) && (
+                  <p className="text-xs text-amber-800 mt-2 px-2">
+                    ⚠️ This issue is recurring. Consider deeper treatment or consulting an expert.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Action Buttons */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Button
+              className="w-full h-14 text-base bg-green-600 hover:bg-green-700"
+              onClick={() => navigate('/scan')}
+            >
+              <Camera className="w-5 h-5 mr-2" />
+              {t.scanAnother}
+            </Button>
+            <Link to="/chat" state={{ prefill: `Tell me more about treating ${diagnosis.disease_name} in ${diagnosis.crop_name}` }}>
+              <Button variant="outline" className="w-full h-14 text-base border-green-600 text-green-700 hover:bg-green-50">
+                <MessageCircle className="w-5 h-5 mr-2" />
+                Ask AI about this
+              </Button>
+            </Link>
+          </div>
         </div>
       </main>
 
