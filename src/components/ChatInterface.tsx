@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Send, Loader2, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -47,10 +48,21 @@ function stripMarkdownForTTS(text: string): string {
 
 export function ChatInterface() {
   const { t, language } = useLanguage();
+  const location = useLocation();
   const { messages, isLoading, sendMessage } = useChat();
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<string>('');
+  const prefillSentRef = useRef(false);
+
+  // Auto-send prefill from scan result page
+  useEffect(() => {
+    const prefill = (location.state as { prefill?: string } | null)?.prefill;
+    if (prefill && !prefillSentRef.current && messages.length === 0) {
+      prefillSentRef.current = true;
+      sendMessage(prefill);
+    }
+  }, [location.state, messages.length, sendMessage]);
   
   // Voice features
   const { isRecording, isProcessing, transcript, isSupported: micSupported, startRecording, stopRecording, resetTranscript } = useCloudSpeechRecognition();
