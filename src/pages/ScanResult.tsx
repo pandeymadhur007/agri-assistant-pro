@@ -1,12 +1,13 @@
-import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, AlertTriangle, CheckCircle, Leaf, Bug, Pill, Shield, Info, Camera } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { ArrowLeft, AlertTriangle, CheckCircle, Leaf, Bug, Pill, Shield, Info, Camera, History, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { CropDiagnosis } from '@/hooks/useCropScan';
+import { CropDiagnosis, ScanResult as ScanRecord, useCropScan } from '@/hooks/useCropScan';
 
 const translations = {
   en: {
