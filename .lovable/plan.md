@@ -1,35 +1,49 @@
 
+Continue from yesterday's Phase 1 work. The user wants to keep building the features list. Yesterday completed: context-aware chat, smart crop recommendations, enhanced scanner history, weather widget. 
 
-## Plan: Fix Navbar, Improve Language Switching, and Fix Market Price Data
+Remaining from the approved roadmap (no login yet — user said login takes time/DB):
+1. **Voice-to-voice continuous mode** (toggle push-to-talk vs hands-free) — user picked "Toggle between both"
+2. **Government Scheme Intelligence** — personalized recommendations by state/category, deadline tracker, document checklist (works without login using session)
+3. **Advanced market features** — 30-day price history graph, AI trend prediction, sell-now-vs-wait guidance
+4. **Smart notifications/reminders** — needs login per user's own note, so SKIP for now
+5. **Voice TTS quality (Hinglish robotic)** — user declined ElevenLabs plan yesterday, so SKIP
 
-### Changes Overview
+### Plan: Build voice-to-voice mode + Scheme Intelligence + Market history graph
 
-**1. Simplify Navbar — Remove nav links, keep only Home + Language**
+#### 1. Voice-to-voice continuous conversation mode
+- Add hands-free toggle in `ChatInterface.tsx`: when ON, after assistant finishes TTS, auto-restart mic; when user stops speaking (silence detect ~1.5s), auto-send
+- Use existing `useCloudSpeechRecognition` + `useMurfTTS`
+- New small hook `useVoiceMode.ts` orchestrating the loop with a Mode toggle (Push-to-Talk / Hands-Free)
+- Visual indicator: pulsing mic when listening, waveform when assistant speaking
 
-Strip out assistant, market-prices, calendar, community, schemes links. Keep only:
-- Logo/Home link (left side)
-- Prominent language selector (right side) — make it more visible with larger button, flag-style display showing current language name prominently, always visible (not hidden on mobile)
+#### 2. Government Scheme Intelligence (no-login version)
+- Update `Schemes.tsx`: add filter chips for state + category, "For You" section ranked by selected state
+- New page `SchemeDetail.tsx` showing: eligibility checklist, document checklist (interactive checkboxes stored in localStorage), how-to-apply steps, official link button, deadline (if any)
+- Add `application_deadline` and `success_rate` columns to `schemes` table via migration (nullable, with sample data backfill for top schemes)
+- Wire route `/schemes/:id`
 
-**2. Make Language Selector More Prominent**
+#### 3. Advanced Market Features  
+- Update `MarketPriceCrop.tsx`: add 30-day price history line chart (recharts already in project)
+- Backfill `market_prices` with synthetic 30-day history per crop+mandi via edge function update (`fetch-market-prices` already inserts daily — extend to seed history on first call per crop)
+- Add "AI Insight" card per crop calling new edge function `market-insight` that returns: trend (rising/falling/stable), 7-day forecast, sell-now-vs-wait recommendation in user's language
 
-Instead of a small outline button with hidden text on mobile:
-- Always show the current language native name (even on mobile)
-- Use a more visible styling (primary outline, larger text)
-- Add a label like "भाषा / Language" to make it obvious
+### Files to create/modify
+**New:**
+- `src/hooks/useVoiceMode.ts`
+- `src/pages/SchemeDetail.tsx`
+- `supabase/functions/market-insight/index.ts`
 
-**3. Fix Sugarcane Price Data in Edge Function**
+**Modified:**
+- `src/components/ChatInterface.tsx` (voice mode toggle + auto-loop)
+- `src/pages/Schemes.tsx` (filters + For You ranking)
+- `src/pages/MarketPriceCrop.tsx` (30-day chart + AI insight card)
+- `src/App.tsx` (register `/schemes/:id` route)
+- `src/lib/i18n.ts` (new strings)
 
-The AI prompt currently lists `Sugarcane` with no specific price guidance. Sugarcane in India is priced differently — it's measured per quintal but has FRP (Fair & Remunerative Price) around ₹315/quintal set by government, and market prices range ₹280-400/quintal. The current prompt says generic ranges. Will add explicit sugarcane pricing: `Sugarcane 280-400` to the prompt to ensure accuracy.
+**Migration:** Add `application_deadline DATE`, `success_rate INTEGER`, `eligibility_criteria JSONB` to `schemes`.
 
-Also will add validation in the edge function to reject obviously wrong prices (e.g., sugarcane shouldn't be ₹5000/quintal).
+### Skipping (per your decisions)
+- Login-gated reminders & notifications (deferred until you're ready for auth)
+- ElevenLabs TTS swap (you declined yesterday)
 
-### Technical Details
-
-**Files to modify:**
-
-1. **`src/components/Navbar.tsx`** — Remove all navItems except Home. Redesign language selector to be larger and always-visible with native language name shown on all screen sizes.
-
-2. **`supabase/functions/fetch-market-prices/index.ts`** — Update AI prompt with accurate sugarcane price range (₹280-400/quintal based on FRP), add price validation to reject outliers, and improve prompt specificity for all crops.
-
-### Estimated scope: 2 files modified
-
+Ready to proceed when you approve.
