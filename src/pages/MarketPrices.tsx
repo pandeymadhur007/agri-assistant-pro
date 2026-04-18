@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TrendingUp, TrendingDown, Minus, Store, MapPin, Search, IndianRupee, Wheat, RefreshCw } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Store, MapPin, Search, IndianRupee, Wheat, RefreshCw, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -185,6 +185,16 @@ const MarketPrices = () => {
           </div>
         </div>
 
+        {/* AI Insight hint banner */}
+        <div className="mb-4 p-3 rounded-lg border border-primary/30 bg-primary/5 flex items-start gap-2">
+          <Sparkles className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+          <p className="text-sm text-foreground">
+            {language === 'hi'
+              ? 'किसी भी फसल पर टैप करें — 30‑दिन का ग्राफ, AI ट्रेंड और "अभी बेचें या रुकें" सलाह देखें।'
+              : 'Tap any crop card to see its 30‑day price chart, AI trend forecast, and a "sell now vs wait" recommendation.'}
+          </p>
+        </div>
+
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
           <div className="relative flex-1">
@@ -266,9 +276,15 @@ const MarketPrices = () => {
                       </div>
                     )}
                     
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <MapPin className="h-4 w-4" />
-                      <span>{price.mandi}, {price.district}</span>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground min-w-0">
+                        <MapPin className="h-4 w-4 shrink-0" />
+                        <span className="truncate">{price.mandi}, {price.district}</span>
+                      </div>
+                      <Badge variant="outline" className="shrink-0 border-primary/40 text-primary text-[10px] gap-1">
+                        <Sparkles className="h-3 w-3" />
+                        {language === 'hi' ? 'AI सलाह' : 'AI Insight'}
+                      </Badge>
                     </div>
                   </CardContent>
                 </Card>

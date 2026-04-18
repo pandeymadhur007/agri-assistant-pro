@@ -6,6 +6,7 @@ export function useCloudSpeechRecognition() {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState('');
+  const [activeStream, setActiveStream] = useState<MediaStream | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const { toast } = useToast();
@@ -81,6 +82,7 @@ export function useCloudSpeechRecognition() {
       mediaRecorder.onstop = async () => {
         // Stop all tracks
         stream.getTracks().forEach(track => track.stop());
+        setActiveStream(null);
         
         if (chunksRef.current.length > 0) {
           const audioBlob = new Blob(chunksRef.current, { type: mimeType });
@@ -92,6 +94,7 @@ export function useCloudSpeechRecognition() {
       };
 
       mediaRecorder.start(100); // Collect data every 100ms
+      setActiveStream(stream);
       setIsRecording(true);
       setTranscript('');
 
@@ -120,6 +123,7 @@ export function useCloudSpeechRecognition() {
     isRecording,
     isProcessing,
     transcript,
+    activeStream,
     isSupported: typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia,
     startRecording,
     stopRecording,
