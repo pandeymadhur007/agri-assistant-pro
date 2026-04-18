@@ -66,15 +66,18 @@ export function ChatInterface() {
   }, [location.state, messages.length, sendMessage]);
   
   // Voice features
-  const { isRecording, isProcessing, transcript, isSupported: micSupported, startRecording, stopRecording, resetTranscript } = useCloudSpeechRecognition();
+  const { isRecording, isProcessing, transcript, activeStream, isSupported: micSupported, startRecording, stopRecording, resetTranscript } = useCloudSpeechRecognition();
   const { isPlaying, isLoading: ttsLoading, isSupported: ttsSupported, speak, stop: stopSpeaking } = useMurfTTS();
   const [autoSpeak, setAutoSpeak] = useState(true);
   const { mode: voiceMode, toggle: toggleVoiceMode, isHandsFree } = useVoiceMode();
 
-  // In hands-free mode, detect silence while recording → auto-stop & send
-  useSilenceDetector(isHandsFree && isRecording, 1500, () => {
-    stopRecording();
-  });
+  // In hands-free mode, detect silence on the SAME mic stream → auto-stop & send
+  useSilenceDetector(
+    isHandsFree && isRecording,
+    1100,
+    () => { stopRecording(); },
+    activeStream
+  );
 
   // Hands-free auto-loop: when assistant finishes speaking, auto-start mic
   useEffect(() => {
@@ -82,7 +85,7 @@ export function ChatInterface() {
     if (!isPlaying && !ttsLoading && !isLoading && !isRecording && !isProcessing && messages.length > 0) {
       const last = messages[messages.length - 1];
       if (last.role === 'assistant') {
-        const timer = setTimeout(() => startRecording(language), 600);
+        const timer = setTimeout(() => startRecording(language), 250);
         return () => clearTimeout(timer);
       }
     }

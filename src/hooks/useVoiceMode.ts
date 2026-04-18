@@ -23,84 +23,79 @@ export function useVoiceMode() {
 }
 
 /**
- * Detects ~`silenceMs` of silence on the user's mic and fires `onSilence`.
- * Used by hands-free mode to auto-stop the recording.
+ * Detects ~`silenceMs` of silence on a provided MediaStream and fires `onSilence`.
+ * Reuses the recording stream (no extra getUserMedia call) to keep things lag-free.
  */
 export function useSilenceDetector(
   enabled: boolean,
   silenceMs: number,
-  onSilence: () => void
+  onSilence: () => void,
+  stream: MediaStream | null
 ) {
   const audioCtxRef = useRef<AudioContext | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
   const rafRef = useRef<number | null>(null);
   const silenceStartRef = useRef<number | null>(null);
+  const onSilenceRef = useRef(onSilence);
+  onSilenceRef.current = onSilence;
 
   useEffect(() => {
-    if (!enabled) {
+    if (!enabled || !stream) {
       cleanup();
       return;
     }
 
     let cancelled = false;
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      audioCtxRef.current = ctx;
+      const source = ctx.createMediaStreamSource(stream);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 1024;
+      source.connect(analyser);
+      const buf = new Uint8Array(analyser.fftSize);
+      const startedAt = performance.now();
 
-    (async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        if (cancelled) {
-          stream.getTracks().forEach((t) => t.stop());
-          return;
+      const tick = () => {
+        if (cancelled) return;
+        analyser.getByteTimeDomainData(buf);
+        let sum = 0;
+        for (let i = 0; i < buf.length; i++) {
+          const v = (buf[i] - 128) / 128;
+          sum += v * v;
         }
-        streamRef.current = stream;
-        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        audioCtxRef.current = ctx;
-        const source = ctx.createMediaStreamSource(stream);
-        const analyser = ctx.createAnalyser();
-        analyser.fftSize = 1024;
-        source.connect(analyser);
-        const buf = new Uint8Array(analyser.fftSize);
-
-        const tick = () => {
-          analyser.getByteTimeDomainData(buf);
-          let sum = 0;
-          for (let i = 0; i < buf.length; i++) {
-            const v = (buf[i] - 128) / 128;
-            sum += v * v;
-          }
-          const rms = Math.sqrt(sum / buf.length);
-          const isSilent = rms < 0.02;
-          const now = performance.now();
-          if (isSilent) {
-            if (silenceStartRef.current == null) silenceStartRef.current = now;
-            else if (now - silenceStartRef.current > silenceMs) {
-              onSilence();
-              silenceStartRef.current = null;
-              return;
-            }
-          } else {
+        const rms = Math.sqrt(sum / buf.length);
+        const isSilent = rms < 0.018;
+        const now = performance.now();
+        // Grace period so we don't auto-stop before the user even speaks
+        const grace = now - startedAt < 800;
+        if (isSilent && !grace) {
+          if (silenceStartRef.current == null) silenceStartRef.current = now;
+          else if (now - silenceStartRef.current > silenceMs) {
+            onSilenceRef.current();
             silenceStartRef.current = null;
+            return;
           }
-          rafRef.current = requestAnimationFrame(tick);
-        };
+        } else {
+          silenceStartRef.current = null;
+        }
         rafRef.current = requestAnimationFrame(tick);
-      } catch (e) {
-        console.warn('Silence detector failed:', e);
-      }
-    })();
+      };
+      rafRef.current = requestAnimationFrame(tick);
+    } catch (e) {
+      console.warn('Silence detector failed:', e);
+    }
 
     return () => {
       cancelled = true;
       cleanup();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, silenceMs]);
+  }, [enabled, silenceMs, stream]);
 
   function cleanup() {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     rafRef.current = null;
     silenceStartRef.current = null;
-    streamRef.current?.getTracks().forEach((t) => t.stop());
-    streamRef.current = null;
     audioCtxRef.current?.close().catch(() => {});
     audioCtxRef.current = null;
   }
