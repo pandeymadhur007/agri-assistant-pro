@@ -7,7 +7,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, TrendingUp, TrendingDown, Minus, MapPin, IndianRupee, Star, Wheat } from 'lucide-react';
+import { ArrowLeft, TrendingUp, TrendingDown, Minus, MapPin, IndianRupee, Star, Wheat, Sparkles, Loader2 } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 interface MarketPrice {
   id: string;
@@ -30,6 +31,15 @@ interface MSPRate {
   year: string;
 }
 
+interface Insight {
+  trend: 'rising' | 'falling' | 'stable';
+  pct_change?: number;
+  current_avg?: number;
+  forecast?: { day: number; price: number }[];
+  history?: { date: string; price: number }[];
+  recommendation: string;
+}
+
 const MarketPriceCrop = () => {
   const { name } = useParams<{ name: string }>();
   const navigate = useNavigate();
@@ -37,18 +47,37 @@ const MarketPriceCrop = () => {
   const [prices, setPrices] = useState<MarketPrice[]>([]);
   const [mspRate, setMspRate] = useState<MSPRate | null>(null);
   const [loading, setLoading] = useState(true);
+  const [insight, setInsight] = useState<Insight | null>(null);
+  const [insightLoading, setInsightLoading] = useState(false);
 
   const cropName = decodeURIComponent(name || '');
 
   useEffect(() => {
-    if (cropName) fetchCropData();
-  }, [cropName]);
+    if (cropName) {
+      fetchCropData();
+      loadInsight();
+    }
+  }, [cropName, language]);
+
+  const loadInsight = async () => {
+    setInsightLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('market-insight', {
+        body: { crop_name: cropName, language },
+      });
+      if (!error && data) setInsight(data as Insight);
+    } catch (e) {
+      console.error('insight error', e);
+    } finally {
+      setInsightLoading(false);
+    }
+  };
 
   const fetchCropData = async () => {
     try {
       const [pricesRes, mspRes] = await Promise.all([
         supabase.from('market_prices').select('*').eq('crop_name', cropName).order('price', { ascending: false }),
-        supabase.from('msp_rates').select('*').eq('crop_name', cropName).single()
+        supabase.from('msp_rates').select('*').eq('crop_name', cropName).maybeSingle()
       ]);
 
       if (pricesRes.data) setPrices(pricesRes.data);
@@ -185,6 +214,58 @@ const MarketPriceCrop = () => {
                 </CardContent>
               </Card>
             </div>
+
+            {/* AI Insight + 30-day chart */}
+            <Card className="mb-6 border-primary/30">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  {language === 'hi' ? 'AI बाजार सलाह' : 'AI Market Insight'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {insightLoading && !insight ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    {language === 'hi' ? 'विश्लेषण हो रहा है...' : 'Analyzing trends...'}
+                  </div>
+                ) : insight ? (
+                  <>
+                    <div className="flex flex-wrap items-center gap-2 mb-3">
+                      <Badge variant={insight.trend === 'rising' ? 'default' : insight.trend === 'falling' ? 'destructive' : 'secondary'}>
+                        {insight.trend === 'rising' && <TrendingUp className="h-3 w-3 mr-1" />}
+                        {insight.trend === 'falling' && <TrendingDown className="h-3 w-3 mr-1" />}
+                        {insight.trend === 'stable' && <Minus className="h-3 w-3 mr-1" />}
+                        {insight.trend}
+                      </Badge>
+                      {typeof insight.pct_change === 'number' && (
+                        <span className="text-sm text-muted-foreground">
+                          {insight.pct_change > 0 ? '+' : ''}{insight.pct_change}% / 30d
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm leading-relaxed">{insight.recommendation}</p>
+                    {insight.history && insight.history.length > 1 && (
+                      <div className="mt-4 h-48">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={[...(insight.history || []), ...(insight.forecast?.map((f, i) => ({
+                            date: `+${f.day}d`,
+                            price: f.price,
+                            forecast: f.price,
+                          })) || [])]}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                            <XAxis dataKey="date" tick={{ fontSize: 10 }} hide />
+                            <YAxis tick={{ fontSize: 10 }} width={50} />
+                            <Tooltip contentStyle={{ background: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', borderRadius: 6 }} />
+                            <Line type="monotone" dataKey="price" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} name={language === 'hi' ? 'भाव' : 'Price'} />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    )}
+                  </>
+                ) : null}
+              </CardContent>
+            </Card>
 
             {/* All Mandis */}
             <h2 className="text-xl font-semibold mb-4">{l.allMandis}</h2>

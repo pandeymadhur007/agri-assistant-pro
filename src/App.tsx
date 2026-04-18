@@ -8,6 +8,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import Index from "./pages/Index";
 import Chat from "./pages/Chat";
 import Schemes from "./pages/Schemes";
+import SchemeDetail from "./pages/SchemeDetail";
 import Scan from "./pages/Scan";
 import ScanResult from "./pages/ScanResult";
 import ScanHistory from "./pages/ScanHistory";
@@ -37,6 +38,7 @@ function AnimatedRoutes() {
         <Route path="/assistant" element={<Chat />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/schemes" element={<Schemes />} />
+        <Route path="/schemes/detail/:id" element={<SchemeDetail />} />
         <Route path="/schemes/:category" element={<Schemes />} />
         <Route path="/crop-guidance" element={<CropGuidance />} />
         <Route path="/pest-disease" element={<PestDisease />} />

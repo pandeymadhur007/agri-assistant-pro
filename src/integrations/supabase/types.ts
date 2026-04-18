@@ -465,12 +465,14 @@ export type Database = {
       }
       schemes: {
         Row: {
+          application_deadline: string | null
           benefits_en: string | null
           benefits_hi: string | null
           category: string
           created_at: string
           documents_en: string[] | null
           documents_hi: string[] | null
+          eligibility_criteria: Json | null
           eligibility_en: string | null
           eligibility_hi: string | null
           how_to_apply_en: string | null
@@ -484,15 +486,18 @@ export type Database = {
           name_te: string | null
           official_link: string | null
           state: string | null
+          success_rate: number | null
           updated_at: string
         }
         Insert: {
+          application_deadline?: string | null
           benefits_en?: string | null
           benefits_hi?: string | null
           category: string
           created_at?: string
           documents_en?: string[] | null
           documents_hi?: string[] | null
+          eligibility_criteria?: Json | null
           eligibility_en?: string | null
           eligibility_hi?: string | null
           how_to_apply_en?: string | null
@@ -506,15 +511,18 @@ export type Database = {
           name_te?: string | null
           official_link?: string | null
           state?: string | null
+          success_rate?: number | null
           updated_at?: string
         }
         Update: {
+          application_deadline?: string | null
           benefits_en?: string | null
           benefits_hi?: string | null
           category?: string
           created_at?: string
           documents_en?: string[] | null
           documents_hi?: string[] | null
+          eligibility_criteria?: Json | null
           eligibility_en?: string | null
           eligibility_hi?: string | null
           how_to_apply_en?: string | null
@@ -528,6 +536,7 @@ export type Database = {
           name_te?: string | null
           official_link?: string | null
           state?: string | null
+          success_rate?: number | null
           updated_at?: string
         }
         Relationships: []
