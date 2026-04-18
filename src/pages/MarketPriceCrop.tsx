@@ -7,7 +7,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, TrendingUp, TrendingDown, Minus, MapPin, IndianRupee, Star, Wheat } from 'lucide-react';
+import { ArrowLeft, TrendingUp, TrendingDown, Minus, MapPin, IndianRupee, Star, Wheat, Sparkles, Loader2 } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 interface MarketPrice {
   id: string;
