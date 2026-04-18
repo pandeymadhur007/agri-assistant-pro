@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Send, Loader2, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
+import { Send, Loader2, Mic, MicOff, Volume2, VolumeX, Headphones, Hand } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useChat, Message } from '@/hooks/useChat';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCloudSpeechRecognition } from '@/hooks/useCloudSpeechRecognition';
 import { useMurfTTS } from '@/hooks/useMurfTTS';
+import { useVoiceMode, useSilenceDetector } from '@/hooks/useVoiceMode';
 import { cn } from '@/lib/utils';
 
 // Clean AI response by removing any markdown formatting
@@ -68,7 +69,38 @@ export function ChatInterface() {
   const { isRecording, isProcessing, transcript, isSupported: micSupported, startRecording, stopRecording, resetTranscript } = useCloudSpeechRecognition();
   const { isPlaying, isLoading: ttsLoading, isSupported: ttsSupported, speak, stop: stopSpeaking } = useMurfTTS();
   const [autoSpeak, setAutoSpeak] = useState(true);
-  
+  const { mode: voiceMode, toggle: toggleVoiceMode, isHandsFree } = useVoiceMode();
+
+  // In hands-free mode, detect silence while recording → auto-stop & send
+  useSilenceDetector(isHandsFree && isRecording, 1500, () => {
+    stopRecording();
+  });
+
+  // Hands-free auto-loop: when assistant finishes speaking, auto-start mic
+  useEffect(() => {
+    if (!isHandsFree || !micSupported) return;
+    if (!isPlaying && !ttsLoading && !isLoading && !isRecording && !isProcessing && messages.length > 0) {
+      const last = messages[messages.length - 1];
+      if (last.role === 'assistant') {
+        const timer = setTimeout(() => startRecording(language), 600);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isHandsFree, isPlaying, ttsLoading, isLoading, isRecording, isProcessing, messages, micSupported, startRecording, language]);
+
+  // Hands-free: when transcript arrives & we're not recording anymore, auto-send
+  useEffect(() => {
+    if (!isHandsFree) return;
+    if (transcript && !isRecording && !isProcessing && !isLoading) {
+      const text = transcript.trim();
+      if (text.length > 0) {
+        resetTranscript();
+        sendMessage(text);
+        setInput('');
+      }
+    }
+  }, [isHandsFree, transcript, isRecording, isProcessing, isLoading, resetTranscript, sendMessage]);
+
   // Derived state for mic button
   const isListening = isRecording || isProcessing;
 
