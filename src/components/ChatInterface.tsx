@@ -209,6 +209,30 @@ export function ChatInterface() {
       </div>
 
       <form onSubmit={handleSubmit} className="border-t bg-background p-4">
+        {/* Voice mode toggle bar */}
+        {micSupported && ttsSupported && (
+          <div className="flex items-center justify-between mb-2 text-xs">
+            <button
+              type="button"
+              onClick={toggleVoiceMode}
+              className={cn(
+                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition-colors",
+                isHandsFree
+                  ? "bg-primary/10 border-primary/30 text-primary"
+                  : "bg-muted border-border text-muted-foreground hover:bg-muted/80"
+              )}
+              title={isHandsFree ? "Hands-free mode (auto)" : "Push-to-talk mode"}
+            >
+              {isHandsFree ? <Headphones className="h-3 w-3" /> : <Hand className="h-3 w-3" />}
+              {isHandsFree ? (t('handsFree') || 'Hands-free') : (t('pushToTalk') || 'Push-to-talk')}
+            </button>
+            {isHandsFree && (isRecording || isPlaying) && (
+              <span className="text-primary animate-pulse">
+                {isRecording ? '● listening' : '🔊 speaking'}
+              </span>
+            )}
+          </div>
+        )}
         <div className="flex gap-2">
           {/* Mic button */}
           {micSupported && (
