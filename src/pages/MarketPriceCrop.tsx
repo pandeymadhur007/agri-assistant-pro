@@ -31,6 +31,15 @@ interface MSPRate {
   year: string;
 }
 
+interface Insight {
+  trend: 'rising' | 'falling' | 'stable';
+  pct_change?: number;
+  current_avg?: number;
+  forecast?: { day: number; price: number }[];
+  history?: { date: string; price: number }[];
+  recommendation: string;
+}
+
 const MarketPriceCrop = () => {
   const { name } = useParams<{ name: string }>();
   const navigate = useNavigate();
@@ -38,18 +47,37 @@ const MarketPriceCrop = () => {
   const [prices, setPrices] = useState<MarketPrice[]>([]);
   const [mspRate, setMspRate] = useState<MSPRate | null>(null);
   const [loading, setLoading] = useState(true);
+  const [insight, setInsight] = useState<Insight | null>(null);
+  const [insightLoading, setInsightLoading] = useState(false);
 
   const cropName = decodeURIComponent(name || '');
 
   useEffect(() => {
-    if (cropName) fetchCropData();
-  }, [cropName]);
+    if (cropName) {
+      fetchCropData();
+      loadInsight();
+    }
+  }, [cropName, language]);
+
+  const loadInsight = async () => {
+    setInsightLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('market-insight', {
+        body: { crop_name: cropName, language },
+      });
+      if (!error && data) setInsight(data as Insight);
+    } catch (e) {
+      console.error('insight error', e);
+    } finally {
+      setInsightLoading(false);
+    }
+  };
 
   const fetchCropData = async () => {
     try {
       const [pricesRes, mspRes] = await Promise.all([
         supabase.from('market_prices').select('*').eq('crop_name', cropName).order('price', { ascending: false }),
-        supabase.from('msp_rates').select('*').eq('crop_name', cropName).single()
+        supabase.from('msp_rates').select('*').eq('crop_name', cropName).maybeSingle()
       ]);
 
       if (pricesRes.data) setPrices(pricesRes.data);
