@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MessageCircle, FileText, Sprout, Bug, CloudSun, Camera, TrendingUp, CalendarDays, Users, Sparkles, Lightbulb } from 'lucide-react';
+import { MessageCircle, FileText, Sprout, Bug, CloudSun, Camera, TrendingUp, CalendarDays, Users, Sparkles, Lightbulb, HelpCircle, Brain, CheckCircle2 } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { WeatherWidget } from '@/components/WeatherWidget';
@@ -10,7 +10,17 @@ import { PageTransition, StaggerContainer, StaggerItem, FadeIn } from '@/compone
 import { cn } from '@/lib/utils';
 
 const Index = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+
+  // Localized sub-tagline (one strong line per language)
+  const subTaglines: Record<string, string> = {
+    en: "Every farmer's digital companion",
+    hi: 'किसान का डिजिटल साथी',
+    mr: 'शेतकऱ्याचा डिजिटल साथी',
+    te: 'రైతు యొక్క డిజిటల్ సహచరుడు',
+    ta: 'விவசாயியின் டிஜிட்டல் துணை',
+    bn: 'কৃষকের ডিজিটাল সঙ্গী',
+  };
 
   const quickActions = [
     { icon: MessageCircle, title: t('startChat'), to: '/chat', gradient: 'from-emerald-500 to-green-600' },
@@ -31,6 +41,14 @@ const Index = () => {
     { icon: CloudSun, title: 'Smart Weather', desc: 'Farm-focused forecasts with crop advisory', gradient: 'from-blue-400 to-indigo-600', to: '/weather' },
   ];
 
+  const heroBadges = ['AI Powered', 'Free', '6 Languages'];
+
+  const howItWorks = [
+    { icon: HelpCircle, title: t('howStep1'), num: 1 },
+    { icon: Brain, title: t('howStep2'), num: 2 },
+    { icon: CheckCircle2, title: t('howStep3'), num: 3 },
+  ];
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
@@ -38,34 +56,31 @@ const Index = () => {
         <main className="flex-1">
           {/* Hero Section */}
           <section className="hero-pattern hero-gradient py-16 px-4 relative overflow-hidden">
-            {/* Decorative elements */}
-            <motion.div 
-              className="absolute top-10 left-10 text-6xl opacity-20"
+            {/* Subtle decorative wheat — consistent size + gentle opacity */}
+            <motion.div
+              className="absolute top-12 left-6 md:left-16 text-5xl pointer-events-none select-none"
+              style={{ opacity: 0.15 }}
               animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+              aria-hidden
             >
               🌾
             </motion.div>
-            <motion.div 
-              className="absolute top-20 right-10 text-4xl opacity-15"
-              animate={{ y: [0, -8, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+            <motion.div
+              className="absolute top-12 right-6 md:right-16 text-5xl pointer-events-none select-none"
+              style={{ opacity: 0.15 }}
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+              aria-hidden
             >
-              🌻
+              🌾
             </motion.div>
-            <motion.div 
-              className="absolute bottom-10 left-1/4 text-3xl opacity-10"
-              animate={{ y: [0, -6, 0] }}
-              transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-            >
-              🌱
-            </motion.div>
-            
+
             <div className="container mx-auto text-center relative z-10">
               {/* Logo/Icon */}
               <FadeIn delay={0.1}>
-                <div className="relative mb-8 inline-block">
-                  <motion.div 
+                <div className="relative mb-6 inline-block">
+                  <motion.div
                     className="w-24 h-24 bg-gradient-to-br from-primary to-primary/80 rounded-3xl flex items-center justify-center shadow-2xl shadow-primary/30"
                     initial={{ rotate: 3 }}
                     whileHover={{ rotate: 0, scale: 1.05 }}
@@ -73,7 +88,7 @@ const Index = () => {
                   >
                     <span className="text-5xl">🌾</span>
                   </motion.div>
-                  <motion.div 
+                  <motion.div
                     className="absolute -bottom-2 -right-2 w-10 h-10 bg-accent rounded-xl flex items-center justify-center shadow-lg"
                     initial={{ rotate: -12 }}
                     animate={{ rotate: [-12, -8, -12] }}
@@ -83,29 +98,50 @@ const Index = () => {
                   </motion.div>
                 </div>
               </FadeIn>
-              
+
               <FadeIn delay={0.2}>
-                <h1 className="text-4xl md:text-6xl font-bold mb-4">
+                <h1 className="text-4xl md:text-6xl font-bold mb-3">
                   <span className="gradient-text">{t('appName')}</span>
                 </h1>
               </FadeIn>
-              
-              <FadeIn delay={0.3}>
-                <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-lg mx-auto leading-relaxed">
+
+              <FadeIn delay={0.25}>
+                <p className="text-lg md:text-xl text-foreground/80 font-medium mb-2 max-w-lg mx-auto">
                   {t('tagline')}
                 </p>
               </FadeIn>
-              
+
+              <FadeIn delay={0.3}>
+                <p className="text-base md:text-lg text-muted-foreground mb-6 max-w-lg mx-auto">
+                  {subTaglines[language] || subTaglines.en}
+                </p>
+              </FadeIn>
+
+              {/* Badge pills */}
+              <FadeIn delay={0.35}>
+                <div className="flex flex-wrap items-center justify-center gap-2 mb-8">
+                  {heroBadges.map((b) => (
+                    <span
+                      key={b}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                      {b}
+                    </span>
+                  ))}
+                </div>
+              </FadeIn>
+
               <FadeIn delay={0.4}>
-                <Link to="/chat">
-                  <motion.button 
-                    className="group bg-gradient-to-r from-primary to-primary/90 text-primary-foreground px-10 py-5 rounded-2xl text-lg font-semibold shadow-xl shadow-primary/25"
+                <Link to="/chat" className="block max-w-[280px] mx-auto">
+                  <motion.button
+                    className="w-full group bg-gradient-to-r from-primary to-primary/90 text-primary-foreground px-6 py-4 rounded-2xl text-base md:text-lg font-semibold shadow-xl shadow-primary/25"
                     whileHover={{ y: -4, boxShadow: '0 25px 50px -12px hsl(var(--primary) / 0.4)' }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ type: 'spring', stiffness: 400, damping: 17 }}
                   >
-                    <span className="flex items-center gap-3">
-                      <MessageCircle className="w-6 h-6" />
+                    <span className="flex items-center justify-center gap-3">
+                      <MessageCircle className="w-5 h-5" />
                       {t('startChat')}
                       <motion.span
                         animate={{ x: [0, 4, 0] }}
@@ -120,8 +156,29 @@ const Index = () => {
             </div>
           </section>
 
+          {/* Stats strip */}
+          <section className="px-4 -mt-4 relative z-20">
+            <div className="container mx-auto max-w-3xl">
+              <div className="rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 shadow-sm">
+                <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs md:text-sm font-medium text-primary">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Users className="w-4 h-4" /> 10,000+ Farmers Helped
+                  </span>
+                  <span className="opacity-40">•</span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4" /> 6 Languages
+                  </span>
+                  <span className="opacity-40">•</span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4" /> 100% Free
+                  </span>
+                </div>
+              </div>
+            </div>
+          </section>
+
           {/* Weather Alert Widget */}
-          <section className="px-4 -mt-6 relative z-20">
+          <section className="px-4 mt-6 relative z-20">
             <div className="container mx-auto max-w-3xl">
               <WeatherWidget />
             </div>
@@ -135,19 +192,20 @@ const Index = () => {
                   {t('quickActions')}
                 </h2>
               </FadeIn>
-              
-              <StaggerContainer className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
-                {quickActions.map((action, index) => (
-                  <StaggerItem key={action.to}>
-                    <Link to={action.to}>
+
+              <StaggerContainer className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 items-stretch">
+                {quickActions.map((action) => (
+                  <StaggerItem key={action.to} className="h-full">
+                    <Link to={action.to} className="block h-full">
                       <motion.div
-                        whileHover={{ y: -4 }}
+                        className="h-full"
+                        whileHover={{ y: -4, boxShadow: '0 10px 24px -10px hsl(var(--primary) / 0.25)' }}
                         whileTap={{ scale: 0.98 }}
-                        transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                        transition={{ type: 'spring', stiffness: 400, damping: 20 }}
                       >
-                        <Card className="h-full border-0 shadow-md hover:shadow-xl overflow-hidden group transition-shadow duration-300">
-                          <CardContent className="p-4 flex flex-col items-center text-center gap-3">
-                            <motion.div 
+                        <Card className="h-full min-h-[140px] border-0 shadow-md hover:shadow-xl overflow-hidden group transition-shadow duration-300">
+                          <CardContent className="h-full p-5 flex flex-col items-center justify-center text-center gap-3">
+                            <motion.div
                               className={cn(
                                 'w-14 h-14 rounded-2xl flex items-center justify-center bg-gradient-to-br shadow-lg',
                                 action.gradient
@@ -168,11 +226,37 @@ const Index = () => {
             </div>
           </section>
 
+          {/* How It Works */}
+          <section className="py-12 px-4 bg-background">
+            <div className="container mx-auto max-w-4xl">
+              <FadeIn>
+                <h2 className="text-2xl md:text-3xl font-bold text-center mb-10">
+                  {t('howItWorks')}
+                </h2>
+              </FadeIn>
+              <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {howItWorks.map((step) => (
+                  <StaggerItem key={step.num}>
+                    <div className="relative h-full rounded-2xl border border-border bg-card p-6 text-center shadow-sm hover:shadow-md transition-shadow">
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center shadow">
+                        {step.num}
+                      </div>
+                      <div className="mt-3 mx-auto w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-4">
+                        <step.icon className="w-7 h-7" />
+                      </div>
+                      <h3 className="font-semibold text-base">{step.title}</h3>
+                    </div>
+                  </StaggerItem>
+                ))}
+              </StaggerContainer>
+            </div>
+          </section>
+
           {/* Feature Highlights */}
           <section className="py-12 px-4 bg-gradient-to-b from-background to-secondary/30">
             <div className="container mx-auto">
               <StaggerContainer className="grid md:grid-cols-3 gap-6">
-                {featureCards.map((feature, index) => (
+                {featureCards.map((feature) => (
                   <StaggerItem key={feature.title}>
                     <Link to={feature.to}>
                       <motion.div
@@ -181,7 +265,7 @@ const Index = () => {
                       >
                         <Card className="border-0 shadow-lg card-gradient h-full cursor-pointer">
                           <CardContent className="p-6 text-center">
-                            <motion.div 
+                            <motion.div
                               className={cn(
                                 'w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg bg-gradient-to-br',
                                 feature.gradient
