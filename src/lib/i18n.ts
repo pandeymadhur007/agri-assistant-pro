@@ -199,6 +199,7 @@ export const translations: Record<Language, Record<string, string>> = {
     about: 'గ్రామ్ AI గురించి',
     contact: 'సంప్రదించండి',
     disclaimer: 'నిరాకరణ',
+    aiDisclaimer: 'AI సలహాలు మార్గదర్శనం కోసం మాత్రమే. ముఖ్యమైన నిర్ణయాలకు వ్యవసాయ నిపుణుడిని సంప్రదించండి.',
     loading: 'లోడ్ అవుతోంది...',
     weatherForecast: 'వాతావరణం',
     chatHelperText: 'పంటలు, వాతావరణం, వ్యాధులు లేదా పథకాల గురించి అడగండి.',
