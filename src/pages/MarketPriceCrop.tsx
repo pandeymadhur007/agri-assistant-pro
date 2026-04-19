@@ -246,20 +246,27 @@ const MarketPriceCrop = () => {
                     </div>
                     <p className="text-sm leading-relaxed">{insight.recommendation}</p>
                     {insight.history && insight.history.length > 1 && (
-                      <div className="mt-4 h-48">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={[...(insight.history || []), ...(insight.forecast?.map((f, i) => ({
-                            date: `+${f.day}d`,
-                            price: f.price,
-                            forecast: f.price,
-                          })) || [])]}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                            <XAxis dataKey="date" tick={{ fontSize: 10 }} hide />
-                            <YAxis tick={{ fontSize: 10 }} width={50} />
-                            <Tooltip contentStyle={{ background: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', borderRadius: 6 }} />
-                            <Line type="monotone" dataKey="price" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} name={language === 'hi' ? 'भाव' : 'Price'} />
-                          </LineChart>
-                        </ResponsiveContainer>
+                      <div className="mt-4">
+                        <div className="text-xs font-medium text-muted-foreground mb-2">
+                          {language === 'hi' ? '30-दिन का भाव रुझान' : '30-day price trend'}
+                        </div>
+                        <div className="h-56">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={[...(insight.history || []), ...(insight.forecast?.map((f) => ({
+                              date: `+${f.day}d`,
+                              price: f.price,
+                            })) || [])]} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                              <XAxis dataKey="date" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+                              <YAxis tick={{ fontSize: 10 }} width={50} />
+                              <Tooltip
+                                contentStyle={{ background: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', borderRadius: 6, fontSize: 12 }}
+                                formatter={(v: any) => [`₹${v}`, language === 'hi' ? 'भाव' : 'Price']}
+                              />
+                              <Line type="monotone" dataKey="price" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={{ r: 2 }} activeDot={{ r: 5 }} name={language === 'hi' ? 'भाव' : 'Price'} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
                       </div>
                     )}
                   </>
