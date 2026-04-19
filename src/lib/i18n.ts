@@ -50,6 +50,7 @@ export const translations: Record<Language, Record<string, string>> = {
     about: 'About Gram AI',
     contact: 'Contact',
     disclaimer: 'Disclaimer',
+    aiDisclaimer: 'AI responses are advisory only. Please consult an agronomist or local Krishi Vigyan Kendra for critical farming decisions.',
     loading: 'Loading...',
     weatherForecast: 'Weather',
     chatHelperText: 'Ask about crops, weather, diseases, or farming schemes.',
