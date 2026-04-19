@@ -296,6 +296,7 @@ const MarketPrices = () => {
       </main>
 
       <Footer />
+      <BottomNav />
     </div>
   );
 };
