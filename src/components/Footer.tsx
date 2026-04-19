@@ -42,7 +42,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-6 rounded-md border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-900 dark:text-amber-200">
+        <div className="mt-6 rounded-md border border-primary/30 bg-primary/5 px-4 py-3 text-xs text-foreground">
           ⚠️ {t('aiDisclaimer')}
         </div>
 
