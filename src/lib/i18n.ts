@@ -105,6 +105,7 @@ export const translations: Record<Language, Record<string, string>> = {
     about: 'ग्राम AI के बारे में',
     contact: 'संपर्क',
     disclaimer: 'अस्वीकरण',
+    aiDisclaimer: 'AI द्वारा दी गई सलाह केवल मार्गदर्शन है। महत्वपूर्ण निर्णयों के लिए कृषि विशेषज्ञ या कृषि विज्ञान केंद्र से सलाह लें।',
     loading: 'लोड हो रहा है...',
     weatherForecast: 'मौसम',
     chatHelperText: 'फसल, मौसम, रोग या सरकारी योजनाओं के बारे में पूछें।',
