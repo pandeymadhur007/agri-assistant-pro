@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { MessageCircle, FileText, Sprout, Bug, CloudSun, Camera, TrendingUp, CalendarDays, Users, Sparkles, Lightbulb, HelpCircle, Brain, CheckCircle2 } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
+import { BottomNav } from '@/components/BottomNav';
 import { Footer } from '@/components/Footer';
 import { WeatherWidget } from '@/components/WeatherWidget';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -289,6 +290,7 @@ const Index = () => {
         </main>
       </PageTransition>
       <Footer />
+      <BottomNav />
     </div>
   );
 };

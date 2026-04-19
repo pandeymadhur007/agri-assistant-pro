@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
+import { BottomNav } from '@/components/BottomNav';
 import { Footer } from '@/components/Footer';
 import { useSchemes } from '@/components/SchemeCard';
+import { SchemeEligibilityChecker } from '@/components/SchemeEligibilityChecker';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -97,6 +99,17 @@ const Schemes = () => {
             </Select>
           </div>
 
+          {/* Eligibility Checker — quick personalized matcher */}
+          {schemes && schemes.length > 0 && (
+            <div className="mb-8">
+              <SchemeEligibilityChecker
+                schemes={schemes}
+                language={language}
+                onOpenScheme={(id) => navigate(`/schemes/detail/${id}`)}
+              />
+            </div>
+          )}
+
           {isLoading ? (
             <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin" /></div>
           ) : (
@@ -130,6 +143,7 @@ const Schemes = () => {
         </div>
       </main>
       <Footer />
+      <BottomNav />
     </div>
   );
 };
