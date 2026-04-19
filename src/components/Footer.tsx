@@ -42,7 +42,11 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 border-t pt-4 text-center text-sm text-muted-foreground">
+        <div className="mt-6 rounded-md border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-900 dark:text-amber-200">
+          ⚠️ {t('aiDisclaimer')}
+        </div>
+
+        <div className="mt-6 border-t pt-4 text-center text-sm text-muted-foreground">
           © 2026 {t('appName')}. Made for Indian Farmers.
         </div>
       </div>
