@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 
+interface CropGuidanceProps { embedded?: boolean }
+
 const translations = {
   en: {
     title: 'Crop Guidance',
@@ -210,7 +212,7 @@ const translations = {
   },
 };
 
-const CropGuidance = () => {
+const CropGuidance = ({ embedded = false }: CropGuidanceProps = {}) => {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const t = translations[language] || translations.en;
