@@ -72,6 +72,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AnimatedRoutes />
+          <InstallPrompt />
         </BrowserRouter>
       </TooltipProvider>
     </LanguageProvider>
