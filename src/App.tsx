@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { InstallPrompt } from "@/components/InstallPrompt";
 import Index from "./pages/Index";
 import Chat from "./pages/Chat";
 import Schemes from "./pages/Schemes";
@@ -14,6 +15,7 @@ import ScanResult from "./pages/ScanResult";
 import ScanHistory from "./pages/ScanHistory";
 import CropGuidance from "./pages/CropGuidance";
 import PestDisease from "./pages/PestDisease";
+import CropCenter from "./pages/CropCenter";
 import Weather from "./pages/Weather";
 import MarketPrices from "./pages/MarketPrices";
 import MarketPriceCrop from "./pages/MarketPriceCrop";
@@ -40,10 +42,11 @@ function AnimatedRoutes() {
         <Route path="/schemes" element={<Schemes />} />
         <Route path="/schemes/detail/:id" element={<SchemeDetail />} />
         <Route path="/schemes/:category" element={<Schemes />} />
-        <Route path="/crop-guidance" element={<CropGuidance />} />
-        <Route path="/pest-disease" element={<PestDisease />} />
+        <Route path="/crop-center" element={<CropCenter />} />
+        <Route path="/crop-guidance" element={<CropCenter />} />
+        <Route path="/pest-disease" element={<CropCenter />} />
         <Route path="/weather" element={<Weather />} />
-        <Route path="/scan" element={<Scan />} />
+        <Route path="/scan" element={<CropCenter />} />
         <Route path="/scan/result" element={<ScanResult />} />
         <Route path="/scan/history" element={<ScanHistory />} />
         <Route path="/market-prices" element={<MarketPrices />} />
