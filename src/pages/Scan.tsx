@@ -322,9 +322,16 @@ const Scan = ({ embedded = false }: ScanProps = {}) => {
               </ul>
             </CardContent>
           </Card>
-        </div>
-      </main>
+      </div>
+    </main>
+  );
 
+  if (embedded) return content;
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      <Navbar />
+      {content}
       <Footer />
     </div>
   );
