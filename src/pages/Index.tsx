@@ -25,14 +25,12 @@ const Index = () => {
 
   const quickActions = [
     { icon: MessageCircle, title: t('startChat'), to: '/chat', gradient: 'from-emerald-500 to-green-600' },
-    { icon: Camera, title: t('scanCrop'), to: '/scan', gradient: 'from-teal-500 to-cyan-600' },
+    { icon: Sprout, title: t('cropCenter'), to: '/crop-center', gradient: 'from-teal-500 to-green-600' },
     { icon: Lightbulb, title: t('smartRec'), to: '/recommendations', gradient: 'from-yellow-500 to-amber-600' },
     { icon: TrendingUp, title: t('marketPrices'), to: '/market-prices', gradient: 'from-orange-500 to-amber-600' },
     { icon: CalendarDays, title: t('calendar'), to: '/calendar', gradient: 'from-blue-500 to-indigo-600' },
     { icon: Users, title: t('community'), to: '/community', gradient: 'from-purple-500 to-violet-600' },
     { icon: CloudSun, title: t('weatherForecast'), to: '/weather', gradient: 'from-sky-500 to-blue-600' },
-    { icon: Sprout, title: t('cropGuidance'), to: '/crop-guidance', gradient: 'from-lime-500 to-green-600' },
-    { icon: Bug, title: t('pestDisease'), to: '/pest-disease', gradient: 'from-rose-500 to-red-600' },
     { icon: FileText, title: t('schemes'), to: '/schemes', gradient: 'from-fuchsia-500 to-purple-600' },
   ];
 

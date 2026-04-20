@@ -262,7 +262,9 @@ const getSeverityColor = (severity: string) => {
   }
 };
 
-const PestDisease = () => {
+interface PestDiseaseProps { embedded?: boolean }
+
+const PestDisease = ({ embedded = false }: PestDiseaseProps = {}) => {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const t = translations[language] || translations.en;
@@ -272,11 +274,9 @@ const PestDisease = () => {
     return textObj[language] || textObj.hi || textObj.en;
   };
 
-  return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Navbar />
-      <main className="flex-1">
-        {/* Header with pattern */}
+  const inner = (
+    <main className="flex-1">
+      {!embedded && (
         <div className="hero-pattern bg-gradient-to-b from-amber-500/10 to-background py-8 px-4">
           <div className="container mx-auto text-center">
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-amber-100 dark:bg-amber-900 mb-3">
@@ -286,8 +286,9 @@ const PestDisease = () => {
             <p className="text-muted-foreground">{t.subtitle}</p>
           </div>
         </div>
+      )}
 
-        <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-6">
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
@@ -425,8 +426,16 @@ const PestDisease = () => {
             <ArrowRight className="w-4 h-4" />
           </Button>
         </section>
-        </div>
-      </main>
+      </div>
+    </main>
+  );
+
+  if (embedded) return inner;
+
+  return (
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
+      {inner}
       <Footer />
     </div>
   );

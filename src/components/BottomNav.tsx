@@ -30,14 +30,12 @@ export function BottomNav() {
   ];
 
   const moreItems = [
-    { to: '/scan', label: t('scanCrop'), icon: Camera },
+    { to: '/crop-center', label: t('cropCenter'), icon: Sprout },
     { to: '/recommendations', label: t('smartRec'), icon: Lightbulb },
     { to: '/calendar', label: t('calendar'), icon: CalendarDays },
     { to: '/weather', label: t('weatherForecast'), icon: CloudSun },
     { to: '/community', label: t('community'), icon: Users },
     { to: '/schemes', label: t('schemes'), icon: FileText },
-    { to: '/crop-guidance', label: t('cropGuidance'), icon: Sprout },
-    { to: '/pest-disease', label: t('pestDisease'), icon: Bug },
   ];
 
   const isActive = (to: string) =>
