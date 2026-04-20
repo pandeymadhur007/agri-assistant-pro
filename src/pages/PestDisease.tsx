@@ -426,8 +426,16 @@ const PestDisease = ({ embedded = false }: PestDiseaseProps = {}) => {
             <ArrowRight className="w-4 h-4" />
           </Button>
         </section>
-        </div>
-      </main>
+      </div>
+    </main>
+  );
+
+  if (embedded) return inner;
+
+  return (
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
+      {inner}
       <Footer />
     </div>
   );
