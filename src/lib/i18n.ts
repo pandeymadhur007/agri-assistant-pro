@@ -68,6 +68,7 @@ export const translations: Record<Language, Record<string, string>> = {
     calendar: 'Calendar',
     community: 'Community',
     installApp: 'Install App',
+    cropCenter: 'Crop Center',
     installAppDesc: 'Works offline, no download needed',
   },
   hi: {
@@ -128,6 +129,7 @@ export const translations: Record<Language, Record<string, string>> = {
     calendar: 'कैलेंडर',
     community: 'समुदाय',
     installApp: 'ऐप इंस्टॉल करें',
+    cropCenter: 'फसल केंद्र',
     installAppDesc: 'ऑफलाइन काम करता है, डाउनलोड की जरूरत नहीं',
   },
   mr: {
@@ -180,6 +182,7 @@ export const translations: Record<Language, Record<string, string>> = {
     calendar: 'कॅलेंडर',
     community: 'समुदाय',
     installApp: 'अॅप इंस्टॉल करा',
+    cropCenter: 'पीक केंद्र',
     installAppDesc: 'ऑफलाइन काम करते, डाउनलोडची गरज नाही',
   },
   te: {
@@ -232,6 +235,7 @@ export const translations: Record<Language, Record<string, string>> = {
     calendar: 'క్యాలెండర్',
     community: 'సంఘం',
     installApp: 'యాప్ ఇన్స్టాల్ చేయండి',
+    cropCenter: 'పంట కేంద్రం',
     installAppDesc: 'ఆఫ్‌లైన్‌లో పనిచేస్తుంది, డౌన్‌లోడ్ అవసరం లేదు',
   },
   ta: {
@@ -284,6 +288,7 @@ export const translations: Record<Language, Record<string, string>> = {
     calendar: 'நாட்காட்டி',
     community: 'சமூகம்',
     installApp: 'ஆப்பை நிறுவு',
+    cropCenter: 'பயிர் மையம்',
     installAppDesc: 'ஆஃப்லைனில் வேலை செய்யும், பதிவிறக்கம் தேவையில்லை',
   },
   bn: {
@@ -336,6 +341,7 @@ export const translations: Record<Language, Record<string, string>> = {
     calendar: 'ক্যালেন্ডার',
     community: 'সম্প্রদায়',
     installApp: 'অ্যাপ ইনস্টল করুন',
+    cropCenter: 'ফসল কেন্দ্র',
     installAppDesc: 'অফলাইনে কাজ করে, ডাউনলোডের প্রয়োজন নেই',
   },
 };
