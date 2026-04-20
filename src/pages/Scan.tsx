@@ -116,7 +116,7 @@ const translations = {
   },
 };
 
-const Scan = () => {
+const Scan = ({ embedded = false }: ScanProps = {}) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { language } = useLanguage();
@@ -195,12 +195,9 @@ const Scan = () => {
 
   const isLoading = isAnalyzing;
 
-  return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Navbar />
-      
-      <main className="flex-1 container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
+  const content = (
+    <main className="flex-1 container mx-auto px-4 py-8">
+      <div className="max-w-2xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="relative inline-block mb-4">
