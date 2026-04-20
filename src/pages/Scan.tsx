@@ -9,6 +9,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 
+interface ScanProps { embedded?: boolean }
+
 const translations = {
   en: {
     title: 'AI Crop Doctor',
