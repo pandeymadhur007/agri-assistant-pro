@@ -26,6 +26,8 @@ import CommunityPost from "./pages/CommunityPost";
 import CommunityPostDetail from "./pages/CommunityPostDetail";
 import SmartRecommendations from "./pages/SmartRecommendations";
 import Auth from "./pages/Auth";
+import Login from "./pages/Login";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -57,6 +59,8 @@ function AnimatedRoutes() {
         <Route path="/community/post" element={<CommunityPost />} />
         <Route path="/community/post/:id" element={<CommunityPostDetail />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="/recommendations" element={<SmartRecommendations />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
