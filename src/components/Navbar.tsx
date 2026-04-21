@@ -1,18 +1,40 @@
 import { Link } from 'react-router-dom';
-import { Globe } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Globe, User as UserIcon, LogOut, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LANGUAGES, Language } from '@/lib/i18n';
+import { supabase } from '@/integrations/supabase/client';
+import type { User } from '@supabase/supabase-js';
+import { useNavigate } from 'react-router-dom';
 
 export function Navbar() {
   const { language, setLanguage, t } = useLanguage();
   const currentLang = LANGUAGES.find(l => l.code === language);
+  const [user, setUser] = useState<User | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUser(session?.user ?? null);
+    });
+    supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null));
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/');
+  };
+
+  const initial = (user?.user_metadata?.display_name || user?.email || 'U').toString().charAt(0).toUpperCase();
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -24,11 +46,12 @@ export function Navbar() {
           <span className="text-xl font-bold text-primary">{t('appName')}</span>
         </Link>
 
+        <div className="flex items-center gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="default" className="gap-2 border-primary/50 text-primary font-medium px-3 sm:px-4">
               <Globe className="h-5 w-5" />
-              <span className="text-sm font-semibold">{currentLang?.nativeName}</span>
+              <span className="text-sm font-semibold hidden sm:inline">{currentLang?.nativeName}</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
@@ -44,6 +67,30 @@ export function Navbar() {
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
+
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="rounded-full border-primary/50 bg-primary text-primary-foreground font-semibold">
+                  {initial}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => navigate('/profile')} className="cursor-pointer">
+                  <UserIcon className="h-4 w-4 mr-2" /> {language === 'hi' ? 'प्रोफ़ाइल' : 'Profile'}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
+                  <LogOut className="h-4 w-4 mr-2" /> {language === 'hi' ? 'लॉगआउट' : 'Logout'}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button variant="outline" size="icon" className="rounded-full border-primary/50 text-primary" onClick={() => navigate('/login')} aria-label="Login">
+              <LogIn className="h-5 w-5" />
+            </Button>
+          )}
+        </div>
       </div>
     </nav>
   );
