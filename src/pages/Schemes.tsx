@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, FileText, Calendar, TrendingUp, Sparkles, ChevronRight } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Loader2, FileText, Calendar, TrendingUp, Sparkles, ChevronRight, Search } from 'lucide-react';
 
 const STATES = [
   'All India', 'Andhra Pradesh', 'Bihar', 'Gujarat', 'Haryana', 'Karnataka',
@@ -25,6 +26,7 @@ const Schemes = () => {
   const navigate = useNavigate();
   const [category, setCategory] = useState<string>('');
   const [state, setState] = useState<string>(() => localStorage.getItem(PREFERRED_STATE_KEY) || '');
+  const [search, setSearch] = useState<string>('');
   const { data: schemes, isLoading } = useSchemes(category || undefined);
 
   const onStateChange = (val: string) => {
@@ -39,11 +41,23 @@ const Schemes = () => {
     { value: 'women', label: t('women') },
     { value: 'students', label: t('students') },
     { value: 'rural_workers', label: t('ruralWorkers') },
+    { value: 'dairy_livestock', label: language === 'hi' ? 'डेयरी और पशुधन' : 'Dairy & Livestock' },
   ];
 
   // Personalized "For You" — rank by deadline + state match + success rate
   const { forYou, others } = useMemo(() => {
     if (!schemes) return { forYou: [], others: [] };
+    const q = search.trim().toLowerCase();
+    const filtered = q
+      ? schemes.filter((s: any) =>
+          (s.name_en || '').toLowerCase().includes(q) ||
+          (s.name_hi || '').toLowerCase().includes(q) ||
+          (s.benefits_en || '').toLowerCase().includes(q) ||
+          (s.benefits_hi || '').toLowerCase().includes(q) ||
+          (s.category || '').toLowerCase().includes(q) ||
+          (s.state || '').toLowerCase().includes(q)
+        )
+      : schemes;
     const score = (s: any) => {
       let pts = 0;
       if (state && (s.state === state || !s.state)) pts += 30;
@@ -54,9 +68,9 @@ const Schemes = () => {
       if (typeof s.success_rate === 'number') pts += s.success_rate / 5;
       return pts;
     };
-    const ranked = [...schemes].sort((a, b) => score(b) - score(a));
+    const ranked = [...filtered].sort((a, b) => score(b) - score(a));
     return { forYou: ranked.slice(0, 3), others: ranked.slice(3) };
-  }, [schemes, state]);
+  }, [schemes, state, search]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -73,6 +87,17 @@ const Schemes = () => {
         </div>
 
         <div className="container mx-auto px-4 py-6">
+          {/* Search */}
+          <div className="relative mb-4 max-w-xl">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder={language === 'hi' ? 'योजना खोजें (नाम, लाभ, श्रेणी)...' : 'Search schemes (name, benefit, category)...'}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+
           <div className="flex flex-wrap gap-3 mb-6">
             <Select value={category} onValueChange={(val) => setCategory(val === 'all' ? '' : val)}>
               <SelectTrigger className="w-[180px]">

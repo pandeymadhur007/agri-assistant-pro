@@ -6,11 +6,19 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Loader2, Phone, ArrowLeft } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Loader2, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+
+const INDIAN_STATES = [
+  'Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chhattisgarh','Goa','Gujarat','Haryana',
+  'Himachal Pradesh','Jharkhand','Karnataka','Kerala','Madhya Pradesh','Maharashtra','Manipur',
+  'Meghalaya','Mizoram','Nagaland','Odisha','Punjab','Rajasthan','Sikkim','Tamil Nadu','Telangana',
+  'Tripura','Uttar Pradesh','Uttarakhand','West Bengal','Delhi','Jammu and Kashmir','Ladakh',
+];
 
 const GoogleIcon = () => (
   <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
@@ -22,13 +30,13 @@ export default function Login() {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const { toast } = useToast();
-  const [step, setStep] = useState<'choose' | 'phone' | 'otp' | 'profile'>('choose');
+  const [step, setStep] = useState<'choose' | 'profile'>('choose');
   const [loading, setLoading] = useState(false);
-  const [phone, setPhone] = useState('');
-  const [otp, setOtp] = useState('');
   const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
   const [state, setState] = useState('');
-  const [accountType, setAccountType] = useState<'farmer' | 'buyer'>('farmer');
+  const [accountType, setAccountType] = useState<'farmer' | 'buyer' | 'other'>('farmer');
+  const [accountTypeOther, setAccountTypeOther] = useState('');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -44,10 +52,14 @@ export default function Login() {
   }, []);
 
   const checkProfile = async (uid: string) => {
-    const { data } = await supabase.from('profiles').select('display_name, state').eq('user_id', uid).maybeSingle();
+    const { data } = await supabase.from('profiles').select('display_name, state, phone').eq('user_id', uid).maybeSingle();
     if (data?.display_name && data?.state) {
       navigate('/');
     } else {
+      // pre-fill what we already have
+      if (data?.display_name) setName(data.display_name);
+      if (data?.state) setState(data.state);
+      if (data?.phone) setPhone(data.phone);
       setStep('profile');
     }
   };
@@ -61,48 +73,25 @@ export default function Login() {
     }
   };
 
-  const sendOtp = async () => {
-    if (!phone.match(/^\+?[1-9]\d{7,14}$/)) {
-      toast({ title: language === 'hi' ? 'सही फोन नंबर डालें' : 'Enter a valid phone number (with country code)', variant: 'destructive' });
-      return;
-    }
-    setLoading(true);
-    const formatted = phone.startsWith('+') ? phone : `+91${phone}`;
-    const { error } = await supabase.auth.signInWithOtp({ phone: formatted });
-    setLoading(false);
-    if (error) {
-      toast({ title: 'OTP failed', description: error.message, variant: 'destructive' });
-    } else {
-      setStep('otp');
-      toast({ title: language === 'hi' ? 'OTP भेजा गया' : 'OTP sent' });
-    }
-  };
-
-  const verifyOtp = async () => {
-    setLoading(true);
-    const formatted = phone.startsWith('+') ? phone : `+91${phone}`;
-    const { error } = await supabase.auth.verifyOtp({ phone: formatted, token: otp, type: 'sms' });
-    setLoading(false);
-    if (error) {
-      toast({ title: 'Invalid OTP', description: error.message, variant: 'destructive' });
-    }
-    // onAuthStateChange will trigger checkProfile
-  };
-
   const saveProfile = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    if (!name || !state) {
+    if (!name.trim() || !state.trim() || !phone.trim()) {
       toast({ title: language === 'hi' ? 'सभी फ़ील्ड भरें' : 'Please fill all fields', variant: 'destructive' });
       return;
     }
+    if (accountType === 'other' && !accountTypeOther.trim()) {
+      toast({ title: language === 'hi' ? 'कृपया बताएं' : 'Please specify your role', variant: 'destructive' });
+      return;
+    }
     setLoading(true);
-    // Upsert profile
+    // Upsert profile with all captured fields
     const { error: pErr } = await supabase.from('profiles').upsert({
       user_id: user.id,
-      display_name: name,
-      state,
-      phone: user.phone ?? phone ?? null,
+      display_name: name.trim(),
+      state: state.trim(),
+      phone: phone.trim(),
+      account_type_other: accountType === 'other' ? accountTypeOther.trim() : null,
       language,
     }, { onConflict: 'user_id' });
 
@@ -128,8 +117,8 @@ export default function Login() {
       <main className="flex-1 container mx-auto px-4 py-8 flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardHeader>
-            {step !== 'choose' && step !== 'profile' && (
-              <Button variant="ghost" size="sm" className="w-fit -ml-2 mb-2" onClick={() => setStep(step === 'otp' ? 'phone' : 'choose')}>
+            {step === 'profile' && (
+              <Button variant="ghost" size="sm" className="w-fit -ml-2 mb-2" onClick={() => setStep('choose')}>
                 <ArrowLeft className="h-4 w-4 mr-1" /> {t('Back', 'वापस')}
               </Button>
             )}
@@ -148,38 +137,8 @@ export default function Login() {
                 <Button variant="outline" className="w-full h-12" onClick={handleGoogle} disabled={loading}>
                   {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <><GoogleIcon /><span className="ml-3">{t('Continue with Google', 'Google से जारी रखें')}</span></>}
                 </Button>
-                <Button variant="outline" className="w-full h-12" onClick={() => setStep('phone')}>
-                  <Phone className="h-5 w-5 mr-3" /> {t('Continue with Phone', 'फोन से जारी रखें')}
-                </Button>
                 <Button variant="ghost" className="w-full text-muted-foreground" onClick={() => navigate('/')}>
                   {t('Skip for now', 'अभी छोड़ें')}
-                </Button>
-              </>
-            )}
-
-            {step === 'phone' && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">{t('Phone number', 'फोन नंबर')}</Label>
-                  <Input id="phone" type="tel" placeholder="+91 98765 43210" value={phone} onChange={(e) => setPhone(e.target.value)} />
-                  <p className="text-xs text-muted-foreground">{t('Include country code (e.g. +91)', 'देश कोड शामिल करें (जैसे +91)')}</p>
-                </div>
-                <Button className="w-full" onClick={sendOtp} disabled={loading}>
-                  {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  {t('Send OTP', 'OTP भेजें')}
-                </Button>
-              </>
-            )}
-
-            {step === 'otp' && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="otp">{t('Enter 6-digit OTP', '6-अंकीय OTP दर्ज करें')}</Label>
-                  <Input id="otp" inputMode="numeric" maxLength={6} value={otp} onChange={(e) => setOtp(e.target.value)} />
-                </div>
-                <Button className="w-full" onClick={verifyOtp} disabled={loading || otp.length < 4}>
-                  {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  {t('Verify & Login', 'सत्यापित करें')}
                 </Button>
               </>
             )}
@@ -187,23 +146,43 @@ export default function Login() {
             {step === 'profile' && (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="name">{t('Your name', 'आपका नाम')}</Label>
-                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+                  <Label htmlFor="name">{t('Full name', 'पूरा नाम')}</Label>
+                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">{t('Phone number', 'फोन नंबर')}</Label>
+                  <Input id="phone" type="tel" placeholder="+91 98765 43210" value={phone} onChange={(e) => setPhone(e.target.value)} maxLength={20} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="state">{t('State', 'राज्य')}</Label>
-                  <Input id="state" value={state} onChange={(e) => setState(e.target.value)} placeholder="Maharashtra" />
+                  <Select value={state} onValueChange={setState}>
+                    <SelectTrigger id="state"><SelectValue placeholder={t('Select your state', 'अपना राज्य चुनें')} /></SelectTrigger>
+                    <SelectContent>
+                      {INDIAN_STATES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>{t('Account type', 'खाता प्रकार')}</Label>
-                  <RadioGroup value={accountType} onValueChange={(v) => setAccountType(v as 'farmer' | 'buyer')} className="grid grid-cols-2 gap-2">
+                  <RadioGroup value={accountType} onValueChange={(v) => setAccountType(v as 'farmer' | 'buyer' | 'other')} className="grid grid-cols-3 gap-2">
                     <Label className="flex items-center gap-2 border rounded-md p-3 cursor-pointer hover:bg-accent">
                       <RadioGroupItem value="farmer" /> {t('Farmer', 'किसान')}
                     </Label>
                     <Label className="flex items-center gap-2 border rounded-md p-3 cursor-pointer hover:bg-accent">
                       <RadioGroupItem value="buyer" /> {t('Buyer', 'खरीदार')}
                     </Label>
+                    <Label className="flex items-center gap-2 border rounded-md p-3 cursor-pointer hover:bg-accent">
+                      <RadioGroupItem value="other" /> {t('Other', 'अन्य')}
+                    </Label>
                   </RadioGroup>
+                  {accountType === 'other' && (
+                    <Input
+                      placeholder={t('Please specify (e.g. agronomist, NGO, student)', 'कृपया बताएं (जैसे एग्रोनोमिस्ट, एनजीओ, छात्र)')}
+                      value={accountTypeOther}
+                      onChange={(e) => setAccountTypeOther(e.target.value)}
+                      maxLength={60}
+                    />
+                  )}
                 </div>
                 <Button className="w-full" onClick={saveProfile} disabled={loading}>
                   {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}

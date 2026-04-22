@@ -28,6 +28,7 @@ import SmartRecommendations from "./pages/SmartRecommendations";
 import Auth from "./pages/Auth";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
+import AnimalHusbandry from "./pages/AnimalHusbandry";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -62,6 +63,7 @@ function AnimatedRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/recommendations" element={<SmartRecommendations />} />
+        <Route path="/animal-husbandry" element={<AnimalHusbandry />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>

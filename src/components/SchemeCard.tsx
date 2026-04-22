@@ -58,6 +58,7 @@ export function SchemeCard({ scheme }: SchemeCardProps) {
     women: 'bg-pink-100 text-pink-800',
     students: 'bg-blue-100 text-blue-800',
     rural_workers: 'bg-orange-100 text-orange-800',
+    dairy_livestock: 'bg-amber-100 text-amber-800',
   };
 
   const categoryLabels: Record<string, string> = {
@@ -65,6 +66,7 @@ export function SchemeCard({ scheme }: SchemeCardProps) {
     women: t('women'),
     students: t('students'),
     rural_workers: t('ruralWorkers'),
+    dairy_livestock: 'Dairy & Livestock',
   };
 
   return (
