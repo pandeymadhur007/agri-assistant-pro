@@ -70,6 +70,7 @@ export const translations: Record<Language, Record<string, string>> = {
     installApp: 'Install App',
     cropCenter: 'Crop Center',
     installAppDesc: 'Works offline, no download needed',
+    animalHusbandry: 'Animal Husbandry',
   },
   hi: {
     appName: 'ग्राम AI',
@@ -131,6 +132,7 @@ export const translations: Record<Language, Record<string, string>> = {
     installApp: 'ऐप इंस्टॉल करें',
     cropCenter: 'फसल केंद्र',
     installAppDesc: 'ऑफलाइन काम करता है, डाउनलोड की जरूरत नहीं',
+    animalHusbandry: 'पशुपालन',
   },
   mr: {
     appName: 'ग्राम AI',

@@ -14,6 +14,7 @@ import { LANGUAGES, Language } from '@/lib/i18n';
 import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
+import { NotificationBell } from '@/components/NotificationBell';
 
 export function Navbar() {
   const { language, setLanguage, t } = useLanguage();
@@ -47,6 +48,7 @@ export function Navbar() {
         </Link>
 
         <div className="flex items-center gap-2">
+        {user && <NotificationBell />}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="default" className="gap-2 border-primary/50 text-primary font-medium px-3 sm:px-4">
