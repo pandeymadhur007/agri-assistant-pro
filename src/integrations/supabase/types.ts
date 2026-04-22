@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      animal_breeds: {
+        Row: {
+          category: string
+          characteristics_en: string | null
+          characteristics_hi: string | null
+          created_at: string
+          daily_production: string | null
+          display_order: number | null
+          emoji: string | null
+          estimated_profit: string | null
+          id: string
+          name_en: string
+          name_hi: string | null
+          origin: string | null
+          related_schemes: string[] | null
+          setup_guide_en: string | null
+          setup_guide_hi: string | null
+          suitable_climate: string | null
+          suitable_states: string[] | null
+        }
+        Insert: {
+          category: string
+          characteristics_en?: string | null
+          characteristics_hi?: string | null
+          created_at?: string
+          daily_production?: string | null
+          display_order?: number | null
+          emoji?: string | null
+          estimated_profit?: string | null
+          id?: string
+          name_en: string
+          name_hi?: string | null
+          origin?: string | null
+          related_schemes?: string[] | null
+          setup_guide_en?: string | null
+          setup_guide_hi?: string | null
+          suitable_climate?: string | null
+          suitable_states?: string[] | null
+        }
+        Update: {
+          category?: string
+          characteristics_en?: string | null
+          characteristics_hi?: string | null
+          created_at?: string
+          daily_production?: string | null
+          display_order?: number | null
+          emoji?: string | null
+          estimated_profit?: string | null
+          id?: string
+          name_en?: string
+          name_hi?: string | null
+          origin?: string | null
+          related_schemes?: string[] | null
+          setup_guide_en?: string | null
+          setup_guide_hi?: string | null
+          suitable_climate?: string | null
+          suitable_states?: string[] | null
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           content: string
@@ -65,6 +125,48 @@ export type Database = {
           session_id?: string
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      climate_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string
+          id: string
+          is_dismissed: boolean | null
+          is_read: boolean | null
+          message: string
+          severity: string | null
+          state: string | null
+          title: string
+          triggered_at: string
+          user_id: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string
+          id?: string
+          is_dismissed?: boolean | null
+          is_read?: boolean | null
+          message: string
+          severity?: string | null
+          state?: string | null
+          title: string
+          triggered_at?: string
+          user_id: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          id?: string
+          is_dismissed?: boolean | null
+          is_read?: boolean | null
+          message?: string
+          severity?: string | null
+          state?: string | null
+          title?: string
+          triggered_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -426,36 +528,42 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_type_other: string | null
           avatar_url: string | null
           created_at: string
           display_name: string | null
           district: string | null
           id: string
           language: string | null
+          notifications_enabled: boolean | null
           phone: string | null
           state: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          account_type_other?: string | null
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
           district?: string | null
           id?: string
           language?: string | null
+          notifications_enabled?: boolean | null
           phone?: string | null
           state?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          account_type_other?: string | null
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
           district?: string | null
           id?: string
           language?: string | null
+          notifications_enabled?: boolean | null
           phone?: string | null
           state?: string | null
           updated_at?: string
