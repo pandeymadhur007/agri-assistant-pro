@@ -33,6 +33,13 @@ Deno.serve(async (req) => {
       .gte("price_date", since.toISOString().slice(0, 10))
       .order("price_date", { ascending: true });
 
+    // Pull MSP for context
+    const { data: msp } = await supabase
+      .from("msp_rates")
+      .select("msp_price, season, year")
+      .eq("crop_name", crop_name)
+      .maybeSingle();
+
     if (!prices || prices.length === 0) {
       return new Response(
         JSON.stringify({
@@ -44,22 +51,46 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Aggregate daily averages
+    // Aggregate daily medians (more robust to outlier mandis than mean)
     const byDate = new Map<string, number[]>();
     for (const p of prices) {
       const arr = byDate.get(p.price_date) ?? [];
       arr.push(Number(p.price));
       byDate.set(p.price_date, arr);
     }
+    const median = (arr: number[]) => {
+      const s = [...arr].sort((a, b) => a - b);
+      const m = Math.floor(s.length / 2);
+      return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+    };
     const series = [...byDate.entries()]
-      .map(([d, arr]) => ({ date: d, price: arr.reduce((a, b) => a + b, 0) / arr.length }))
+      .map(([d, arr]) => ({ date: d, price: Math.round(median(arr)) }))
       .sort((a, b) => a.date.localeCompare(b.date));
 
-    const first = series[0].price;
-    const last = series[series.length - 1].price;
-    const pctChange = ((last - first) / first) * 100;
+    // Robust trend: compare last-7-day avg vs prior window avg
+    const recent = series.slice(-7);
+    const prior = series.slice(0, Math.max(0, series.length - 7));
+    const avg = (a: { price: number }[]) =>
+      a.length ? a.reduce((s, x) => s + x.price, 0) / a.length : 0;
+    const recentAvg = avg(recent);
+    const priorAvg = avg(prior) || recentAvg;
+    const pctChange = priorAvg ? ((recentAvg - priorAvg) / priorAvg) * 100 : 0;
+
+    // Volatility (coefficient of variation %)
+    const meanAll = avg(series);
+    const variance =
+      series.reduce((s, x) => s + (x.price - meanAll) ** 2, 0) / Math.max(1, series.length);
+    const stdev = Math.sqrt(variance);
+    const volatilityPct = meanAll ? (stdev / meanAll) * 100 : 0;
+
+    // Threshold scales with volatility — noisy markets need bigger moves to count as a trend
+    const trendThreshold = Math.max(2, Math.min(6, volatilityPct * 0.5));
     const trend: "rising" | "falling" | "stable" =
-      pctChange > 3 ? "rising" : pctChange < -3 ? "falling" : "stable";
+      pctChange > trendThreshold ? "rising" : pctChange < -trendThreshold ? "falling" : "stable";
+
+    const last = series[series.length - 1].price;
+    const minP = Math.min(...series.map((s) => s.price));
+    const maxP = Math.max(...series.map((s) => s.price));
 
     // Simple linear forecast for next 7 days
     const n = series.length;
@@ -84,7 +115,15 @@ Deno.serve(async (req) => {
         language === "hi"
           ? "आप एक कृषि बाजार सलाहकार हैं। 1-2 छोटे वाक्यों में हिंदी में किसान को सलाह दें।"
           : "You are a farm market advisor. Give a farmer 1-2 short sentences of advice.";
-      const userPrompt = `Crop: ${crop_name}. 30-day trend: ${trend} (${pctChange.toFixed(1)}% change). Current avg: ₹${Math.round(last)}/quintal. 7-day forecast last value: ₹${forecast[6].price}/quintal. Should they sell now or wait?`;
+    const mspLine = msp?.msp_price
+      ? `MSP: ₹${msp.msp_price}/quintal (current is ${(((last - msp.msp_price) / msp.msp_price) * 100).toFixed(1)}% vs MSP).`
+      : "MSP unknown.";
+    const userPrompt = `Crop: ${crop_name}.
+Trend (last 7d vs prior): ${trend} (${pctChange.toFixed(1)}% change).
+Current price: ₹${last}/quintal. 30-day range: ₹${minP}–₹${maxP}. Volatility: ${volatilityPct.toFixed(1)}%.
+7-day forecast end: ₹${forecast[6].price}/quintal.
+${mspLine}
+Give a concrete sell-now-or-wait call. Mention MSP comparison if relevant. Keep it 1-2 sentences, no disclaimers.`;
 
       try {
         const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -127,6 +166,10 @@ Deno.serve(async (req) => {
         trend,
         pct_change: Number(pctChange.toFixed(2)),
         current_avg: Math.round(last),
+        min_price: minP,
+        max_price: maxP,
+        volatility_pct: Number(volatilityPct.toFixed(1)),
+        msp_price: msp?.msp_price ?? null,
         forecast,
         history: series,
         recommendation,
