@@ -1,0 +1,323 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Navbar } from '@/components/Navbar';
+import { Footer } from '@/components/Footer';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, TrendingUp, TrendingDown, Minus, MapPin, IndianRupee, Star, Wheat, Sparkles, Loader2 } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+
+interface MarketPrice {
+  id: string;
+  crop_name: string;
+  crop_name_hi: string | null;
+  state: string;
+  district: string;
+  mandi: string;
+  price: number;
+  unit: string;
+  price_date: string;
+  price_trend: string | null;
+}
+
+interface MSPRate {
+  crop_name: string;
+  crop_name_hi: string | null;
+  msp_price: number;
+  season: string | null;
+  year: string;
+}
+
+interface Insight {
+  trend: 'rising' | 'falling' | 'stable';
+  pct_change?: number;
+  current_avg?: number;
+  forecast?: { day: number; price: number }[];
+  history?: { date: string; price: number }[];
+  recommendation: string;
+}
+
+const MarketPriceCrop = () => {
+  const { name } = useParams<{ name: string }>();
+  const navigate = useNavigate();
+  const { language } = useLanguage();
+  const [prices, setPrices] = useState<MarketPrice[]>([]);
+  const [mspRate, setMspRate] = useState<MSPRate | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [insight, setInsight] = useState<Insight | null>(null);
+  const [insightLoading, setInsightLoading] = useState(false);
+
+  const cropName = decodeURIComponent(name || '');
+
+  useEffect(() => {
+    if (cropName) {
+      fetchCropData();
+      loadInsight();
+    }
+  }, [cropName, language]);
+
+  const loadInsight = async () => {
+    setInsightLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('market-insight', {
+        body: { crop_name: cropName, language },
+      });
+      if (!error && data) setInsight(data as Insight);
+    } catch (e) {
+      console.error('insight error', e);
+    } finally {
+      setInsightLoading(false);
+    }
+  };
+
+  const fetchCropData = async () => {
+    try {
+      const [pricesRes, mspRes] = await Promise.all([
+        supabase.from('market_prices').select('*').eq('crop_name', cropName).order('price', { ascending: false }),
+        supabase.from('msp_rates').select('*').eq('crop_name', cropName).maybeSingle()
+      ]);
+
+      if (pricesRes.data) setPrices(pricesRes.data);
+      if (mspRes.data) setMspRate(mspRes.data);
+    } catch (error) {
+      console.error('Error fetching crop data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getTrendIcon = (trend: string | null) => {
+    if (trend === 'up') return <TrendingUp className="h-4 w-4 text-green-600" />;
+    if (trend === 'down') return <TrendingDown className="h-4 w-4 text-red-600" />;
+    return <Minus className="h-4 w-4 text-muted-foreground" />;
+  };
+
+  const bestPrice = prices.length > 0 ? prices[0] : null;
+  const avgPrice = prices.length > 0 ? prices.reduce((sum, p) => sum + p.price, 0) / prices.length : 0;
+
+  const labels = {
+    en: {
+      back: 'Back to Market Prices',
+      msp: 'MSP (Minimum Support Price)',
+      bestMandi: 'Best Price Mandi',
+      avgPrice: 'Average Price',
+      allMandis: 'All Mandis',
+      season: 'Season',
+      year: 'Year',
+      perQuintal: '/quintal',
+      noData: 'No price data found for this crop',
+      loading: 'Loading...',
+    },
+    hi: {
+      back: 'मंडी भाव पर वापस',
+      msp: 'MSP (न्यूनतम समर्थन मूल्य)',
+      bestMandi: 'सबसे अच्छा भाव मंडी',
+      avgPrice: 'औसत भाव',
+      allMandis: 'सभी मंडियां',
+      season: 'सीजन',
+      year: 'वर्ष',
+      perQuintal: '/क्विंटल',
+      noData: 'इस फसल के लिए कोई भाव नहीं मिला',
+      loading: 'लोड हो रहा है...',
+    }
+  };
+
+  const l = labels[language as keyof typeof labels] || labels.en;
+  const displayName = language === 'hi' && prices[0]?.crop_name_hi ? prices[0].crop_name_hi : cropName;
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-muted/30">
+      <Navbar />
+      
+      <main className="flex-1 container mx-auto px-4 py-6">
+        <Button 
+          variant="ghost" 
+          onClick={() => navigate('/market-prices')}
+          className="mb-4 gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {l.back}
+        </Button>
+
+        {loading ? (
+          <div className="text-center py-12 text-muted-foreground">{l.loading}</div>
+        ) : prices.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">{l.noData}</div>
+        ) : (
+          <>
+            {/* Crop Header */}
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 rounded-full bg-primary/10">
+                <Wheat className="h-8 w-8 text-primary" />
+              </div>
+              <h1 className="text-3xl font-bold text-foreground">{displayName}</h1>
+            </div>
+
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              {mspRate && (
+                <Card className="bg-amber-50 border-amber-200">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm text-amber-700">{l.msp}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-baseline gap-1">
+                      <IndianRupee className="h-5 w-5 text-amber-700" />
+                      <span className="text-2xl font-bold text-amber-700">{mspRate.msp_price.toLocaleString()}</span>
+                      <span className="text-sm text-amber-600">{l.perQuintal}</span>
+                    </div>
+                    <div className="mt-2 text-sm text-amber-600">
+                      {l.season}: {mspRate.season} | {l.year}: {mspRate.year}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {bestPrice && (
+                <Card className="bg-green-50 border-green-200">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center gap-2">
+                      <Star className="h-4 w-4 text-green-600" />
+                      <CardTitle className="text-sm text-green-700">{l.bestMandi}</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-baseline gap-1">
+                      <IndianRupee className="h-5 w-5 text-green-700" />
+                      <span className="text-2xl font-bold text-green-700">{bestPrice.price.toLocaleString()}</span>
+                      <span className="text-sm text-green-600">{l.perQuintal}</span>
+                    </div>
+                    <div className="mt-2 flex items-center gap-1 text-sm text-green-600">
+                      <MapPin className="h-3 w-3" />
+                      {bestPrice.mandi}, {bestPrice.state}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-muted-foreground">{l.avgPrice}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-baseline gap-1">
+                    <IndianRupee className="h-5 w-5 text-foreground" />
+                    <span className="text-2xl font-bold text-foreground">{avgPrice.toLocaleString()}</span>
+                    <span className="text-sm text-muted-foreground">{l.perQuintal}</span>
+                  </div>
+                  <div className="mt-2 text-sm text-muted-foreground">
+                    {prices.length} mandis
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* AI Insight + 30-day chart */}
+            <Card className="mb-6 border-primary/30">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  {language === 'hi' ? 'AI बाजार सलाह' : 'AI Market Insight'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {insightLoading && !insight ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    {language === 'hi' ? 'विश्लेषण हो रहा है...' : 'Analyzing trends...'}
+                  </div>
+                ) : insight ? (
+                  <>
+                    <div className="flex flex-wrap items-center gap-2 mb-3">
+                      <Badge variant={insight.trend === 'rising' ? 'default' : insight.trend === 'falling' ? 'destructive' : 'secondary'}>
+                        {insight.trend === 'rising' && <TrendingUp className="h-3 w-3 mr-1" />}
+                        {insight.trend === 'falling' && <TrendingDown className="h-3 w-3 mr-1" />}
+                        {insight.trend === 'stable' && <Minus className="h-3 w-3 mr-1" />}
+                        {insight.trend}
+                      </Badge>
+                      {typeof insight.pct_change === 'number' && (
+                        <span className="text-sm text-muted-foreground">
+                          {insight.pct_change > 0 ? '+' : ''}{insight.pct_change}% / 30d
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm leading-relaxed">{insight.recommendation}</p>
+                    {insight.history && insight.history.length > 1 && (
+                      <div className="mt-4">
+                        <div className="text-xs font-medium text-muted-foreground mb-2">
+                          {language === 'hi' ? '30-दिन का भाव रुझान' : '30-day price trend'}
+                        </div>
+                        <div className="h-56">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={[...(insight.history || []), ...(insight.forecast?.map((f) => ({
+                              date: `+${f.day}d`,
+                              price: f.price,
+                            })) || [])]} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                              <XAxis dataKey="date" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+                              <YAxis tick={{ fontSize: 10 }} width={50} />
+                              <Tooltip
+                                contentStyle={{ background: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', borderRadius: 6, fontSize: 12 }}
+                                formatter={(v: any) => [`₹${v}`, language === 'hi' ? 'भाव' : 'Price']}
+                              />
+                              <Line type="monotone" dataKey="price" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={{ r: 2 }} activeDot={{ r: 5 }} name={language === 'hi' ? 'भाव' : 'Price'} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : null}
+              </CardContent>
+            </Card>
+
+            {/* All Mandis */}
+            <h2 className="text-xl font-semibold mb-4">{l.allMandis}</h2>
+            <div className="space-y-3">
+              {prices.map((price, index) => (
+                <Card key={price.id} className={index === 0 ? 'border-green-200 bg-green-50/50' : ''}>
+                  <CardContent className="py-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        {index === 0 && <Badge className="bg-green-600">Best</Badge>}
+                        <div>
+                          <div className="font-medium">{price.mandi}</div>
+                          <div className="text-sm text-muted-foreground flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {price.district}, {price.state}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <div className="flex items-baseline gap-1">
+                            <IndianRupee className="h-4 w-4" />
+                            <span className="text-lg font-bold">{price.price.toLocaleString()}</span>
+                          </div>
+                          {mspRate && (
+                            <div className={`text-xs ${price.price >= mspRate.msp_price ? 'text-green-600' : 'text-red-600'}`}>
+                              {price.price >= mspRate.msp_price ? '+' : ''}
+                              {(((price.price - mspRate.msp_price) / mspRate.msp_price) * 100).toFixed(1)}% MSP
+                            </div>
+                          )}
+                        </div>
+                        {getTrendIcon(price.price_trend)}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </>
+        )}
+      </main>
+
+      <Footer />
+    </div>
+  );
+};
+
+export default MarketPriceCrop;
