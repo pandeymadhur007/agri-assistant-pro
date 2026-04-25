@@ -36,6 +36,17 @@ const TAB_META = [
   { key: 'fish',    en: 'Fish Farming',   hi: 'मत्स्य पालन',   emoji: '🐟', desc: { en: 'Freshwater aquaculture',          hi: 'मीठे पानी की मछली पालन' } },
 ];
 
+// Maps the short labels stored on animal_breeds.related_schemes to official URLs.
+const SCHEME_LINKS: Record<string, string> = {
+  'Rashtriya Gokul Mission': 'https://dahd.nic.in/schemes/programmes/rashtriya-gokul-mission',
+  'PM Matsya Sampada Yojana': 'https://pmmsy.dof.gov.in/',
+  'NABARD DEDS': 'https://www.nabard.org/',
+  'NABARD Dairy Entrepreneurship Development Scheme': 'https://www.nabard.org/',
+  'Poultry Venture Capital Fund': 'https://dahd.nic.in/',
+  'Kamdhenu Yojana': 'https://dahd.nic.in/',
+  'National Livestock Mission': 'https://nlm.udyamimitra.in/',
+};
+
 export default function AnimalHusbandry() {
   const { language } = useLanguage();
   const [tab, setTab] = useState('cow');
@@ -184,9 +195,26 @@ function BreedCard({ breed, index, language }: { breed: Breed; index: number; la
                 <FileText className="h-3 w-3 text-purple-600" /> {t('Related schemes', 'संबंधित योजनाएं')}
               </div>
               <div className="flex flex-wrap gap-1">
-                {breed.related_schemes.map(s => (
-                  <Badge key={s} variant="secondary" className="text-[10px] font-normal">{s}</Badge>
-                ))}
+                {breed.related_schemes.map(s => {
+                  const href = SCHEME_LINKS[s] ?? '/schemes';
+                  const isExternal = href.startsWith('http');
+                  return (
+                    <a
+                      key={s}
+                      href={href}
+                      target={isExternal ? '_blank' : undefined}
+                      rel={isExternal ? 'noopener noreferrer' : undefined}
+                      className="inline-block"
+                    >
+                      <Badge
+                        variant="secondary"
+                        className="text-[10px] font-normal cursor-pointer hover:bg-purple-100 hover:text-purple-800 transition-colors"
+                      >
+                        {s} ↗
+                      </Badge>
+                    </a>
+                  );
+                })}
               </div>
             </div>
           )}
