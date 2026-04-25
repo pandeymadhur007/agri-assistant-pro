@@ -96,13 +96,66 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html {
+    font-family: "DM Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-feature-settings: "ss01" on, "cv02" on, "cv03" on;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    font-size: 0.975rem;
+    line-height: 1.6;
+    letter-spacing: -0.01em;
     font-weight: 450;
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold;
+    @apply font-semibold text-foreground;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 1.5rem + 2.1vw, 3.1rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+
+  h2 {
+    font-size: clamp(1.55rem, 1.2rem + 1.35vw, 2.35rem);
+    font-weight: 650;
+  }
+
+  h3 {
+    font-size: clamp(1.3rem, 1.08rem + 0.9vw, 1.78rem);
+    font-weight: 620;
+  }
+
+  h4 {
+    font-size: clamp(1.13rem, 1.02rem + 0.55vw, 1.4rem);
+    font-weight: 600;
+  }
+
+  p {
+    line-height: 1.7;
+  }
+
+  small {
+    @apply text-muted-foreground;
+    font-size: 0.825rem;
+    letter-spacing: 0.01em;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font-family: inherit;
+    letter-spacing: -0.005em;
   }
   
   /* Value highlights for important data like temperatures, prices */
@@ -125,6 +178,14 @@ All colors MUST be HSL.
     hsl(140 30% 98%) 100%);
 }
 
+.dark .card-gradient {
+  background: linear-gradient(
+    180deg,
+    hsl(150 20% 12%) 0%,
+    hsl(150 19% 10%) 100%
+  );
+}
+
 /* Soft farming-themed background patterns */
 .hero-pattern {
   background-image: 
@@ -141,6 +202,22 @@ All colors MUST be HSL.
 /* Card hover effects */
 .card-hover {
   @apply transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1;
+}
+
+.premium-surface {
+  background:
+    linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.88) 100%),
+    radial-gradient(circle at top right, hsl(var(--primary) / 0.09), transparent 45%);
+  border: 1px solid hsl(var(--border) / 0.8);
+  box-shadow:
+    0 1px 1px hsl(140 20% 10% / 0.03),
+    0 8px 24px hsl(140 40% 8% / 0.08);
+}
+
+.dark .premium-surface {
+  box-shadow:
+    0 1px 1px hsl(140 20% 2% / 0.3),
+    0 12px 32px hsl(140 10% 2% / 0.4);
 }
 
 /* Gradient text */
