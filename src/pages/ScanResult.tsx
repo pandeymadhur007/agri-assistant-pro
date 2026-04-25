@@ -141,17 +141,17 @@ const translations = {
 const getSeverityColor = (severity: string) => {
   switch (severity) {
     case 'healthy':
-      return 'bg-green-100 text-green-800 border-green-300';
+      return 'bg-secondary text-secondary-foreground border-border';
     case 'mild':
-      return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+      return 'bg-accent/20 text-foreground border-border';
     case 'moderate':
-      return 'bg-orange-100 text-orange-800 border-orange-300';
+      return 'bg-muted text-foreground border-border';
     case 'severe':
-      return 'bg-red-100 text-red-800 border-red-300';
+      return 'bg-destructive/20 text-destructive border-destructive/40';
     case 'critical':
-      return 'bg-red-200 text-red-900 border-red-400';
+      return 'bg-destructive/30 text-destructive border-destructive/50';
     default:
-      return 'bg-gray-100 text-gray-800 border-gray-300';
+      return 'bg-muted text-muted-foreground border-border';
   }
 };
 
@@ -187,7 +187,7 @@ const ScanResult = () => {
   const isHealthy = diagnosis.severity === 'healthy';
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50 to-white flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
       <main className="flex-1 container mx-auto px-4 py-8">
@@ -197,7 +197,7 @@ const ScanResult = () => {
             <Button variant="ghost" size="icon" onClick={() => navigate('/scan')}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+            <h1 className="text-2xl font-bold text-foreground">{t.title}</h1>
           </div>
 
           {/* Image Preview */}
@@ -224,8 +224,8 @@ const ScanResult = () => {
           {!diagnosis.is_plant ? (
             <Card className="mb-6">
               <CardContent className="p-6 text-center">
-                <Info className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">{t.notPlant}</p>
+                <Info className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">{t.notPlant}</p>
               </CardContent>
             </Card>
           ) : (
@@ -234,7 +234,7 @@ const ScanResult = () => {
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <Card>
                   <CardContent className="p-4">
-                    <div className="flex items-center gap-2 text-gray-500 mb-1">
+                    <div className="flex items-center gap-2 text-muted-foreground mb-1">
                       <Leaf className="w-4 h-4" />
                       <span className="text-sm">{t.cropName}</span>
                     </div>
@@ -243,7 +243,7 @@ const ScanResult = () => {
                 </Card>
                 <Card>
                   <CardContent className="p-4">
-                    <div className="flex items-center gap-2 text-gray-500 mb-1">
+                    <div className="flex items-center gap-2 text-muted-foreground mb-1">
                       <Bug className="w-4 h-4" />
                       <span className="text-sm">{t.disease}</span>
                     </div>
@@ -256,38 +256,38 @@ const ScanResult = () => {
               <Card className="mb-4">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-orange-500" />
+                    <AlertTriangle className="w-4 h-4 text-primary" />
                     {t.cause}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700">{diagnosis.cause}</p>
+                  <p className="text-muted-foreground">{diagnosis.cause}</p>
                 </CardContent>
               </Card>
 
               {/* Treatment */}
-              <Card className="mb-4 border-green-200 bg-green-50">
+              <Card className="mb-4 border-border bg-muted/40">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2 text-green-800">
+                  <CardTitle className="text-base flex items-center gap-2 text-foreground">
                     <Pill className="w-4 h-4" />
                     {t.treatment}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-green-800">{diagnosis.treatment}</p>
+                  <p className="text-foreground">{diagnosis.treatment}</p>
                 </CardContent>
               </Card>
 
               {/* Pesticide/Fertilizer */}
-              <Card className="mb-4 border-blue-200 bg-blue-50">
+              <Card className="mb-4 border-border bg-muted/40">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2 text-blue-800">
+                  <CardTitle className="text-base flex items-center gap-2 text-foreground">
                     <Pill className="w-4 h-4" />
                     {t.pesticide}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-blue-800">{diagnosis.pesticide}</p>
+                  <p className="text-foreground">{diagnosis.pesticide}</p>
                 </CardContent>
               </Card>
 
@@ -295,12 +295,12 @@ const ScanResult = () => {
               <Card className="mb-4">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center gap-2">
-                    <Shield className="w-4 h-4 text-purple-500" />
+                    <Shield className="w-4 h-4 text-primary" />
                     {t.prevention}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700">{diagnosis.prevention}</p>
+                  <p className="text-muted-foreground">{diagnosis.prevention}</p>
                 </CardContent>
               </Card>
 
@@ -309,12 +309,12 @@ const ScanResult = () => {
                 <Card className="mb-6">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base flex items-center gap-2">
-                      <Info className="w-4 h-4 text-gray-500" />
+                      <Info className="w-4 h-4 text-muted-foreground" />
                       {t.additionalNotes}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-700">{diagnosis.additional_notes}</p>
+                    <p className="text-muted-foreground">{diagnosis.additional_notes}</p>
                   </CardContent>
                 </Card>
               )}
@@ -323,16 +323,16 @@ const ScanResult = () => {
 
           {/* Past scans for same crop */}
           {pastScans.length > 0 && (
-            <Card className="mb-4 border-amber-200 bg-amber-50/40">
+            <Card className="mb-4 border-border bg-muted/40">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <History className="w-4 h-4 text-amber-600" />
+                  <History className="w-4 h-4 text-primary" />
                   Previous {diagnosis.crop_name} scans
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 {pastScans.map(scan => (
-                  <div key={scan.id} className="flex items-center justify-between text-sm bg-white rounded-md p-2 border">
+                  <div key={scan.id} className="flex items-center justify-between text-sm bg-card rounded-md p-2 border border-border">
                     <div>
                       <div className="font-medium">{scan.diagnosis.disease_name}</div>
                       <div className="text-xs text-muted-foreground">{new Date(scan.created_at).toLocaleDateString()}</div>
@@ -343,7 +343,7 @@ const ScanResult = () => {
                   </div>
                 ))}
                 {pastScans.some(s => s.diagnosis.disease_name === diagnosis.disease_name) && (
-                  <p className="text-xs text-amber-800 mt-2 px-2">
+                  <p className="text-xs text-muted-foreground mt-2 px-2">
                     ⚠️ This issue is recurring. Consider deeper treatment or consulting an expert.
                   </p>
                 )}
@@ -354,14 +354,14 @@ const ScanResult = () => {
           {/* Action Buttons */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Button
-              className="w-full h-14 text-base bg-green-600 hover:bg-green-700"
+              className="w-full h-14 text-base"
               onClick={() => navigate('/scan')}
             >
               <Camera className="w-5 h-5 mr-2" />
               {t.scanAnother}
             </Button>
             <Link to="/chat" state={{ prefill: `Tell me more about treating ${diagnosis.disease_name} in ${diagnosis.crop_name}` }}>
-              <Button variant="outline" className="w-full h-14 text-base border-green-600 text-green-700 hover:bg-green-50">
+              <Button variant="outline" className="w-full h-14 text-base">
                 <MessageCircle className="w-5 h-5 mr-2" />
                 Ask AI about this
               </Button>

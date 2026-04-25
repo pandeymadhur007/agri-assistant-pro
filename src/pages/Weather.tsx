@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Cloud, Sun, CloudRain, Wind, Droplets, ThermometerSun, 
   MapPin, RefreshCw, MessageCircle, ArrowRight, Loader2,
-  CloudSun, CloudDrizzle, CloudLightning, Snowflake, CloudFog
+  CloudSun, CloudDrizzle, CloudLightning, Snowflake, CloudFog, AlertTriangle
 } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const translations = {
   en: {
@@ -184,6 +185,13 @@ interface ForecastDay {
   windSpeed: number;
 }
 
+interface SevereAlert {
+  type: 'heatwave' | 'frost' | 'cold' | 'rain' | 'storm';
+  title: string;
+  message: string;
+  precaution: string;
+}
+
 const getWeatherIcon = (iconCode: string) => {
   const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
     '01d': Sun,
@@ -262,15 +270,17 @@ const Weather = () => {
 
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [forecast, setForecast] = useState<ForecastDay[]>([]);
+  const [severeAlerts, setSevereAlerts] = useState<SevereAlert[]>([]);
   const [loading, setLoading] = useState(false);
   const [locationGranted, setLocationGranted] = useState(false);
+  const lastAlertSignatureRef = useRef('');
 
   const fetchWeather = async (lat: number, lon: number) => {
     setLoading(true);
     try {
       // Using Open-Meteo API (free, no API key required)
       const weatherRes = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,surface_pressure&daily=weather_code,temperature_2m_max,temperature_2m_min,relative_humidity_2m_max,wind_speed_10m_max,sunrise,sunset&timezone=auto`
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,surface_pressure&daily=weather_code,temperature_2m_max,temperature_2m_min,relative_humidity_2m_max,wind_speed_10m_max,precipitation_probability_max,sunrise,sunset&timezone=auto`
       );
       
       if (!weatherRes.ok) throw new Error('Weather fetch failed');
@@ -345,6 +355,96 @@ const Weather = () => {
       
       setForecast(forecastDays);
       setLocationGranted(true);
+
+      const maxRainProb = Math.max(...(data.daily.precipitation_probability_max ?? [0]));
+      const maxTemp = Math.max(...data.daily.temperature_2m_max);
+      const minTemp = Math.min(...data.daily.temperature_2m_min);
+      const hasStorm = [data.current.weather_code, ...(data.daily.weather_code ?? [])].some((c: number) => c >= 95);
+      const generatedAlerts: SevereAlert[] = [];
+
+      if (maxRainProb >= 75) {
+        generatedAlerts.push({
+          type: 'rain',
+          title: language === 'hi' ? 'भारी बारिश चेतावनी' : 'Heavy Rain Alert',
+          message: language === 'hi' ? 'अगले 24-48 घंटों में भारी बारिश की संभावना है।' : 'Heavy rain is likely in the next 24-48 hours.',
+          precaution: language === 'hi'
+            ? 'खेत में जल निकासी नालियां साफ रखें, उर्वरक/स्प्रे टालें, कटी फसल को ढककर रखें।'
+            : 'Keep field drainage channels clear, postpone fertilizer/spraying, and cover harvested produce.',
+        });
+      }
+
+      if (maxTemp >= 40) {
+        generatedAlerts.push({
+          type: 'heatwave',
+          title: language === 'hi' ? 'हीटवेव चेतावनी' : 'Heatwave Alert',
+          message: language === 'hi' ? 'तापमान बहुत अधिक रहने की संभावना है।' : 'Very high temperatures are expected.',
+          precaution: language === 'hi'
+            ? 'सुबह/शाम सिंचाई करें, मल्चिंग करें, नर्सरी/कोमल पौधों पर शेड नेट लगाएं।'
+            : 'Irrigate in early morning/evening, apply mulch, and protect young plants with shade net.',
+        });
+      }
+
+      if (minTemp <= 4) {
+        generatedAlerts.push({
+          type: 'frost',
+          title: language === 'hi' ? 'पाला चेतावनी' : 'Frost Alert',
+          message: language === 'hi' ? 'रात का तापमान बहुत कम रहने की संभावना है।' : 'Night temperatures may drop to frost-risk levels.',
+          precaution: language === 'hi'
+            ? 'संवेदनशील फसलों को ढकें, हल्की रात सिंचाई करें, धुआं/फॉगिंग से पाला प्रभाव कम करें।'
+            : 'Cover sensitive crops, do light night irrigation, and use smoke/fogging where practical.',
+        });
+      } else if (minTemp <= 10) {
+        generatedAlerts.push({
+          type: 'cold',
+          title: language === 'hi' ? 'शीतलहर चेतावनी' : 'Cold Wave Alert',
+          message: language === 'hi' ? 'तापमान सामान्य से कम रह सकता है।' : 'Temperatures may stay below normal.',
+          precaution: language === 'hi'
+            ? 'सिंचाई अंतराल संतुलित रखें, नर्सरी को कवर करें, सुबह देर से खेत कार्य करें।'
+            : 'Adjust irrigation intervals, protect nurseries, and avoid early-morning field operations.',
+        });
+      }
+
+      if (hasStorm) {
+        generatedAlerts.push({
+          type: 'storm',
+          title: language === 'hi' ? 'तूफान चेतावनी' : 'Storm Alert',
+          message: language === 'hi' ? 'गरज/आंधी का जोखिम है।' : 'Thunderstorm / squall risk is high.',
+          precaution: language === 'hi'
+            ? 'कीटनाशक स्प्रे रोकें, सहारा (staking) मजबूत करें, ढीले पाइप/उपकरण सुरक्षित करें।'
+            : 'Stop pesticide spraying, secure crop staking, and fasten loose pipes/equipment.',
+        });
+      }
+
+      setSevereAlerts(generatedAlerts);
+      const signature = generatedAlerts.map(a => a.type).sort().join('|');
+      if (signature && signature !== lastAlertSignatureRef.current) {
+        generatedAlerts.forEach(alert => {
+          toast({
+            title: alert.title,
+            description: `${alert.message} ${alert.precaution}`,
+            variant: 'destructive',
+          });
+        });
+        lastAlertSignatureRef.current = signature;
+
+        const { data: authData } = await supabase.auth.getUser();
+        const uid = authData.user?.id;
+        if (uid) {
+          const toInsert = generatedAlerts.map(a => ({
+            user_id: uid,
+            alert_type: a.type === 'storm' ? 'rain' : a.type,
+            severity: 'high',
+            title: a.title,
+            message: `${a.message} ${a.precaution}`,
+            state: locationName || null,
+            is_read: false,
+            is_dismissed: false,
+          }));
+          if (toInsert.length > 0) {
+            await supabase.from('climate_alerts').insert(toInsert);
+          }
+        }
+      }
     } catch (error) {
       console.error('Weather fetch error:', error);
       toast({
@@ -392,10 +492,10 @@ const Weather = () => {
       <Navbar />
       <main className="flex-1">
         {/* Header with pattern */}
-        <div className="hero-pattern bg-gradient-to-b from-blue-500/10 to-background py-8 px-4">
+        <div className="hero-pattern bg-gradient-to-b from-primary/10 to-background py-8 px-4">
           <div className="container mx-auto text-center">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-blue-100 dark:bg-blue-900 mb-3">
-              <Cloud className="w-7 h-7 text-blue-600" />
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-muted mb-3">
+              <Cloud className="w-7 h-7 text-primary" />
             </div>
             <h1 className="text-3xl font-bold text-foreground mb-2">{t.title}</h1>
             <p className="text-muted-foreground">{t.subtitle}</p>
@@ -407,8 +507,8 @@ const Weather = () => {
         {!locationGranted ? (
           /* Request Location Card */
           <Card className="max-w-md mx-auto text-center p-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-100 dark:bg-blue-900 mb-6">
-              <MapPin className="w-10 h-10 text-blue-600" />
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-muted mb-6">
+              <MapPin className="w-10 h-10 text-primary" />
             </div>
             <h2 className="text-xl font-semibold mb-2">{t.requestLocation}</h2>
             <p className="text-muted-foreground mb-6">{t.requestLocationDesc}</p>
@@ -433,6 +533,28 @@ const Weather = () => {
           </div>
         ) : weather && (
           <>
+            {severeAlerts.length > 0 && (
+              <section className="mb-6">
+                <Card className="border-destructive/30 bg-destructive/10">
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-center gap-2 font-semibold text-destructive">
+                      <AlertTriangle className="h-5 w-5" />
+                      {language === 'hi' ? 'कृषि मौसम चेतावनी' : 'Farm Weather Alerts'}
+                    </div>
+                    {severeAlerts.map((a, idx) => (
+                      <div key={`${a.type}-${idx}`} className="rounded-md border border-destructive/25 bg-background/70 p-3">
+                        <p className="text-sm font-semibold text-foreground">{a.title}</p>
+                        <p className="text-sm text-muted-foreground">{a.message}</p>
+                        <p className="text-sm text-foreground mt-1">
+                          <span className="font-semibold">{language === 'hi' ? 'सावधानी:' : 'Precaution:'}</span> {a.precaution}
+                        </p>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              </section>
+            )}
+
             {/* Current Weather */}
             <section className="mb-8">
               <div className="flex items-center justify-between mb-4">
@@ -443,7 +565,7 @@ const Weather = () => {
                 </Button>
               </div>
               
-              <Card className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10">
+              <Card className="bg-card border-border">
                 <CardContent className="p-6">
                   <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
                     {/* Main weather info */}
@@ -455,7 +577,7 @@ const Weather = () => {
                       <div className="flex items-center gap-4">
                         {(() => {
                           const IconComponent = getWeatherIcon(weather.icon);
-                          return <IconComponent className="w-20 h-20 text-blue-500" />;
+                          return <IconComponent className="w-20 h-20 text-primary" />;
                         })()}
                         <div>
                           <div className="text-5xl font-bold">{weather.temp}°C</div>
@@ -467,32 +589,32 @@ const Weather = () => {
                     {/* Weather details grid */}
                     <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-4 w-full">
                       <div className="bg-background/50 rounded-lg p-4 text-center">
-                        <ThermometerSun className="w-6 h-6 mx-auto text-orange-500 mb-1" />
+                        <ThermometerSun className="w-6 h-6 mx-auto text-primary mb-1" />
                         <div className="text-sm text-muted-foreground">{t.feelsLike}</div>
                         <div className="font-semibold">{weather.feelsLike}°C</div>
                       </div>
                       <div className="bg-background/50 rounded-lg p-4 text-center">
-                        <Droplets className="w-6 h-6 mx-auto text-blue-500 mb-1" />
+                        <Droplets className="w-6 h-6 mx-auto text-primary mb-1" />
                         <div className="text-sm text-muted-foreground">{t.humidity}</div>
                         <div className="font-semibold">{weather.humidity}%</div>
                       </div>
                       <div className="bg-background/50 rounded-lg p-4 text-center">
-                        <Wind className="w-6 h-6 mx-auto text-teal-500 mb-1" />
+                        <Wind className="w-6 h-6 mx-auto text-primary mb-1" />
                         <div className="text-sm text-muted-foreground">{t.wind}</div>
                         <div className="font-semibold">{weather.windSpeed} km/h</div>
                       </div>
                       <div className="bg-background/50 rounded-lg p-4 text-center">
-                        <Cloud className="w-6 h-6 mx-auto text-gray-500 mb-1" />
+                        <Cloud className="w-6 h-6 mx-auto text-primary mb-1" />
                         <div className="text-sm text-muted-foreground">{t.pressure}</div>
                         <div className="font-semibold">{weather.pressure} hPa</div>
                       </div>
                       <div className="bg-background/50 rounded-lg p-4 text-center">
-                        <Sun className="w-6 h-6 mx-auto text-yellow-500 mb-1" />
+                        <Sun className="w-6 h-6 mx-auto text-primary mb-1" />
                         <div className="text-sm text-muted-foreground">{t.sunrise}</div>
                         <div className="font-semibold">{weather.sunrise}</div>
                       </div>
                       <div className="bg-background/50 rounded-lg p-4 text-center">
-                        <Sun className="w-6 h-6 mx-auto text-orange-500 mb-1" />
+                        <Sun className="w-6 h-6 mx-auto text-primary mb-1" />
                         <div className="text-sm text-muted-foreground">{t.sunset}</div>
                         <div className="font-semibold">{weather.sunset}</div>
                       </div>
@@ -512,7 +634,7 @@ const Weather = () => {
                     <Card key={index} className="text-center hover:shadow-lg transition-shadow">
                       <CardContent className="p-4">
                         <div className="font-semibold text-lg mb-2">{day.dayName}</div>
-                        <IconComponent className="w-12 h-12 mx-auto text-blue-500 mb-2" />
+                        <IconComponent className="w-12 h-12 mx-auto text-primary mb-2" />
                         <div className="flex justify-center gap-2 mb-1">
                           <span className="font-bold">{day.tempMax}°</span>
                           <span className="text-muted-foreground">{day.tempMin}°</span>
@@ -545,9 +667,9 @@ const Weather = () => {
         )}
 
         {/* CTA */}
-        <section className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-xl p-6 text-center">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-500/20 mb-3">
-            <MessageCircle className="w-6 h-6 text-blue-600" />
+        <section className="bg-card border border-border rounded-xl p-6 text-center">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted mb-3">
+            <MessageCircle className="w-6 h-6 text-primary" />
           </div>
           <h2 className="text-xl font-bold text-foreground mb-2">{t.moreHelp}</h2>
           <p className="text-muted-foreground text-sm mb-4">{t.moreHelpDesc}</p>

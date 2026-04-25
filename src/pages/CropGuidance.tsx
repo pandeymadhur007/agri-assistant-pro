@@ -238,10 +238,10 @@ const CropGuidance = ({ embedded = false }: CropGuidanceProps = {}) => {
   const inner = (
     <main className="flex-1">
       {!embedded && (
-        <div className="hero-pattern bg-gradient-to-b from-green-500/10 to-background py-8 px-4">
+        <div className="hero-pattern bg-gradient-to-b from-primary/10 to-background py-8 px-4">
           <div className="container mx-auto text-center">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-green-100 dark:bg-green-900 mb-3">
-              <Sprout className="w-7 h-7 text-green-600" />
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-muted mb-3">
+              <Sprout className="w-7 h-7 text-primary" />
             </div>
             <h1 className="text-3xl font-bold text-foreground mb-2">{t.title}</h1>
             <p className="text-muted-foreground">{t.subtitle}</p>
@@ -296,7 +296,7 @@ const CropGuidance = ({ embedded = false }: CropGuidanceProps = {}) => {
           </div>
         </section>
 
-        <section className="bg-gradient-to-r from-primary/10 to-green-500/10 rounded-xl p-6 text-center">
+        <section className="bg-card border border-border rounded-xl p-6 text-center">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/20 mb-3">
             <MessageCircle className="w-6 h-6 text-primary" />
           </div>

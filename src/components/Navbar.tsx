@@ -66,30 +66,30 @@ export function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-lg">
+      <div className="container mx-auto flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4 gap-2">
+        <Link to="/" className="flex items-center gap-2 min-w-0">
+          <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-base sm:text-lg">
             ग्र
           </div>
-          <span className="text-xl font-bold text-primary">{t('appName')}</span>
+          <span className="text-base sm:text-xl font-bold text-primary truncate max-w-[130px] sm:max-w-none">{t('appName')}</span>
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
         {user && <NotificationBell />}
         <Button
           variant="outline"
           size="icon"
-          className="rounded-full border-primary/50 text-primary"
+          className="rounded-full border-primary/50 text-primary h-10 w-10 min-h-10 min-w-10 sm:h-11 sm:w-11"
           onClick={handleThemeToggle}
           aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
         >
-          {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          {isDarkMode ? <Sun className="h-[18px] w-[18px] sm:h-5 sm:w-5" /> : <Moon className="h-[18px] w-[18px] sm:h-5 sm:w-5" />}
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="default" className="gap-2 border-primary/50 text-primary font-medium px-3 sm:px-4">
-              <Globe className="h-5 w-5" />
-              <span className="text-sm font-semibold hidden sm:inline">{currentLang?.nativeName}</span>
+            <Button variant="outline" size="default" className="gap-1.5 sm:gap-2 border-primary/50 text-primary font-medium px-2.5 sm:px-4 h-10 sm:h-11">
+              <Globe className="h-[18px] w-[18px] sm:h-5 sm:w-5" />
+              <span className="text-xs sm:text-sm font-semibold hidden sm:inline">{currentLang?.nativeName}</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
@@ -109,7 +109,7 @@ export function Navbar() {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="rounded-full border-primary/50 bg-primary text-primary-foreground font-semibold">
+                <Button variant="outline" size="icon" className="rounded-full border-primary/50 bg-primary text-primary-foreground font-semibold h-10 w-10 min-h-10 min-w-10 sm:h-11 sm:w-11">
                   {initial}
                 </Button>
               </DropdownMenuTrigger>
@@ -124,8 +124,8 @@ export function Navbar() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button variant="outline" size="icon" className="rounded-full border-primary/50 text-primary" onClick={() => navigate('/login')} aria-label="Login">
-              <LogIn className="h-5 w-5" />
+            <Button variant="outline" size="icon" className="rounded-full border-primary/50 text-primary h-10 w-10 min-h-10 min-w-10 sm:h-11 sm:w-11" onClick={() => navigate('/login')} aria-label="Login">
+              <LogIn className="h-[18px] w-[18px] sm:h-5 sm:w-5" />
             </Button>
           )}
         </div>

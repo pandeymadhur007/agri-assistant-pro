@@ -76,10 +76,10 @@ const Schemes = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-1">
-        <div className="hero-pattern bg-gradient-to-b from-purple-500/10 to-background py-8 px-4">
+        <div className="hero-pattern bg-gradient-to-b from-primary/10 to-background py-8 px-4">
           <div className="container mx-auto text-center">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-purple-100 dark:bg-purple-900 mb-3">
-              <FileText className="w-7 h-7 text-purple-600" />
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-muted mb-3">
+              <FileText className="w-7 h-7 text-primary" />
             </div>
             <h1 className="text-3xl font-bold mb-2">{t('schemes')}</h1>
             <p className="text-muted-foreground">Find government schemes for farmers and rural workers</p>

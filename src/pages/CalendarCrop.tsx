@@ -186,79 +186,79 @@ const CalendarCrop = () => {
                     <div className={`text-xs mb-1 ${isCurrent ? 'font-bold text-primary' : 'text-muted-foreground'}`}>
                       {getMonthName(month).slice(0, 3)}
                     </div>
-                    <div className={`h-8 rounded flex flex-col items-center justify-center text-xs relative ${
+                    <div className={`h-8 rounded flex flex-col items-center justify-center text-xs relative border ${
                       isCurrent ? 'ring-2 ring-primary' : ''
                     } ${
-                      isSowing ? 'bg-green-200' : 
-                      isHarvest ? 'bg-amber-200' : 
-                      isPestRisk ? 'bg-red-100' : 
-                      'bg-muted'
+                      isSowing ? 'bg-secondary/70 border-border' :
+                      isHarvest ? 'bg-accent/30 border-border' :
+                      isPestRisk ? 'bg-destructive/20 border-destructive/30' :
+                      'bg-muted border-border'
                     }`}>
-                      {isFertilizer && <Leaf className="h-3 w-3 text-green-700" />}
+                      {isFertilizer && <Leaf className="h-3 w-3 text-primary" />}
                     </div>
                   </div>
                 );
               })}
             </div>
             <div className="flex flex-wrap gap-4 mt-4 text-xs">
-              <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-green-200"></div> {l.sowing}</div>
-              <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-amber-200"></div> {l.harvest}</div>
-              <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-red-100"></div> {l.pestRisk}</div>
-              <div className="flex items-center gap-1"><Leaf className="h-3 w-3 text-green-700" /> {l.fertilizer}</div>
+              <div className="flex items-center gap-1 text-muted-foreground"><div className="w-3 h-3 rounded bg-secondary/70 border border-border"></div> {l.sowing}</div>
+              <div className="flex items-center gap-1 text-muted-foreground"><div className="w-3 h-3 rounded bg-accent/30 border border-border"></div> {l.harvest}</div>
+              <div className="flex items-center gap-1 text-muted-foreground"><div className="w-3 h-3 rounded bg-destructive/20 border border-destructive/30"></div> {l.pestRisk}</div>
+              <div className="flex items-center gap-1 text-muted-foreground"><Leaf className="h-3 w-3 text-primary" /> {l.fertilizer}</div>
             </div>
           </CardContent>
         </Card>
 
         {/* Details Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <Card className="bg-green-50 border-green-200">
+          <Card className="bg-card border-border">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3 mb-2">
-                <Sprout className="h-6 w-6 text-green-600" />
-                <h3 className="font-semibold text-green-700">{l.sowing}</h3>
+                <Sprout className="h-6 w-6 text-primary" />
+                <h3 className="font-semibold text-foreground">{l.sowing}</h3>
               </div>
-              <p className="text-lg font-medium text-green-800">
+              <p className="text-lg font-medium text-foreground">
                 {getMonthRange(calendar.sowing_start_month, calendar.sowing_end_month)}
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-amber-50 border-amber-200">
+          <Card className="bg-card border-border">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3 mb-2">
-                <Wheat className="h-6 w-6 text-amber-600" />
-                <h3 className="font-semibold text-amber-700">{l.harvest}</h3>
+                <Wheat className="h-6 w-6 text-primary" />
+                <h3 className="font-semibold text-foreground">{l.harvest}</h3>
               </div>
-              <p className="text-lg font-medium text-amber-800">
+              <p className="text-lg font-medium text-foreground">
                 {getMonthRange(calendar.harvest_start_month, calendar.harvest_end_month)}
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-blue-50 border-blue-200">
+          <Card className="bg-card border-border">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3 mb-2">
-                <Droplets className="h-6 w-6 text-blue-600" />
-                <h3 className="font-semibold text-blue-700">{l.irrigation}</h3>
+                <Droplets className="h-6 w-6 text-primary" />
+                <h3 className="font-semibold text-foreground">{l.irrigation}</h3>
               </div>
-              <p className="text-lg font-medium text-blue-800">
+              <p className="text-lg font-medium text-foreground">
                 {calendar.irrigation_frequency || '-'}
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-red-50 border-red-200">
+          <Card className="bg-card border-border">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3 mb-2">
-                <Bug className="h-6 w-6 text-red-600" />
-                <h3 className="font-semibold text-red-700">{l.pestRisk}</h3>
+                <Bug className="h-6 w-6 text-destructive" />
+                <h3 className="font-semibold text-foreground">{l.pestRisk}</h3>
               </div>
               <div className="flex flex-wrap gap-1">
                 {calendar.pest_risk_months?.map(m => (
                   <Badge 
                     key={m} 
                     variant={m === currentMonth ? 'destructive' : 'outline'}
-                    className={m === currentMonth ? '' : 'border-red-300 text-red-700'}
+                    className={m === currentMonth ? '' : 'border-border text-muted-foreground'}
                   >
                     {getMonthName(m)}
                   </Badge>

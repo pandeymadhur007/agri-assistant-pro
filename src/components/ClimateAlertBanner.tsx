@@ -17,10 +17,10 @@ const iconFor = (type: string) => {
 const colorFor = (type: string) => {
   switch (type) {
     case 'frost':
-    case 'cold': return 'from-sky-50 to-blue-50 border-l-sky-500 text-sky-900';
-    case 'heatwave': return 'from-red-50 to-orange-50 border-l-red-500 text-red-900';
-    case 'rain': return 'from-blue-50 to-indigo-50 border-l-blue-500 text-blue-900';
-    default: return 'from-amber-50 to-orange-50 border-l-amber-500 text-amber-900';
+    case 'cold': return 'bg-card border-l-primary text-foreground';
+    case 'heatwave': return 'bg-card border-l-destructive text-foreground';
+    case 'rain': return 'bg-card border-l-primary text-foreground';
+    default: return 'bg-card border-l-primary text-foreground';
   }
 };
 
@@ -32,10 +32,10 @@ export function ClimateAlertBanner() {
   const Icon = iconFor(top.alert_type);
 
   return (
-    <Card className={`overflow-hidden border-0 shadow-md bg-gradient-to-r border-l-4 ${colorFor(top.alert_type)}`}>
+    <Card className={`overflow-hidden shadow-md border border-border border-l-4 ${colorFor(top.alert_type)}`}>
       <CardContent className="p-4 flex items-center gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-white/60 flex items-center justify-center shrink-0">
-          <Icon className="w-6 h-6" />
+        <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center shrink-0">
+          <Icon className="w-6 h-6 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="font-semibold text-sm">{top.title}</div>

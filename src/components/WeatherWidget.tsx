@@ -72,10 +72,10 @@ export function WeatherWidget() {
 
   return (
     <Link to="/weather">
-      <Card className={`overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow ${weather.alert ? 'bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-l-amber-500' : 'bg-gradient-to-r from-sky-50 to-blue-50'}`}>
+      <Card className={`overflow-hidden shadow-md hover:shadow-lg transition-shadow border border-border ${weather.alert ? 'border-l-4 border-l-primary bg-card' : 'bg-card'}`}>
         <CardContent className="p-4 flex items-center gap-4">
-          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${weather.alert ? 'bg-amber-100' : 'bg-sky-100'}`}>
-            {weather.alert ? <AlertTriangle className="w-7 h-7 text-amber-600" /> : <Icon className="w-7 h-7 text-sky-600" />}
+          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${weather.alert ? 'bg-accent/20' : 'bg-muted'}`}>
+            {weather.alert ? <AlertTriangle className="w-7 h-7 text-primary" /> : <Icon className="w-7 h-7 text-primary" />}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-baseline gap-2">
@@ -83,7 +83,7 @@ export function WeatherWidget() {
               <span className="text-sm text-muted-foreground truncate">{weather.location}</span>
             </div>
             {weather.alert ? (
-              <p className="text-sm text-amber-900 font-medium truncate">{weather.alert}</p>
+              <p className="text-sm text-foreground font-medium truncate">{weather.alert}</p>
             ) : (
               <p className="text-sm text-muted-foreground">{t.tap}</p>
             )}

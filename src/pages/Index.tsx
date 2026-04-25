@@ -56,7 +56,7 @@ const Index = () => {
       <PageTransition>
         <main className="flex-1">
           {/* Hero Section */}
-          <section className="hero-pattern hero-gradient py-16 px-4 relative overflow-hidden">
+          <section className="hero-pattern hero-gradient py-10 sm:py-16 px-3 sm:px-4 relative overflow-hidden">
             {/* Subtle decorative wheat — consistent size + gentle opacity */}
             <motion.div
               className="absolute top-12 left-6 md:left-16 text-5xl pointer-events-none select-none"
@@ -77,54 +77,54 @@ const Index = () => {
               🌾
             </motion.div>
 
-            <div className="container mx-auto text-center relative z-10">
+            <div className="container mx-auto text-center relative z-10 max-w-xl">
               {/* Logo/Icon */}
               <FadeIn delay={0.1}>
-                <div className="relative mb-6 inline-block">
+                <div className="relative mb-5 sm:mb-6 inline-block">
                   <motion.div
-                    className="w-24 h-24 bg-gradient-to-br from-primary to-primary/80 rounded-3xl flex items-center justify-center shadow-2xl shadow-primary/30"
+                    className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-primary to-primary/80 rounded-3xl flex items-center justify-center shadow-2xl shadow-primary/30"
                     initial={{ rotate: 3 }}
                     whileHover={{ rotate: 0, scale: 1.05 }}
                     transition={{ type: 'spring', stiffness: 300 }}
                   >
-                    <span className="text-5xl">🌾</span>
+                    <span className="text-4xl sm:text-5xl">🌾</span>
                   </motion.div>
                   <motion.div
-                    className="absolute -bottom-2 -right-2 w-10 h-10 bg-accent rounded-xl flex items-center justify-center shadow-lg"
+                    className="absolute -bottom-2 -right-2 w-9 h-9 sm:w-10 sm:h-10 bg-accent rounded-xl flex items-center justify-center shadow-lg"
                     initial={{ rotate: -12 }}
                     animate={{ rotate: [-12, -8, -12] }}
                     transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                   >
-                    <Sparkles className="w-5 h-5 text-accent-foreground" />
+                    <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-accent-foreground" />
                   </motion.div>
                 </div>
               </FadeIn>
 
               <FadeIn delay={0.2}>
-                <h1 className="text-4xl md:text-6xl font-bold mb-3">
+                <h1 className="text-[2rem] sm:text-5xl md:text-6xl font-bold mb-2 sm:mb-3 leading-tight">
                   <span className="gradient-text">{t('appName')}</span>
                 </h1>
               </FadeIn>
 
               <FadeIn delay={0.25}>
-                <p className="text-lg md:text-xl text-foreground/80 font-medium mb-2 max-w-lg mx-auto">
+                <p className="text-base sm:text-lg md:text-xl text-foreground/80 font-medium mb-2 max-w-[310px] sm:max-w-lg mx-auto">
                   {t('tagline')}
                 </p>
               </FadeIn>
 
               <FadeIn delay={0.3}>
-                <p className="text-base md:text-lg text-muted-foreground mb-6 max-w-lg mx-auto">
+                <p className="text-sm sm:text-base md:text-lg text-muted-foreground mb-5 sm:mb-6 max-w-[310px] sm:max-w-lg mx-auto">
                   {subTaglines[language] || subTaglines.en}
                 </p>
               </FadeIn>
 
               {/* Badge pills */}
               <FadeIn delay={0.35}>
-                <div className="flex flex-wrap items-center justify-center gap-2 mb-8">
+                <div className="flex flex-wrap items-center justify-center gap-2 mb-6 sm:mb-8">
                   {heroBadges.map((b) => (
                     <span
                       key={b}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary min-h-11"
                     >
                       <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                       {b}
@@ -134,15 +134,15 @@ const Index = () => {
               </FadeIn>
 
               <FadeIn delay={0.4}>
-                <Link to="/chat" className="block max-w-[280px] mx-auto">
+                <Link to="/chat" className="block max-w-[280px] mx-auto w-full">
                   <motion.button
-                    className="w-full group bg-gradient-to-r from-primary to-primary/90 text-primary-foreground px-6 py-4 rounded-2xl text-base md:text-lg font-semibold shadow-xl shadow-primary/25"
+                    className="w-full min-h-11 group bg-gradient-to-r from-primary to-primary/90 text-primary-foreground px-5 py-3.5 sm:py-4 rounded-2xl text-base md:text-lg font-semibold shadow-xl shadow-primary/25"
                     whileHover={{ y: -4, boxShadow: '0 25px 50px -12px hsl(var(--primary) / 0.4)' }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ type: 'spring', stiffness: 400, damping: 17 }}
                   >
                     <span className="flex items-center justify-center gap-3">
-                      <MessageCircle className="w-5 h-5" />
+                        <MessageCircle className="w-5 h-5 shrink-0" />
                       {t('startChat')}
                       <motion.span
                         animate={{ x: [0, 4, 0] }}
@@ -158,10 +158,10 @@ const Index = () => {
           </section>
 
           {/* Stats strip */}
-          <section className="px-4 -mt-4 relative z-20">
+          <section className="px-3 sm:px-4 -mt-3 sm:-mt-4 relative z-20">
             <div className="container mx-auto max-w-3xl">
-              <div className="rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 shadow-sm">
-                <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs md:text-sm font-medium text-primary">
+              <div className="rounded-2xl border border-primary/20 bg-primary/5 px-3 sm:px-4 py-3 shadow-sm">
+                <div className="flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-6 gap-y-2 text-xs sm:text-sm font-medium text-primary">
                   <span className="inline-flex items-center gap-1.5">
                     <Users className="w-4 h-4" /> 10,000+ Farmers Helped
                   </span>
@@ -179,7 +179,7 @@ const Index = () => {
           </section>
 
           {/* Weather Alert Widget */}
-          <section className="px-4 mt-6 relative z-20">
+          <section className="px-3 sm:px-4 mt-5 sm:mt-6 relative z-20">
             <div className="container mx-auto max-w-3xl">
               <div className="mb-3"><ClimateAlertBanner /></div>
               <WeatherWidget />
@@ -187,15 +187,15 @@ const Index = () => {
           </section>
 
           {/* Quick Actions Section */}
-          <section className="py-12 px-4 section-pattern">
+          <section className="py-9 sm:py-12 px-3 sm:px-4 section-pattern">
             <div className="container mx-auto">
               <FadeIn>
-                <h2 className="text-2xl md:text-3xl font-bold text-center mb-8">
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-center mb-6 sm:mb-8">
                   {t('quickActions')}
                 </h2>
               </FadeIn>
 
-              <StaggerContainer className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 items-stretch">
+              <StaggerContainer className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-6 items-stretch">
                 {quickActions.map((action) => (
                   <StaggerItem key={action.to} className="h-full">
                     <Link to={action.to} className="block h-full">
@@ -205,11 +205,11 @@ const Index = () => {
                         whileTap={{ scale: 0.98 }}
                         transition={{ type: 'spring', stiffness: 400, damping: 20 }}
                       >
-                        <Card className="h-full min-h-[140px] border-0 shadow-md hover:shadow-xl overflow-hidden group transition-shadow duration-300">
-                          <CardContent className="h-full p-5 flex flex-col items-center justify-center text-center gap-3">
+                        <Card className="h-full min-h-[124px] sm:min-h-[140px] border-0 shadow-md hover:shadow-xl overflow-hidden group transition-shadow duration-300">
+                          <CardContent className="h-full p-3.5 sm:p-5 flex flex-col items-center justify-center text-center gap-2.5 sm:gap-3">
                             <motion.div
                               className={cn(
-                                'w-14 h-14 rounded-2xl flex items-center justify-center bg-gradient-to-br shadow-lg',
+                                'w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center bg-gradient-to-br shadow-lg',
                                 action.gradient
                               )}
                               whileHover={{ scale: 1.1, rotate: 5 }}
@@ -218,7 +218,7 @@ const Index = () => {
                               {'emoji' in action && action.emoji ? (
                                 <span className="text-3xl leading-none" aria-hidden>{action.emoji}</span>
                               ) : (
-                                'icon' in action && action.icon ? <action.icon className="h-7 w-7 text-white" /> : null
+                                'icon' in action && action.icon ? <action.icon className="h-6 w-6 sm:h-7 sm:w-7 text-white" /> : null
                               )}
                             </motion.div>
                             <h3 className="font-semibold text-sm leading-tight">{action.title}</h3>
@@ -233,14 +233,14 @@ const Index = () => {
           </section>
 
           {/* How It Works */}
-          <section className="py-12 px-4 bg-background">
+          <section className="py-9 sm:py-12 px-3 sm:px-4 bg-background">
             <div className="container mx-auto max-w-4xl">
               <FadeIn>
-                <h2 className="text-2xl md:text-3xl font-bold text-center mb-10">
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-center mb-8 sm:mb-10">
                   {t('howItWorks')}
                 </h2>
               </FadeIn>
-              <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
                 {howItWorks.map((step) => (
                   <StaggerItem key={step.num}>
                     <div className="relative h-full rounded-2xl border border-border bg-card p-6 text-center shadow-sm hover:shadow-md transition-shadow">
@@ -259,9 +259,9 @@ const Index = () => {
           </section>
 
           {/* Feature Highlights */}
-          <section className="py-12 px-4 bg-gradient-to-b from-background to-secondary/30">
+          <section className="py-9 sm:py-12 px-3 sm:px-4 bg-gradient-to-b from-background to-secondary/30">
             <div className="container mx-auto">
-              <StaggerContainer className="grid md:grid-cols-3 gap-6">
+              <StaggerContainer className="grid md:grid-cols-3 gap-4 sm:gap-6">
                 {featureCards.map((feature) => (
                   <StaggerItem key={feature.title}>
                     <Link to={feature.to}>

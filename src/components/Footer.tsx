@@ -5,29 +5,29 @@ export function Footer() {
   const { t } = useLanguage();
 
   return (
-    <footer className="bg-primary text-primary-foreground">
+    <footer className="bg-primary text-primary-foreground dark:bg-[#1a2e1a] dark:text-foreground">
       <div className="container mx-auto px-4 py-10">
         <div className="grid gap-8 md:grid-cols-3">
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-foreground text-primary font-bold text-sm">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-foreground text-primary dark:bg-muted dark:text-foreground font-bold text-sm">
                 ग्र
               </div>
               <span className="text-lg font-bold">{t('appName')}</span>
             </div>
-            <p className="text-sm opacity-90">{t('tagline')}</p>
+            <p className="text-sm opacity-90 dark:text-muted-foreground">{t('tagline')}</p>
           </div>
 
           <div>
             <h3 className="font-semibold mb-3">{t('quickActions')}</h3>
             <div className="flex flex-col gap-2">
-              <Link to="/chat" className="text-sm opacity-90 hover:opacity-100 hover:underline">
+              <Link to="/chat" className="text-sm opacity-90 hover:opacity-100 hover:underline dark:text-muted-foreground dark:hover:text-foreground">
                 {t('startChat')}
               </Link>
-              <Link to="/schemes" className="text-sm opacity-90 hover:opacity-100 hover:underline">
+              <Link to="/schemes" className="text-sm opacity-90 hover:opacity-100 hover:underline dark:text-muted-foreground dark:hover:text-foreground">
                 {t('schemes')}
               </Link>
-              <Link to="/crop-guidance" className="text-sm opacity-90 hover:opacity-100 hover:underline">
+              <Link to="/crop-guidance" className="text-sm opacity-90 hover:opacity-100 hover:underline dark:text-muted-foreground dark:hover:text-foreground">
                 {t('cropGuidance')}
               </Link>
             </div>
@@ -36,24 +36,24 @@ export function Footer() {
           <div>
             <h3 className="font-semibold mb-3">{t('about')}</h3>
             <div className="flex flex-col gap-2">
-              <Link to="/about" className="text-sm opacity-90 hover:opacity-100 hover:underline">
+              <Link to="/about" className="text-sm opacity-90 hover:opacity-100 hover:underline dark:text-muted-foreground dark:hover:text-foreground">
                 {t('about')}
               </Link>
-              <Link to="/contact" className="text-sm opacity-90 hover:opacity-100 hover:underline">
+              <Link to="/contact" className="text-sm opacity-90 hover:opacity-100 hover:underline dark:text-muted-foreground dark:hover:text-foreground">
                 {t('contact')}
               </Link>
-              <Link to="/privacy" className="text-sm opacity-90 hover:opacity-100 hover:underline">
+              <Link to="/privacy" className="text-sm opacity-90 hover:opacity-100 hover:underline dark:text-muted-foreground dark:hover:text-foreground">
                 {t('privacyPolicy')}
               </Link>
             </div>
           </div>
         </div>
 
-        <div className="mt-8 rounded-md border border-primary-foreground/20 bg-primary-foreground/10 px-4 py-3 text-xs">
+        <div className="mt-8 rounded-md border border-primary-foreground/20 bg-primary-foreground/10 dark:border-border dark:bg-muted/40 px-4 py-3 text-xs">
           ⚠️ {t('aiDisclaimer')}
         </div>
 
-        <div className="mt-6 border-t border-primary-foreground/20 pt-4 text-center text-sm opacity-90">
+        <div className="mt-6 border-t border-primary-foreground/20 dark:border-border pt-4 text-center text-sm opacity-90 dark:text-muted-foreground">
           © 2026 {t('appName')}. Made for Indian Farmers.
         </div>
       </div>

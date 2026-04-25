@@ -180,28 +180,28 @@ const Calendar = () => {
                     {/* Sowing */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 text-sm">
-                        <Sprout className="h-4 w-4 text-green-600" />
+                        <Sprout className="h-4 w-4 text-primary" />
                         <span>{l.sowing}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium">
                           {getMonthRange(cal.sowing_start_month, cal.sowing_end_month)}
                         </span>
-                        {isSowingNow && <Badge className="bg-green-600 text-xs">{l.now}</Badge>}
+                        {isSowingNow && <Badge className="text-xs">{l.now}</Badge>}
                       </div>
                     </div>
 
                     {/* Harvest */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 text-sm">
-                        <Wheat className="h-4 w-4 text-amber-600" />
+                        <Wheat className="h-4 w-4 text-primary" />
                         <span>{l.harvest}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium">
                           {getMonthRange(cal.harvest_start_month, cal.harvest_end_month)}
                         </span>
-                        {isHarvestNow && <Badge className="bg-amber-600 text-xs">{l.now}</Badge>}
+                        {isHarvestNow && <Badge className="text-xs">{l.now}</Badge>}
                       </div>
                     </div>
 
@@ -209,7 +209,7 @@ const Calendar = () => {
                     {cal.irrigation_frequency && (
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-sm">
-                          <Droplets className="h-4 w-4 text-blue-600" />
+                          <Droplets className="h-4 w-4 text-primary" />
                           <span>{l.irrigation}</span>
                         </div>
                         <span className="text-sm text-muted-foreground">{cal.irrigation_frequency}</span>
@@ -218,8 +218,8 @@ const Calendar = () => {
 
                     {/* Pest Risk Alert */}
                     {pestRiskNow && (
-                      <div className="mt-2 p-2 rounded-lg bg-red-50 border border-red-200">
-                        <div className="flex items-center gap-2 text-sm text-red-700">
+                      <div className="mt-2 p-2 rounded-lg bg-destructive/15 border border-destructive/30">
+                        <div className="flex items-center gap-2 text-sm text-destructive">
                           <Bug className="h-4 w-4" />
                           <span className="font-medium">{l.pestRisk}: {l.now}</span>
                         </div>

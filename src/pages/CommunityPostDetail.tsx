@@ -323,7 +323,7 @@ const CommunityPostDetail = () => {
                 {postProfile?.display_name || l.anonymous}
               </span>
               {postIsExpert && (
-                <Badge className="bg-blue-600 text-xs gap-1">
+                <Badge className="text-xs gap-1">
                   <BadgeCheck className="h-3 w-3" />
                   {l.expert}
                 </Badge>
@@ -333,7 +333,7 @@ const CommunityPostDetail = () => {
                 {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
               </span>
               {post.is_resolved && (
-                <Badge className="bg-green-600 gap-1">
+                <Badge className="bg-secondary text-secondary-foreground gap-1">
                   <CheckCircle className="h-3 w-3" />
                   {l.resolved}
                 </Badge>
@@ -412,14 +412,14 @@ const CommunityPostDetail = () => {
               const replyHasUpvoted = userUpvotes.has(`reply_${reply.id}`);
 
               return (
-                <Card key={reply.id} className={reply.is_expert_answer ? 'border-blue-200 bg-blue-50/50' : ''}>
+                <Card key={reply.id} className={reply.is_expert_answer ? 'border-primary/30 bg-muted/40' : ''}>
                   <CardContent className="py-4">
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-sm font-medium">
                         {replyProfile?.display_name || l.anonymous}
                       </span>
                       {replyIsExpert && (
-                        <Badge className="bg-blue-600 text-xs gap-1">
+                        <Badge className="text-xs gap-1">
                           <BadgeCheck className="h-3 w-3" />
                           {l.expert}
                         </Badge>

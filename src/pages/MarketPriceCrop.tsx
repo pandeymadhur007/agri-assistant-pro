@@ -159,17 +159,17 @@ const MarketPriceCrop = () => {
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               {mspRate && (
-                <Card className="bg-amber-50 border-amber-200">
+                <Card className="bg-card border-border">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm text-amber-700">{l.msp}</CardTitle>
+                    <CardTitle className="text-sm text-muted-foreground">{l.msp}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-baseline gap-1">
-                      <IndianRupee className="h-5 w-5 text-amber-700" />
-                      <span className="text-2xl font-bold text-amber-700">{mspRate.msp_price.toLocaleString()}</span>
-                      <span className="text-sm text-amber-600">{l.perQuintal}</span>
+                      <IndianRupee className="h-5 w-5 text-foreground" />
+                      <span className="text-2xl font-bold text-foreground">{mspRate.msp_price.toLocaleString()}</span>
+                      <span className="text-sm text-muted-foreground">{l.perQuintal}</span>
                     </div>
-                    <div className="mt-2 text-sm text-amber-600">
+                    <div className="mt-2 text-sm text-muted-foreground">
                       {l.season}: {mspRate.season} | {l.year}: {mspRate.year}
                     </div>
                   </CardContent>
@@ -177,20 +177,20 @@ const MarketPriceCrop = () => {
               )}
 
               {bestPrice && (
-                <Card className="bg-green-50 border-green-200">
+                <Card className="bg-card border-border">
                   <CardHeader className="pb-2">
                     <div className="flex items-center gap-2">
-                      <Star className="h-4 w-4 text-green-600" />
-                      <CardTitle className="text-sm text-green-700">{l.bestMandi}</CardTitle>
+                      <Star className="h-4 w-4 text-primary" />
+                      <CardTitle className="text-sm text-muted-foreground">{l.bestMandi}</CardTitle>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-baseline gap-1">
-                      <IndianRupee className="h-5 w-5 text-green-700" />
-                      <span className="text-2xl font-bold text-green-700">{bestPrice.price.toLocaleString()}</span>
-                      <span className="text-sm text-green-600">{l.perQuintal}</span>
+                      <IndianRupee className="h-5 w-5 text-foreground" />
+                      <span className="text-2xl font-bold text-foreground">{bestPrice.price.toLocaleString()}</span>
+                      <span className="text-sm text-muted-foreground">{l.perQuintal}</span>
                     </div>
-                    <div className="mt-2 flex items-center gap-1 text-sm text-green-600">
+                    <div className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
                       <MapPin className="h-3 w-3" />
                       {bestPrice.mandi}, {bestPrice.state}
                     </div>
@@ -278,11 +278,11 @@ const MarketPriceCrop = () => {
             <h2 className="text-xl font-semibold mb-4">{l.allMandis}</h2>
             <div className="space-y-3">
               {prices.map((price, index) => (
-                <Card key={price.id} className={index === 0 ? 'border-green-200 bg-green-50/50' : ''}>
+                <Card key={price.id} className={index === 0 ? 'border-primary/30 bg-muted/40' : ''}>
                   <CardContent className="py-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        {index === 0 && <Badge className="bg-green-600">Best</Badge>}
+                        {index === 0 && <Badge>Best</Badge>}
                         <div>
                           <div className="font-medium">{price.mandi}</div>
                           <div className="text-sm text-muted-foreground flex items-center gap-1">

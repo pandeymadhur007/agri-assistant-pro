@@ -254,9 +254,9 @@ const getSeverityColor = (severity: string) => {
     case 'high':
       return 'bg-destructive text-destructive-foreground';
     case 'medium':
-      return 'bg-amber-500 text-white';
+      return 'bg-accent text-accent-foreground';
     case 'low':
-      return 'bg-green-500 text-white';
+      return 'bg-secondary text-secondary-foreground';
     default:
       return 'bg-muted text-muted-foreground';
   }
@@ -277,10 +277,10 @@ const PestDisease = ({ embedded = false }: PestDiseaseProps = {}) => {
   const inner = (
     <main className="flex-1">
       {!embedded && (
-        <div className="hero-pattern bg-gradient-to-b from-amber-500/10 to-background py-8 px-4">
+        <div className="hero-pattern bg-gradient-to-b from-primary/10 to-background py-8 px-4">
           <div className="container mx-auto text-center">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-amber-100 dark:bg-amber-900 mb-3">
-              <Bug className="w-7 h-7 text-amber-600" />
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-muted mb-3">
+              <Bug className="w-7 h-7 text-primary" />
             </div>
             <h1 className="text-3xl font-bold text-foreground mb-2">{t.title}</h1>
             <p className="text-muted-foreground">{t.subtitle}</p>
@@ -337,14 +337,14 @@ const PestDisease = ({ embedded = false }: PestDiseaseProps = {}) => {
                       <p className="text-sm">{getLocalizedText(disease.symptoms)}</p>
                     </div>
                     <div>
-                      <div className="flex items-center gap-2 text-sm font-medium text-green-600 mb-1">
+                      <div className="flex items-center gap-2 text-sm font-medium text-primary mb-1">
                         <Leaf className="w-4 h-4" />
                         {t.treatment}
                       </div>
                       <p className="text-sm">{getLocalizedText(disease.treatment)}</p>
                     </div>
                     <div>
-                      <div className="flex items-center gap-2 text-sm font-medium text-blue-600 mb-1">
+                      <div className="flex items-center gap-2 text-sm font-medium text-primary mb-1">
                         <Shield className="w-4 h-4" />
                         {t.prevention}
                       </div>
@@ -390,14 +390,14 @@ const PestDisease = ({ embedded = false }: PestDiseaseProps = {}) => {
                       <p className="text-sm">{getLocalizedText(pest.damage)}</p>
                     </div>
                     <div>
-                      <div className="flex items-center gap-2 text-sm font-medium text-green-600 mb-1">
+                      <div className="flex items-center gap-2 text-sm font-medium text-primary mb-1">
                         <Leaf className="w-4 h-4" />
                         {t.treatment}
                       </div>
                       <p className="text-sm">{getLocalizedText(pest.treatment)}</p>
                     </div>
                     <div>
-                      <div className="flex items-center gap-2 text-sm font-medium text-blue-600 mb-1">
+                      <div className="flex items-center gap-2 text-sm font-medium text-primary mb-1">
                         <Shield className="w-4 h-4" />
                         {t.prevention}
                       </div>
@@ -411,9 +411,9 @@ const PestDisease = ({ embedded = false }: PestDiseaseProps = {}) => {
         </Tabs>
 
         {/* CTA */}
-        <section className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-xl p-6 text-center">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-500/20 mb-3">
-            <MessageCircle className="w-6 h-6 text-amber-600" />
+        <section className="bg-card border border-border rounded-xl p-6 text-center">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted mb-3">
+            <MessageCircle className="w-6 h-6 text-primary" />
           </div>
           <h2 className="text-xl font-bold text-foreground mb-2">{t.moreHelp}</h2>
           <p className="text-muted-foreground text-sm mb-4">{t.moreHelpDesc}</p>

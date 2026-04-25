@@ -44,7 +44,7 @@ export function BottomNav() {
   return (
     <>
       <nav
-        className="md:hidden fixed bottom-3 left-3 right-3 z-50 rounded-2xl border bg-background/95 backdrop-blur shadow-2xl shadow-primary/10"
+        className="md:hidden fixed bottom-[max(10px,env(safe-area-inset-bottom))] left-3 right-3 z-50 rounded-2xl border bg-background/95 backdrop-blur shadow-2xl shadow-primary/10"
         aria-label="Bottom navigation"
       >
         <ul className="grid grid-cols-4">
@@ -55,7 +55,7 @@ export function BottomNav() {
                 <Link
                   to={item.to}
                   className={cn(
-                    'flex flex-col items-center justify-center gap-1 py-2.5 text-xs font-medium transition-colors',
+                    'flex min-h-11 flex-col items-center justify-center gap-1 py-2.5 text-xs font-medium transition-colors',
                     active ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                   )}
                 >
@@ -70,7 +70,7 @@ export function BottomNav() {
               <SheetTrigger asChild>
                 <button
                   type="button"
-                  className="w-full flex flex-col items-center justify-center gap-1 py-2.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  className="w-full flex min-h-11 flex-col items-center justify-center gap-1 py-2.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
                   aria-label="More"
                 >
                   <MoreHorizontal className="h-5 w-5" />
@@ -102,7 +102,7 @@ export function BottomNav() {
         </ul>
       </nav>
       {/* Spacer so content isn't hidden behind floating bar on mobile */}
-      <div className="md:hidden h-20" aria-hidden />
+      <div className="md:hidden h-[calc(88px+env(safe-area-inset-bottom))]" aria-hidden />
     </>
   );
 }

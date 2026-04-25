@@ -113,8 +113,8 @@ const MarketPrices = () => {
   };
 
   const getTrendColor = (trend: string | null) => {
-    if (trend === 'up') return 'bg-green-100 text-green-700 border-green-200';
-    if (trend === 'down') return 'bg-red-100 text-red-700 border-red-200';
+    if (trend === 'up') return 'bg-secondary text-secondary-foreground border-border';
+    if (trend === 'down') return 'bg-destructive/20 text-destructive border-destructive/30';
     return 'bg-muted text-muted-foreground';
   };
 

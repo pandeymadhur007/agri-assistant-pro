@@ -9,7 +9,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { lovable } from '@/integrations/lovable';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -66,9 +65,12 @@ export default function Login() {
 
   const handleGoogle = async () => {
     setLoading(true);
-    const result = await lovable.auth.signInWithOAuth('google', { redirect_uri: window.location.origin + '/login' });
-    if (result.error) {
-      toast({ title: 'Google sign-in failed', description: String(result.error.message ?? result.error), variant: 'destructive' });
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin + '/login' },
+    });
+    if (error) {
+      toast({ title: 'Google sign-in failed', description: String(error.message ?? error), variant: 'destructive' });
       setLoading(false);
     }
   };

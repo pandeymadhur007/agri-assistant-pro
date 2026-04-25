@@ -15,7 +15,7 @@ export function InstallPrompt() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    // Don't show in iframe (Lovable preview)
+    // Don't show in iframe preview environments
     try {
       if (window.self !== window.top) return;
     } catch {

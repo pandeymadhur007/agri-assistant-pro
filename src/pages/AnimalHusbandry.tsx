@@ -69,9 +69,9 @@ export default function AnimalHusbandry() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <main className="flex-1">
-        <section className="bg-gradient-to-b from-amber-500/10 to-background py-8 px-4">
+        <section className="bg-gradient-to-b from-primary/10 to-background py-8 px-4">
           <div className="container mx-auto text-center">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-amber-100 dark:bg-amber-900 mb-3 text-3xl">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-muted mb-3 text-3xl">
               🐄
             </div>
             <h1 className="text-3xl font-bold mb-2">{t('Animal Husbandry', 'पशुपालन')}</h1>
@@ -133,7 +133,7 @@ function BreedCard({ breed, index, language }: { breed: Breed; index: number; la
     >
       <Card className="h-full flex flex-col hover:shadow-lg transition-shadow overflow-hidden">
         {/* Image placeholder */}
-        <div className="h-32 bg-gradient-to-br from-amber-100 via-orange-100 to-amber-200 flex items-center justify-center text-6xl select-none">
+        <div className="h-32 bg-gradient-to-br from-muted to-secondary flex items-center justify-center text-6xl select-none">
           {breed.emoji ?? '🐄'}
         </div>
         <CardHeader className="pb-2">
@@ -145,7 +145,7 @@ function BreedCard({ breed, index, language }: { breed: Breed; index: number; la
         <CardContent className="flex-1 space-y-3">
           {breed.daily_production && (
             <div className="flex items-start gap-2 text-sm">
-              <Sprout className="h-4 w-4 mt-0.5 text-emerald-600 shrink-0" />
+              <Sprout className="h-4 w-4 mt-0.5 text-primary shrink-0" />
               <div>
                 <div className="font-medium">{t('Daily production', 'दैनिक उत्पादन')}</div>
                 <div className="text-muted-foreground">{breed.daily_production}</div>
@@ -154,7 +154,7 @@ function BreedCard({ breed, index, language }: { breed: Breed; index: number; la
           )}
           {breed.suitable_climate && (
             <div className="flex items-start gap-2 text-sm">
-              <Thermometer className="h-4 w-4 mt-0.5 text-orange-600 shrink-0" />
+              <Thermometer className="h-4 w-4 mt-0.5 text-primary shrink-0" />
               <div>
                 <div className="font-medium">{t('Climate', 'जलवायु')}</div>
                 <div className="text-muted-foreground">{breed.suitable_climate}</div>
@@ -163,7 +163,7 @@ function BreedCard({ breed, index, language }: { breed: Breed; index: number; la
           )}
           {breed.suitable_states && breed.suitable_states.length > 0 && (
             <div className="flex items-start gap-2 text-sm">
-              <MapPin className="h-4 w-4 mt-0.5 text-blue-600 shrink-0" />
+              <MapPin className="h-4 w-4 mt-0.5 text-primary shrink-0" />
               <div>
                 <div className="font-medium">{t('Suitable states', 'अनुकूल राज्य')}</div>
                 <div className="flex flex-wrap gap-1 mt-1">
@@ -179,7 +179,7 @@ function BreedCard({ breed, index, language }: { breed: Breed; index: number; la
           )}
           {breed.estimated_profit && (
             <div className="flex items-start gap-2 text-sm">
-              <Banknote className="h-4 w-4 mt-0.5 text-green-600 shrink-0" />
+              <Banknote className="h-4 w-4 mt-0.5 text-primary shrink-0" />
               <div>
                 <div className="font-medium">{t('Estimated profit', 'अनुमानित लाभ')}</div>
                 <div className="text-muted-foreground">{breed.estimated_profit}</div>
@@ -192,7 +192,7 @@ function BreedCard({ breed, index, language }: { breed: Breed; index: number; la
           {breed.related_schemes && breed.related_schemes.length > 0 && (
             <div className="border-t pt-2">
               <div className="flex items-center gap-1 text-xs font-medium mb-1">
-                <FileText className="h-3 w-3 text-purple-600" /> {t('Related schemes', 'संबंधित योजनाएं')}
+                <FileText className="h-3 w-3 text-primary" /> {t('Related schemes', 'संबंधित योजनाएं')}
               </div>
               <div className="flex flex-wrap gap-1">
                 {breed.related_schemes.map(s => {
@@ -208,7 +208,7 @@ function BreedCard({ breed, index, language }: { breed: Breed; index: number; la
                     >
                       <Badge
                         variant="secondary"
-                        className="text-[10px] font-normal cursor-pointer hover:bg-purple-100 hover:text-purple-800 transition-colors"
+                        className="text-[10px] font-normal cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors"
                       >
                         {s} ↗
                       </Badge>

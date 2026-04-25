@@ -100,17 +100,17 @@ const translations = {
 const getSeverityColor = (severity: string) => {
   switch (severity) {
     case 'healthy':
-      return 'bg-green-100 text-green-800';
+      return 'bg-secondary text-secondary-foreground';
     case 'mild':
-      return 'bg-yellow-100 text-yellow-800';
+      return 'bg-accent/20 text-foreground';
     case 'moderate':
-      return 'bg-orange-100 text-orange-800';
+      return 'bg-muted text-foreground';
     case 'severe':
-      return 'bg-red-100 text-red-800';
+      return 'bg-destructive/20 text-destructive';
     case 'critical':
-      return 'bg-red-200 text-red-900';
+      return 'bg-destructive/30 text-destructive';
     default:
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-muted text-muted-foreground';
   }
 };
 
@@ -153,7 +153,7 @@ const ScanHistory = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50 to-white flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
       <main className="flex-1 container mx-auto px-4 py-8">
@@ -163,7 +163,7 @@ const ScanHistory = () => {
             <Button variant="ghost" size="icon" onClick={() => navigate('/scan')}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+            <h1 className="text-2xl font-bold text-foreground">{t.title}</h1>
           </div>
 
           {isLoading ? (
@@ -186,11 +186,11 @@ const ScanHistory = () => {
           ) : scans.length === 0 ? (
             <Card>
               <CardContent className="p-12 text-center">
-                <Leaf className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-700 mb-2">{t.noScans}</h3>
-                <p className="text-gray-500 mb-6">{t.noScansDesc}</p>
+                <Leaf className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-foreground mb-2">{t.noScans}</h3>
+                <p className="text-muted-foreground mb-6">{t.noScansDesc}</p>
                 <Button
-                  className="bg-green-600 hover:bg-green-700"
+                  className=""
                   onClick={() => navigate('/scan')}
                 >
                   <Camera className="w-5 h-5 mr-2" />
@@ -215,7 +215,7 @@ const ScanHistory = () => {
                       />
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
-                          <h3 className="font-semibold text-gray-900">
+                          <h3 className="font-semibold text-foreground">
                             {scan.diagnosis.crop_name}
                           </h3>
                           <Badge className={getSeverityColor(scan.diagnosis.severity)}>
@@ -227,10 +227,10 @@ const ScanHistory = () => {
                             {t.severityLevels[scan.diagnosis.severity as keyof typeof t.severityLevels]}
                           </Badge>
                         </div>
-                        <p className="text-sm text-gray-600 mb-2">
+                        <p className="text-sm text-muted-foreground mb-2">
                           {scan.diagnosis.disease_name}
                         </p>
-                        <div className="flex items-center text-xs text-gray-400">
+                        <div className="flex items-center text-xs text-muted-foreground">
                           <Calendar className="w-3 h-3 mr-1" />
                           {formatDate(scan.created_at)}
                         </div>

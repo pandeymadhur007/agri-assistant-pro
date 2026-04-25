@@ -31,27 +31,27 @@ function buildAlerts(w: WeatherSnapshot, language: string): Omit<ClimateAlert, '
     out.push({
       alert_type: 'frost', severity: 'high', state: w.state,
       title: isHi ? 'पाला अलर्ट' : 'Frost warning',
-      message: isHi ? 'कोमल फसलें ढकें, छोटे पौधों को बचाएं।' : 'Cover crops, protect young plants.',
+      message: isHi ? 'कोमल फसलें ढकें, हल्की रात सिंचाई करें, नर्सरी सुरक्षित रखें।' : 'Cover sensitive crops, do light night irrigation, and protect nurseries.',
     });
   } else if (w.tempMin < 10) {
     out.push({
       alert_type: 'cold', severity: 'medium', state: w.state,
       title: isHi ? 'ठंड का अलर्ट' : 'Cold-wave alert',
-      message: isHi ? 'पशुओं को अंदर लाएं और गर्म रखें।' : 'Protect livestock — bring them inside and keep warm.',
+      message: isHi ? 'सुबह की सिंचाई टालें, पौधों को कवर करें, खेत में नमी संतुलित रखें।' : 'Avoid early-morning irrigation, cover crops, and maintain balanced field moisture.',
     });
   }
   if (w.tempMax > 40) {
     out.push({
       alert_type: 'heatwave', severity: 'high', state: w.state,
       title: isHi ? 'लू (हीटवेव) अलर्ट' : 'Heatwave alert',
-      message: isHi ? 'पशुओं और फसलों को अतिरिक्त पानी दें।' : 'Give extra water to animals and crops.',
+      message: isHi ? 'सुबह/शाम सिंचाई करें, मल्चिंग करें, दोपहर के स्प्रे से बचें।' : 'Irrigate early/late, apply mulch, and avoid midday spraying.',
     });
   }
   if (w.rainProb >= 70) {
     out.push({
       alert_type: 'rain', severity: 'medium', state: w.state,
       title: isHi ? 'भारी बारिश की संभावना' : 'Heavy rain forecast',
-      message: isHi ? 'जल निकासी जांचें, पशु आश्रय सुरक्षित करें।' : 'Check drainage, secure animal shelter.',
+      message: isHi ? 'जल निकासी नालियां साफ रखें, उर्वरक/स्प्रे स्थगित करें, कटी फसल ढकें।' : 'Clear drainage channels, postpone fertilizer/spraying, and cover harvested produce.',
     });
   }
   return out;

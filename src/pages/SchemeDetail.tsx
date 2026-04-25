@@ -132,15 +132,15 @@ const SchemeDetail = () => {
         {/* Smart insights row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           {scheme.application_deadline && (
-            <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/30">
+            <Card className="border-border bg-card">
               <CardContent className="py-4 flex items-center gap-3">
-                <Calendar className="h-8 w-8 text-amber-600" />
+                <Calendar className="h-8 w-8 text-primary" />
                 <div>
-                  <div className="text-sm text-amber-700 dark:text-amber-400">{t('deadline') || 'Deadline'}</div>
+                  <div className="text-sm text-muted-foreground">{t('deadline') || 'Deadline'}</div>
                   <div className="font-semibold">
                     {new Date(scheme.application_deadline).toLocaleDateString()}
                     {daysToDeadline !== null && daysToDeadline > 0 && (
-                      <span className="ml-2 text-sm text-amber-600">({daysToDeadline}d)</span>
+                      <span className="ml-2 text-sm text-primary">({daysToDeadline}d)</span>
                     )}
                   </div>
                 </div>
@@ -148,11 +148,11 @@ const SchemeDetail = () => {
             </Card>
           )}
           {scheme.success_rate !== null && (
-            <Card className="border-green-200 bg-green-50 dark:bg-green-950/30">
+            <Card className="border-border bg-card">
               <CardContent className="py-4 flex items-center gap-3">
-                <TrendingUp className="h-8 w-8 text-green-600" />
+                <TrendingUp className="h-8 w-8 text-primary" />
                 <div className="flex-1">
-                  <div className="text-sm text-green-700 dark:text-green-400">{t('successRate') || 'Success rate'}</div>
+                  <div className="text-sm text-muted-foreground">{t('successRate') || 'Success rate'}</div>
                   <div className="font-semibold">{scheme.success_rate}%</div>
                 </div>
               </CardContent>
