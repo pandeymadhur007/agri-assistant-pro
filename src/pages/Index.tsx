@@ -215,7 +215,11 @@ const Index = () => {
                               whileHover={{ scale: 1.1, rotate: 5 }}
                               transition={{ type: 'spring', stiffness: 400, damping: 17 }}
                             >
-                              <action.icon className="h-7 w-7 text-white" />
+                              {'emoji' in action && action.emoji ? (
+                                <span className="text-3xl leading-none" aria-hidden>{action.emoji}</span>
+                              ) : (
+                                'icon' in action && action.icon ? <action.icon className="h-7 w-7 text-white" /> : null
+                              )}
                             </motion.div>
                             <h3 className="font-semibold text-sm leading-tight">{action.title}</h3>
                           </CardContent>
