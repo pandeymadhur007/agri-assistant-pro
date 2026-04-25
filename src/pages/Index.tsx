@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MessageCircle, FileText, Sprout, Bug, CloudSun, Camera, TrendingUp, CalendarDays, Users, Sparkles, Lightbulb, HelpCircle, Brain, CheckCircle2, Beef } from 'lucide-react';
+import { MessageCircle, FileText, Sprout, Bug, CloudSun, Camera, TrendingUp, CalendarDays, Users, Sparkles, Lightbulb, HelpCircle, Brain, CheckCircle2 } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { BottomNav } from '@/components/BottomNav';
 import { Footer } from '@/components/Footer';
@@ -27,7 +27,7 @@ const Index = () => {
   const quickActions = [
     { icon: MessageCircle, title: t('startChat'), to: '/chat', gradient: 'from-emerald-500 to-green-600' },
     { icon: Sprout, title: t('cropCenter'), to: '/crop-center', gradient: 'from-teal-500 to-green-600' },
-    { icon: Beef, title: t('animalHusbandry'), to: '/animal-husbandry', gradient: 'from-amber-500 to-orange-600' },
+    { emoji: '🐄', title: t('animalHusbandry'), to: '/animal-husbandry', gradient: 'from-amber-500 to-orange-600' },
     { icon: Lightbulb, title: t('smartRec'), to: '/recommendations', gradient: 'from-yellow-500 to-amber-600' },
     { icon: TrendingUp, title: t('marketPrices'), to: '/market-prices', gradient: 'from-orange-500 to-amber-600' },
     { icon: CalendarDays, title: t('calendar'), to: '/calendar', gradient: 'from-blue-500 to-indigo-600' },
