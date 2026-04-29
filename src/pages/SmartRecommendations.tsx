@@ -102,10 +102,15 @@ const SmartRecommendations = () => {
     }
   };
 
-  const waterColor = (w: string) => w === 'low' ? 'bg-green-100 text-green-800' : w === 'medium' ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800';
+  const waterColor = (w: string) =>
+    w === 'low'
+      ? 'border-green-500/40 bg-green-500/15 text-green-200 dark:text-green-300'
+      : w === 'medium'
+      ? 'border-blue-500/40 bg-blue-500/15 text-blue-200 dark:text-blue-300'
+      : 'border-orange-500/40 bg-orange-500/15 text-orange-200 dark:text-orange-300';
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-emerald-50 to-white">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-muted/30">
       <Navbar />
       <main className="flex-1 container mx-auto px-4 py-8 max-w-4xl">
         <div className="flex items-center gap-3 mb-6">
@@ -114,7 +119,7 @@ const SmartRecommendations = () => {
           </Button>
           <div>
             <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
-              <Sprout className="w-7 h-7 text-emerald-600" />
+              <Sprout className="w-7 h-7 text-primary" />
               {t.title}
             </h1>
             <p className="text-muted-foreground text-sm">{t.sub}</p>
@@ -122,7 +127,7 @@ const SmartRecommendations = () => {
         </div>
 
         {/* Input Form */}
-        <Card className="mb-6 border-emerald-200">
+        <Card className="mb-6 border-primary/30 bg-card/95">
           <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label className="mb-2 block">{t.state}</Label>
@@ -153,7 +158,7 @@ const SmartRecommendations = () => {
               </Select>
             </div>
             <div className="md:col-span-2">
-              <Button onClick={fetchRecommendations} disabled={loading} className="w-full h-12 bg-emerald-600 hover:bg-emerald-700">
+              <Button onClick={fetchRecommendations} disabled={loading} className="w-full h-12">
                 {loading ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" />{t.loading}</> : <><Sprout className="w-5 h-5 mr-2" />{t.getRec}</>}
               </Button>
             </div>
@@ -162,10 +167,10 @@ const SmartRecommendations = () => {
 
         {/* Summary */}
         {summary && (
-          <Card className="mb-6 bg-gradient-to-br from-emerald-50 to-green-100 border-emerald-200">
+          <Card className="mb-6 bg-gradient-to-br from-primary/15 to-primary/5 border-primary/30">
             <CardContent className="p-4">
-              <Badge className="mb-2 bg-emerald-600">{season}</Badge>
-              <p className="text-emerald-900">{summary}</p>
+              <Badge className="mb-2 bg-primary text-primary-foreground">{season}</Badge>
+              <p className="text-foreground">{summary}</p>
             </CardContent>
           </Card>
         )}
@@ -174,8 +179,8 @@ const SmartRecommendations = () => {
         <div className="space-y-4">
           {recommendations.map((rec, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
-              <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-3 bg-gradient-to-r from-emerald-50 to-transparent">
+                <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-3 bg-gradient-to-r from-primary/10 to-transparent">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <CardTitle className="text-xl flex items-center gap-2">
@@ -187,33 +192,33 @@ const SmartRecommendations = () => {
                       </CardTitle>
                       <p className="text-sm text-muted-foreground mt-1">{rec.reason}</p>
                     </div>
-                    <Badge className="bg-emerald-600 text-white shrink-0">
+                    <Badge className="bg-primary text-primary-foreground shrink-0">
                       <Award className="w-3 h-3 mr-1" />{rec.suitability_score}%
                     </Badge>
                   </div>
                 </CardHeader>
                 <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-3">
-                  <div className="bg-blue-50 rounded-lg p-3">
-                    <div className="text-xs text-blue-700 mb-1 flex items-center gap-1"><TrendingUp className="w-3 h-3" />{t.yield}</div>
-                    <div className="text-sm font-semibold text-blue-900">{rec.expected_yield}</div>
+                  <div className="bg-blue-500/10 rounded-lg p-3">
+                    <div className="text-xs text-blue-700 dark:text-blue-300 mb-1 flex items-center gap-1"><TrendingUp className="w-3 h-3" />{t.yield}</div>
+                    <div className="text-sm font-semibold text-foreground">{rec.expected_yield}</div>
                   </div>
-                  <div className="bg-orange-50 rounded-lg p-3">
-                    <div className="text-xs text-orange-700 mb-1 flex items-center gap-1"><IndianRupee className="w-3 h-3" />{t.invest}</div>
-                    <div className="text-sm font-semibold text-orange-900">{rec.investment_per_acre}</div>
+                  <div className="bg-orange-500/10 rounded-lg p-3">
+                    <div className="text-xs text-orange-700 dark:text-orange-300 mb-1 flex items-center gap-1"><IndianRupee className="w-3 h-3" />{t.invest}</div>
+                    <div className="text-sm font-semibold text-foreground">{rec.investment_per_acre}</div>
                   </div>
-                  <div className="bg-green-50 rounded-lg p-3">
-                    <div className="text-xs text-green-700 mb-1 flex items-center gap-1"><IndianRupee className="w-3 h-3" />{t.profit}</div>
-                    <div className="text-sm font-semibold text-green-900">{rec.expected_profit_per_acre}</div>
+                  <div className="bg-green-500/10 rounded-lg p-3">
+                    <div className="text-xs text-green-700 dark:text-green-300 mb-1 flex items-center gap-1"><IndianRupee className="w-3 h-3" />{t.profit}</div>
+                    <div className="text-sm font-semibold text-foreground">{rec.expected_profit_per_acre}</div>
                   </div>
-                  <div className="bg-purple-50 rounded-lg p-3">
-                    <div className="text-xs text-purple-700 mb-1 flex items-center gap-1"><Calendar className="w-3 h-3" />{rec.duration_days} {t.days}</div>
+                  <div className="bg-purple-500/10 rounded-lg p-3">
+                    <div className="text-xs text-purple-700 dark:text-purple-300 mb-1 flex items-center gap-1"><Calendar className="w-3 h-3" />{rec.duration_days} {t.days}</div>
                     <Badge variant="outline" className={waterColor(rec.water_requirement)}>
                       <Droplets className="w-3 h-3 mr-1" />{rec.water_requirement}
                     </Badge>
                   </div>
-                  <div className="col-span-2 md:col-span-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-lg p-3">
-                    <div className="text-xs text-yellow-800 mb-1">💡 {t.tips}</div>
-                    <div className="text-sm text-yellow-900">{rec.key_tips}</div>
+                  <div className="col-span-2 md:col-span-4 bg-yellow-500/10 border-l-4 border-yellow-500/70 rounded-r-lg p-3">
+                    <div className="text-xs text-yellow-700 dark:text-yellow-300 mb-1">💡 {t.tips}</div>
+                    <div className="text-sm text-foreground">{rec.key_tips}</div>
                   </div>
                 </CardContent>
               </Card>
