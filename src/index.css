@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -52,14 +54,14 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 150 20% 8%;
-    --foreground: 140 20% 95%;
+    --background: 0 0% 7%;
+    --foreground: 0 0% 100%;
 
-    --card: 150 20% 10%;
-    --card-foreground: 140 20% 95%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 150 20% 10%;
-    --popover-foreground: 140 20% 95%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 100%;
 
     --primary: 142 70% 45%;
     --primary-foreground: 0 0% 100%;
@@ -98,9 +100,15 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: "DM Sans", sans-serif;
     font-weight: 450;
+    transition: background-color 250ms ease, color 250ms ease;
   }
   
+  nav, section, article, main, aside, header, footer, div {
+    transition: background-color 250ms ease, color 250ms ease, border-color 250ms ease;
+  }
+
   h1, h2, h3, h4, h5, h6 {
     @apply font-semibold;
   }

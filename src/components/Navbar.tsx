@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { Globe, User as UserIcon, LogOut, LogIn } from 'lucide-react';
+import { Globe, User as UserIcon, LogOut, LogIn, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -15,9 +15,11 @@ import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
 import { NotificationBell } from '@/components/NotificationBell';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export function Navbar() {
   const { language, setLanguage, t } = useLanguage();
+  const { isDarkMode, toggleTheme } = useTheme();
   const currentLang = LANGUAGES.find(l => l.code === language);
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
@@ -48,6 +50,16 @@ export function Navbar() {
         </Link>
 
         <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="icon"
+          className="rounded-full border-primary/50 text-primary"
+          onClick={toggleTheme}
+          aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+          title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+        >
+          <Moon className="h-5 w-5" />
+        </Button>
         {user && <NotificationBell />}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
