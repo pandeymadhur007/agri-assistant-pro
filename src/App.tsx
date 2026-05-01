@@ -4,33 +4,33 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
+import { lazy, Suspense } from "react";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import Index from "./pages/Index";
-import Chat from "./pages/Chat";
-import Schemes from "./pages/Schemes";
-import SchemeDetail from "./pages/SchemeDetail";
-import Scan from "./pages/Scan";
-import ScanResult from "./pages/ScanResult";
-import ScanHistory from "./pages/ScanHistory";
-import CropGuidance from "./pages/CropGuidance";
-import PestDisease from "./pages/PestDisease";
-import CropCenter from "./pages/CropCenter";
-import Weather from "./pages/Weather";
-import MarketPrices from "./pages/MarketPrices";
-import MarketPriceCrop from "./pages/MarketPriceCrop";
-import Calendar from "./pages/Calendar";
-import CalendarCrop from "./pages/CalendarCrop";
-import Community from "./pages/Community";
-import CommunityPost from "./pages/CommunityPost";
-import CommunityPostDetail from "./pages/CommunityPostDetail";
-import SmartRecommendations from "./pages/SmartRecommendations";
-import Auth from "./pages/Auth";
-import Login from "./pages/Login";
-import Profile from "./pages/Profile";
-import AnimalHusbandry from "./pages/AnimalHusbandry";
-import NotFound from "./pages/NotFound";
+
+// Lazy-loaded routes for code splitting (reduces unused JS in initial bundle)
+const Chat = lazy(() => import("./pages/Chat"));
+const Schemes = lazy(() => import("./pages/Schemes"));
+const SchemeDetail = lazy(() => import("./pages/SchemeDetail"));
+const ScanResult = lazy(() => import("./pages/ScanResult"));
+const ScanHistory = lazy(() => import("./pages/ScanHistory"));
+const CropCenter = lazy(() => import("./pages/CropCenter"));
+const Weather = lazy(() => import("./pages/Weather"));
+const MarketPrices = lazy(() => import("./pages/MarketPrices"));
+const MarketPriceCrop = lazy(() => import("./pages/MarketPriceCrop"));
+const Calendar = lazy(() => import("./pages/Calendar"));
+const CalendarCrop = lazy(() => import("./pages/CalendarCrop"));
+const Community = lazy(() => import("./pages/Community"));
+const CommunityPost = lazy(() => import("./pages/CommunityPost"));
+const CommunityPostDetail = lazy(() => import("./pages/CommunityPostDetail"));
+const SmartRecommendations = lazy(() => import("./pages/SmartRecommendations"));
+const Auth = lazy(() => import("./pages/Auth"));
+const Login = lazy(() => import("./pages/Login"));
+const Profile = lazy(() => import("./pages/Profile"));
+const AnimalHusbandry = lazy(() => import("./pages/AnimalHusbandry"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
@@ -39,6 +39,7 @@ function AnimatedRoutes() {
   
   return (
     <AnimatePresence mode="wait">
+      <Suspense fallback={<div className="min-h-screen" aria-hidden />}>
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Index />} />
         <Route path="/assistant" element={<Chat />} />
@@ -67,6 +68,7 @@ function AnimatedRoutes() {
         <Route path="/animal-husbandry" element={<AnimalHusbandry />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      </Suspense>
     </AnimatePresence>
   );
 }
