@@ -265,6 +265,30 @@ const Weather = () => {
   const [loading, setLoading] = useState(false);
   const [locationGranted, setLocationGranted] = useState(false);
 
+  // Auto-load weather if location permission was already granted previously
+  // (or we have a cached fix). This skips the manual "Allow" tap entirely.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        // Only auto-fetch when the browser already remembers a granted permission
+        if (typeof navigator !== 'undefined' && (navigator as any).permissions?.query) {
+          const status = await (navigator as any).permissions.query({ name: 'geolocation' });
+          if (status.state !== 'granted') return;
+        } else {
+          return;
+        }
+        const { getCachedPosition } = await import('@/lib/geolocation');
+        const pos = await getCachedPosition({ timeout: 10000 });
+        if (!cancelled) await fetchWeather(pos.latitude, pos.longitude);
+      } catch {
+        /* ignore — user can tap Allow */
+      }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const fetchWeather = async (lat: number, lon: number) => {
     setLoading(true);
     try {
