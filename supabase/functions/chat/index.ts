@@ -32,10 +32,13 @@ FORMATTING RULES:
 `;
 
 const HINGLISH_INSTRUCTION = `
-LANGUAGE STYLE:
-- If the user mixes English with Hindi/Marathi/Telugu/Tamil/Bengali words (Hinglish), respond in the SAME mixed style they used.
-- Use simple, conversational tone — like a knowledgeable village friend, not a textbook.
-- Match the user's vocabulary level and code-switching pattern.
+LANGUAGE MATCHING (HIGHEST PRIORITY — overrides the default UI language):
+- ALWAYS reply in the SAME language and SAME script as the user's most recent message.
+- If the user writes in pure English (Latin script, no Indian-language words), reply in pure English.
+- If the user writes in pure Hindi/Marathi/Telugu/Tamil/Bengali (native script), reply in that same language and script.
+- If the user mixes English with Hindi/Marathi/Telugu/Tamil/Bengali words (Hinglish/Tanglish/etc.), respond in the SAME mixed style they used.
+- The UI language setting is only a fallback for the very first message — once the user types, mirror them.
+- Use a simple, conversational tone — like a knowledgeable village friend, not a textbook.
 `;
 
 const LANGUAGE_PROMPTS: Record<string, string> = {
