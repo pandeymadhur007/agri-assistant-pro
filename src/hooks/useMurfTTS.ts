@@ -66,8 +66,9 @@ export function useMurfTTS() {
         return;
       }
 
-      // Convert base64 to audio blob and play
-      const audioBlob = base64ToBlob(data.audio, 'audio/mpeg');
+      // Convert base64 to audio blob and play (Sarvam returns WAV, Murf returned MP3)
+      const mimeType = data.mime || 'audio/mpeg';
+      const audioBlob = base64ToBlob(data.audio, mimeType);
       const audioUrl = URL.createObjectURL(audioBlob);
       
       const audio = new Audio(audioUrl);
