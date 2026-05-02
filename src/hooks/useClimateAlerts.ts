@@ -133,7 +133,9 @@ export function useClimateAlerts(language: string = 'en') {
       } catch (e) {
         console.error('alert generation error', e);
       }
-    }, () => {}, { timeout: 5000, maximumAge: 600000 });
+    } catch {
+      /* geolocation unavailable or denied — silent */
+    }
   }, [userId, userState, language, fetchAlerts]);
 
   useEffect(() => {
