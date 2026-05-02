@@ -198,12 +198,15 @@ export function ChatInterface() {
         ))}
         
         {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
-          <div className="flex gap-3">
+          <div className="flex gap-3 animate-fade-in">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold shrink-0">
               ग्र
             </div>
-            <div className="rounded-lg bg-muted p-3">
-              <Loader2 className="h-5 w-5 animate-spin" />
+            <div className="rounded-lg bg-muted px-4 py-3 flex items-center gap-1.5 shadow-sm">
+              <span className="sr-only">Assistant is typing</span>
+              <span className="h-2 w-2 rounded-full bg-primary/70 animate-typing-dot [animation-delay:0ms]" />
+              <span className="h-2 w-2 rounded-full bg-primary/70 animate-typing-dot [animation-delay:150ms]" />
+              <span className="h-2 w-2 rounded-full bg-primary/70 animate-typing-dot [animation-delay:300ms]" />
             </div>
           </div>
         )}
