@@ -2,6 +2,26 @@ import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+// Browser SpeechSynthesis fallback used when the cloud TTS service fails
+// (e.g. unsupported voice, rate limits, network issues).
+const BROWSER_LANG_MAP: Record<string, string> = {
+  en: 'en-IN', hi: 'hi-IN', mr: 'mr-IN', te: 'te-IN', ta: 'ta-IN', bn: 'bn-IN',
+};
+
+function speakWithBrowser(text: string, language: string): boolean {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return false;
+  try {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = BROWSER_LANG_MAP[language] || 'en-IN';
+    utterance.rate = 0.95;
+    window.speechSynthesis.speak(utterance);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function useMurfTTS() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,20 +50,19 @@ export function useMurfTTS() {
         body: { text, language },
       });
 
-      if (error) {
-        console.error('Murf TTS error:', error);
-        toast({
-          title: 'Voice Error',
-          description: 'Could not generate speech. Please try again.',
-          variant: 'destructive',
-        });
+      // Cloud TTS failed → silently fall back to browser SpeechSynthesis
+      if (error || data?.fallback || !data?.audio) {
+        if (error) console.warn('Murf TTS unavailable, falling back to browser TTS');
         setIsLoading(false);
-        return;
-      }
-
-      if (!data?.audio) {
-        console.error('No audio data received');
-        setIsLoading(false);
+        const ok = speakWithBrowser(text, language);
+        if (ok) {
+          setIsPlaying(true);
+          // Approximate "ended" — browser speechSynthesis doesn't always fire reliably
+          const u = (window.speechSynthesis as any);
+          const checkDone = setInterval(() => {
+            if (!u?.speaking) { setIsPlaying(false); clearInterval(checkDone); }
+          }, 300);
+        }
         return;
       }
 
@@ -77,12 +96,16 @@ export function useMurfTTS() {
 
     } catch (err) {
       console.error('TTS error:', err);
-      toast({
-        title: 'Voice Error',
-        description: 'Could not play audio. Please try again.',
-        variant: 'destructive',
-      });
       setIsLoading(false);
+      // Last-resort fallback
+      const ok = speakWithBrowser(text, language);
+      if (!ok) {
+        toast({
+          title: 'Voice Error',
+          description: 'Could not play audio. Please try again.',
+          variant: 'destructive',
+        });
+      }
     }
   }, [stop, toast]);
 

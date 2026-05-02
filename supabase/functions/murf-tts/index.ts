@@ -6,14 +6,16 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// Voice mapping for Indian regional languages
+// Voice mapping for Indian regional languages.
+// Voice IDs verified against Murf's voice library:
+// https://murf.ai/api/docs/voices-styles/voice-library
 const VOICE_MAP: Record<string, string> = {
-  "en": "en-IN-isha",    // Indian English female
-  "hi": "hi-IN-kabir",   // Hindi male
-  "mr": "hi-IN-kabir",   // Marathi fallback to Hindi
-  "te": "te-IN-mahathi", // Telugu female
-  "ta": "ta-IN-meena",   // Tamil female
-  "bn": "bn-IN-atreyee", // Bengali female
+  "en": "en-IN-isha",     // Indian English female
+  "hi": "hi-IN-kabir",    // Hindi male
+  "mr": "hi-IN-kabir",    // Marathi → Hindi voice (Murf has no native Marathi voice)
+  "te": "te-IN-shruti",   // Telugu female (mahathi was invalid)
+  "ta": "ta-IN-iniya",    // Tamil female
+  "bn": "bn-IN-anwesha",  // Bengali female
 };
 
 interface MurfRequest {
@@ -80,9 +82,11 @@ serve(async (req: Request) => {
     if (!murfResponse.ok) {
       const errorText = await murfResponse.text();
       console.error(`Murf API error: ${murfResponse.status} - ${errorText}`);
+      // Return 200 with a fallback flag so the client can gracefully fall back
+      // to the browser's built-in SpeechSynthesis instead of crashing.
       return new Response(
-        JSON.stringify({ error: "Failed to generate speech" }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "SPEECH_GENERATION_FAILED", fallback: true }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -91,8 +95,8 @@ serve(async (req: Request) => {
     if (!murfData.encodedAudio) {
       console.error("Murf API returned no audio data");
       return new Response(
-        JSON.stringify({ error: "No audio generated" }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "NO_AUDIO", fallback: true }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
