@@ -89,14 +89,16 @@ export function useClimateAlerts(language: string = 'en') {
 
   // Generate fresh alerts at most once per 6h based on weather
   const generateFromWeather = useCallback(async () => {
-    if (!userId || !navigator.geolocation) return;
+    if (!userId) return;
     const last = localStorage.getItem(LAST_GEN_KEY);
     if (last && Date.now() - Number(last) < 6 * 3600 * 1000) return;
 
-    navigator.geolocation.getCurrentPosition(async (pos) => {
+    try {
+      const { getCachedPosition } = await import('@/lib/geolocation');
+      const pos = await getCachedPosition();
       try {
         const r = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&daily=temperature_2m_min,temperature_2m_max,precipitation_probability_max&forecast_days=2&timezone=auto`
+          `https://api.open-meteo.com/v1/forecast?latitude=${pos.latitude}&longitude=${pos.longitude}&daily=temperature_2m_min,temperature_2m_max,precipitation_probability_max&forecast_days=2&timezone=auto`
         );
         const j = await r.json();
         const snap: WeatherSnapshot = {
