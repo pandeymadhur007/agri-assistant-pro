@@ -3,6 +3,7 @@ import { Cloud, CloudRain, Sun, AlertTriangle, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { getCachedPosition } from '@/lib/geolocation';
 
 interface MiniWeather {
   temp: number;
@@ -23,14 +24,15 @@ export function WeatherWidget() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!navigator.geolocation) return;
+    let cancelled = false;
     setLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const res = await fetch(
-            `https://api.open-meteo.com/v1/forecast?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m&daily=weather_code,precipitation_probability_max&timezone=auto&forecast_days=2`
-          );
+    (async () => {
+      try {
+        const pos = await getCachedPosition();
+        if (cancelled) return;
+        const res = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${pos.latitude}&longitude=${pos.longitude}&current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m&daily=weather_code,precipitation_probability_max&timezone=auto&forecast_days=2`
+        );
           const data = await res.json();
           const code = data.current.weather_code;
           const temp = Math.round(data.current.temperature_2m);
@@ -50,20 +52,18 @@ export function WeatherWidget() {
           else if (wind > 30) alert = language === 'hi' ? '💨 तेज हवाएं — छिड़काव से बचें' : '💨 Strong winds — avoid spraying';
           else if (humidity > 85) alert = language === 'hi' ? '💧 अधिक नमी — फंगल रोग की निगरानी करें' : '💧 High humidity — monitor for fungal disease';
 
-          const locRes = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`);
+        const locRes = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.latitude}&lon=${pos.longitude}&format=json`);
           const locData = await locRes.json();
           const location = locData.address?.city || locData.address?.town || locData.address?.village || '';
 
-          setWeather({ temp, description, alert, location });
-        } catch (e) {
-          console.error(e);
-        } finally {
-          setLoading(false);
-        }
-      },
-      () => setLoading(false),
-      { timeout: 5000, maximumAge: 600000 }
-    );
+        if (!cancelled) setWeather({ temp, description, alert, location });
+      } catch (e) {
+        console.error(e);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
   }, [language]);
 
   if (loading || !weather) return null;
