@@ -366,23 +366,21 @@ const Weather = () => {
       });
       return;
     }
-    
+
     setLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        fetchWeather(position.coords.latitude, position.coords.longitude);
-      },
-      (error) => {
-        console.error('Geolocation error:', error);
-        setLoading(false);
-        toast({
-          title: 'Error',
-          description: t.locationError,
-          variant: 'destructive',
+    import('@/lib/geolocation').then(({ getCachedPosition }) => {
+      getCachedPosition({ timeout: 10000 })
+        .then((pos) => fetchWeather(pos.latitude, pos.longitude))
+        .catch((error) => {
+          console.error('Geolocation error:', error);
+          setLoading(false);
+          toast({
+            title: 'Error',
+            description: t.locationError,
+            variant: 'destructive',
+          });
         });
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
+    });
   };
 
   const farmingTips = getFarmingTips(weather, language);
