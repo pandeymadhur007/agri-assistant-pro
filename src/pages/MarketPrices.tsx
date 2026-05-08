@@ -153,22 +153,13 @@ const MarketPrices = () => {
   const refreshPrices = async () => {
     setRefreshing(true);
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fetch-market-prices`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-        }
-      );
-      const data = await response.json();
-      if (response.ok && data.success) {
+      const { data, error } = await supabase.functions.invoke('fetch-market-prices');
+
+      if (!error && data?.success) {
         toast({ title: language === 'hi' ? 'भाव अपडेट हुए' : 'Prices Updated', description: `${data.count} prices fetched from government mandi data` });
         await fetchData();
       } else {
-        toast({ title: 'Update failed', description: data.error || 'Could not fetch latest prices', variant: 'destructive' });
+        toast({ title: 'Update failed', description: error?.message || data?.error || 'Could not fetch latest prices', variant: 'destructive' });
       }
     } catch (err) {
       toast({ title: 'Error', description: 'Failed to refresh prices', variant: 'destructive' });
