@@ -109,10 +109,13 @@ const MarketPrices = () => {
   }, []);
 
   const fetchData = useCallback(async (attempt = 0) => {
+    let shouldRetry = false;
+
     try {
       const { nextPrices, nextMspRates } = await queryMarketData();
 
       if (nextPrices.length === 0 && attempt < EMPTY_DATA_RETRY_LIMIT) {
+        shouldRetry = true;
         window.setTimeout(() => {
           void fetchData(attempt + 1);
         }, EMPTY_DATA_RETRY_DELAY_MS);
@@ -129,7 +132,9 @@ const MarketPrices = () => {
     } catch (error) {
       console.error('Error fetching market data:', error);
     } finally {
-      setLoading(false);
+      if (!shouldRetry) {
+        setLoading(false);
+      }
     }
   }, [queryMarketData]);
 
