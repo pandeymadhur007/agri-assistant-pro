@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { BottomNav } from '@/components/BottomNav';
@@ -31,8 +31,49 @@ interface MSPRate {
   msp_price: number;
 }
 
+interface MarketPricesCache {
+  prices: MarketPrice[];
+  mspRates: Record<string, number>;
+  cachedAt: number;
+}
+
+const MARKET_PRICES_CACHE_KEY = 'market-prices-cache-v1';
+const MARKET_PRICES_CACHE_TTL_MS = 15 * 60 * 1000;
+const EMPTY_DATA_RETRY_LIMIT = 2;
+const EMPTY_DATA_RETRY_DELAY_MS = 1200;
+
+const readMarketPricesCache = (): MarketPricesCache | null => {
+  try {
+    const raw = localStorage.getItem(MARKET_PRICES_CACHE_KEY);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw) as MarketPricesCache;
+    if (!parsed?.cachedAt || Date.now() - parsed.cachedAt > MARKET_PRICES_CACHE_TTL_MS) {
+      localStorage.removeItem(MARKET_PRICES_CACHE_KEY);
+      return null;
+    }
+
+    return parsed;
+  } catch {
+    return null;
+  }
+};
+
+const writeMarketPricesCache = (prices: MarketPrice[], mspRates: Record<string, number>) => {
+  try {
+    const payload: MarketPricesCache = {
+      prices,
+      mspRates,
+      cachedAt: Date.now(),
+    };
+    localStorage.setItem(MARKET_PRICES_CACHE_KEY, JSON.stringify(payload));
+  } catch {
+    // Ignore cache write failures.
+  }
+};
+
 const MarketPrices = () => {
-  const { language, t } = useLanguage();
+  const { language } = useLanguage();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [prices, setPrices] = useState<MarketPrice[]>([]);
@@ -46,29 +87,63 @@ const MarketPrices = () => {
   const states = [...new Set(prices.map(p => p.state))].sort();
   const crops = [...new Set(prices.map(p => p.crop_name))].sort();
 
-  useEffect(() => {
-    fetchData();
+  const queryMarketData = useCallback(async () => {
+    const [pricesRes, mspRes] = await Promise.all([
+      supabase
+        .from('market_prices')
+        .select('id, crop_name, crop_name_hi, state, district, mandi, price, unit, price_date, price_trend')
+        .order('price_date', { ascending: false }),
+      supabase.from('msp_rates').select('crop_name, msp_price')
+    ]);
+
+    if (pricesRes.error) throw pricesRes.error;
+    if (mspRes.error) throw mspRes.error;
+
+    const nextPrices = pricesRes.data ?? [];
+    const nextMspRates = (mspRes.data ?? []).reduce<Record<string, number>>((acc, rate: MSPRate) => {
+      acc[rate.crop_name] = rate.msp_price;
+      return acc;
+    }, {});
+
+    return { nextPrices, nextMspRates };
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async (attempt = 0) => {
     try {
-      const [pricesRes, mspRes] = await Promise.all([
-        supabase.from('market_prices').select('*').order('price_date', { ascending: false }),
-        supabase.from('msp_rates').select('crop_name, msp_price')
-      ]);
+      const { nextPrices, nextMspRates } = await queryMarketData();
 
-      if (pricesRes.data) setPrices(pricesRes.data);
-      if (mspRes.data) {
-        const mspMap: Record<string, number> = {};
-        mspRes.data.forEach((m: MSPRate) => { mspMap[m.crop_name] = m.msp_price; });
-        setMspRates(mspMap);
+      if (nextPrices.length === 0 && attempt < EMPTY_DATA_RETRY_LIMIT) {
+        window.setTimeout(() => {
+          void fetchData(attempt + 1);
+        }, EMPTY_DATA_RETRY_DELAY_MS);
+        return;
+      }
+
+      if (nextPrices.length > 0) {
+        setPrices(nextPrices);
+        setMspRates(nextMspRates);
+        writeMarketPricesCache(nextPrices, nextMspRates);
+      } else if (attempt >= EMPTY_DATA_RETRY_LIMIT) {
+        setPrices([]);
       }
     } catch (error) {
       console.error('Error fetching market data:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [queryMarketData]);
+
+  useEffect(() => {
+    const cached = readMarketPricesCache();
+
+    if (cached) {
+      setPrices(cached.prices);
+      setMspRates(cached.mspRates);
+      setLoading(false);
+    }
+
+    void fetchData();
+  }, [fetchData]);
 
   const refreshPrices = async () => {
     setRefreshing(true);
