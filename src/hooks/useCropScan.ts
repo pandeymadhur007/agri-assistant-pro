@@ -31,6 +31,37 @@ const fileToBase64 = (file: File): Promise<string> => {
   });
 };
 
+// Resize + compress images before upload so the AI gateway receives a much
+// smaller payload. This drastically reduces upload + analysis latency without
+// hurting diagnosis quality (1024px is plenty for plant disease detection).
+const compressImage = async (file: File, maxDim = 1024, quality = 0.78): Promise<string> => {
+  const dataUrl = await fileToBase64(file);
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(dataUrl);
+        return;
+      }
+      ctx.drawImage(img, 0, 0, w, h);
+      try {
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      } catch {
+        resolve(dataUrl);
+      }
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+};
+
 export const useCropScan = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,7 +87,7 @@ export const useCropScan = () => {
       const currentSessionId = sessionId || await ensureAnonymousSession();
       if (!currentSessionId) throw new Error('Failed to create session');
 
-      const base64DataUrl = await fileToBase64(file);
+      const base64DataUrl = await compressImage(file);
 
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/scan-crop`,

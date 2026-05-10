@@ -187,7 +187,7 @@ const ScanResult = () => {
   const isHealthy = diagnosis.severity === 'healthy';
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50 to-white flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex flex-col">
       <Navbar />
       
       <main className="flex-1 container mx-auto px-4 py-8">
@@ -197,7 +197,7 @@ const ScanResult = () => {
             <Button variant="ghost" size="icon" onClick={() => navigate('/scan')}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+            <h1 className="text-2xl font-bold text-foreground">{t.title}</h1>
           </div>
 
           {/* Image Preview */}
@@ -224,8 +224,8 @@ const ScanResult = () => {
           {!diagnosis.is_plant ? (
             <Card className="mb-6">
               <CardContent className="p-6 text-center">
-                <Info className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">{t.notPlant}</p>
+                <Info className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">{t.notPlant}</p>
               </CardContent>
             </Card>
           ) : (
@@ -234,20 +234,20 @@ const ScanResult = () => {
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <Card>
                   <CardContent className="p-4">
-                    <div className="flex items-center gap-2 text-gray-500 mb-1">
+                    <div className="flex items-center gap-2 text-muted-foreground mb-1">
                       <Leaf className="w-4 h-4" />
                       <span className="text-sm">{t.cropName}</span>
                     </div>
-                    <p className="font-semibold text-lg">{diagnosis.crop_name}</p>
+                    <p className="font-semibold text-lg text-foreground">{diagnosis.crop_name}</p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="p-4">
-                    <div className="flex items-center gap-2 text-gray-500 mb-1">
+                    <div className="flex items-center gap-2 text-muted-foreground mb-1">
                       <Bug className="w-4 h-4" />
                       <span className="text-sm">{t.disease}</span>
                     </div>
-                    <p className="font-semibold text-lg">{diagnosis.disease_name}</p>
+                    <p className="font-semibold text-lg text-foreground">{diagnosis.disease_name}</p>
                   </CardContent>
                 </Card>
               </div>
@@ -261,33 +261,33 @@ const ScanResult = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700">{diagnosis.cause}</p>
+                  <p className="text-foreground/80">{diagnosis.cause}</p>
                 </CardContent>
               </Card>
 
               {/* Treatment */}
-              <Card className="mb-4 border-green-200 bg-green-50">
+              <Card className="mb-4 border-primary/30 bg-primary/10">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2 text-green-800">
+                  <CardTitle className="text-base flex items-center gap-2 text-primary">
                     <Pill className="w-4 h-4" />
                     {t.treatment}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-green-800">{diagnosis.treatment}</p>
+                  <p className="text-foreground/90">{diagnosis.treatment}</p>
                 </CardContent>
               </Card>
 
               {/* Pesticide/Fertilizer */}
-              <Card className="mb-4 border-blue-200 bg-blue-50">
+              <Card className="mb-4 border-sky-500/30 bg-sky-500/10">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2 text-blue-800">
+                  <CardTitle className="text-base flex items-center gap-2 text-sky-600 dark:text-sky-400">
                     <Pill className="w-4 h-4" />
                     {t.pesticide}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-blue-800">{diagnosis.pesticide}</p>
+                  <p className="text-foreground/90">{diagnosis.pesticide}</p>
                 </CardContent>
               </Card>
 
@@ -300,7 +300,7 @@ const ScanResult = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700">{diagnosis.prevention}</p>
+                  <p className="text-foreground/80">{diagnosis.prevention}</p>
                 </CardContent>
               </Card>
 
@@ -314,7 +314,7 @@ const ScanResult = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-700">{diagnosis.additional_notes}</p>
+                    <p className="text-foreground/80">{diagnosis.additional_notes}</p>
                   </CardContent>
                 </Card>
               )}
@@ -323,18 +323,18 @@ const ScanResult = () => {
 
           {/* Past scans for same crop */}
           {pastScans.length > 0 && (
-            <Card className="mb-4 border-amber-200 bg-amber-50/40">
+            <Card className="mb-4 border-amber-500/30 bg-amber-500/10">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <History className="w-4 h-4 text-amber-600" />
+                  <History className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                   Previous {diagnosis.crop_name} scans
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 {pastScans.map(scan => (
-                  <div key={scan.id} className="flex items-center justify-between text-sm bg-white rounded-md p-2 border">
+                  <div key={scan.id} className="flex items-center justify-between text-sm bg-card rounded-md p-2 border">
                     <div>
-                      <div className="font-medium">{scan.diagnosis.disease_name}</div>
+                      <div className="font-medium text-foreground">{scan.diagnosis.disease_name}</div>
                       <div className="text-xs text-muted-foreground">{new Date(scan.created_at).toLocaleDateString()}</div>
                     </div>
                     <Badge variant="outline" className={getSeverityColor(scan.diagnosis.severity)}>
@@ -343,7 +343,7 @@ const ScanResult = () => {
                   </div>
                 ))}
                 {pastScans.some(s => s.diagnosis.disease_name === diagnosis.disease_name) && (
-                  <p className="text-xs text-amber-800 mt-2 px-2">
+                  <p className="text-xs text-amber-700 dark:text-amber-300 mt-2 px-2">
                     ⚠️ This issue is recurring. Consider deeper treatment or consulting an expert.
                   </p>
                 )}
@@ -354,14 +354,14 @@ const ScanResult = () => {
           {/* Action Buttons */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Button
-              className="w-full h-14 text-base bg-green-600 hover:bg-green-700"
+              className="w-full h-14 text-base"
               onClick={() => navigate('/scan')}
             >
               <Camera className="w-5 h-5 mr-2" />
               {t.scanAnother}
             </Button>
             <Link to="/chat" state={{ prefill: `Tell me more about treating ${diagnosis.disease_name} in ${diagnosis.crop_name}` }}>
-              <Button variant="outline" className="w-full h-14 text-base border-green-600 text-green-700 hover:bg-green-50">
+              <Button variant="outline" className="w-full h-14 text-base border-primary/50 text-primary hover:bg-primary/10">
                 <MessageCircle className="w-5 h-5 mr-2" />
                 Ask AI about this
               </Button>
