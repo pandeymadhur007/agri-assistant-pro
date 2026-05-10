@@ -92,7 +92,8 @@ const MarketPrices = () => {
       supabase
         .from('market_prices')
         .select('id, crop_name, crop_name_hi, state, district, mandi, price, unit, price_date, price_trend')
-        .order('price_date', { ascending: false }),
+        .order('price_date', { ascending: false })
+        .limit(120),
       supabase.from('msp_rates').select('crop_name, msp_price')
     ]);
 
