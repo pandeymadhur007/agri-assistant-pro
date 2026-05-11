@@ -40,8 +40,6 @@ const Index = () => {
     { icon: CloudSun, title: 'Smart Weather', desc: 'Farm-focused forecasts with crop advisory', to: '/weather' },
   ];
 
-  const heroBadges = ['AI Powered', 'Free', '6 Languages'];
-
   const howItWorks = [
     { icon: HelpCircle, title: t('howStep1'), num: 1 },
     { icon: Brain, title: t('howStep2'), num: 2 },
