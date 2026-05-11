@@ -19,6 +19,10 @@ export default {
         semibold: '600',
         bold: '700',
       },
+      fontFamily: {
+        sans: ['Satoshi', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        display: ['Satoshi', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -100,12 +104,17 @@ export default {
           "0%": { opacity: "0", transform: "translateY(4px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        "slide-up": {
+          "0%": { opacity: "0", transform: "translateY(8px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "typing-dot": "typing-dot 1.2s infinite ease-in-out",
         "fade-in": "fade-in 0.25s ease-out",
+        "slide-up": "slide-up 0.35s cubic-bezier(0.22, 1, 0.36, 1)",
       },
     },
   },
