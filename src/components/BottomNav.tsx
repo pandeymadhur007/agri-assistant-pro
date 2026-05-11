@@ -44,10 +44,10 @@ export function BottomNav() {
   return (
     <>
       <nav
-        className="md:hidden fixed bottom-3 left-3 right-3 z-50 rounded-2xl border bg-background/95 backdrop-blur shadow-2xl shadow-primary/10"
+        className="md:hidden fixed bottom-3 left-3 right-3 z-50 rounded-2xl border border-border/70 bg-background/85 backdrop-blur-xl shadow-soft-lg"
         aria-label="Bottom navigation"
       >
-        <ul className="grid grid-cols-4">
+        <ul className="grid grid-cols-4 p-1.5 gap-1">
           {primary.map((item) => {
             const active = isActive(item.to);
             return (
@@ -55,11 +55,13 @@ export function BottomNav() {
                 <Link
                   to={item.to}
                   className={cn(
-                    'flex flex-col items-center justify-center gap-1 py-2.5 text-xs font-medium transition-colors',
-                    active ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                    'flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[11px] font-medium transition-all duration-200',
+                    active
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                   )}
                 >
-                  <item.icon className={cn('h-5 w-5', active && 'scale-110 transition-transform')} />
+                  <item.icon className={cn('h-[18px] w-[18px]', active && 'stroke-[2.2]')} />
                   <span className="leading-none truncate max-w-[70px]">{item.label}</span>
                 </Link>
               </li>
@@ -70,10 +72,10 @@ export function BottomNav() {
               <SheetTrigger asChild>
                 <button
                   type="button"
-                  className="w-full flex flex-col items-center justify-center gap-1 py-2.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  className="w-full flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200"
                   aria-label="More"
                 >
-                  <MoreHorizontal className="h-5 w-5" />
+                  <MoreHorizontal className="h-[18px] w-[18px]" />
                   <span className="leading-none">More</span>
                 </button>
               </SheetTrigger>
@@ -87,7 +89,7 @@ export function BottomNav() {
                       key={item.to}
                       to={item.to}
                       onClick={() => setMoreOpen(false)}
-                      className="flex flex-col items-center justify-center gap-2 rounded-xl border bg-card p-3 text-center hover:bg-accent transition-colors"
+                      className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-border/70 bg-card p-3 text-center hover:bg-muted transition-all duration-200 shadow-soft"
                     >
                       <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
                         <item.icon className="h-5 w-5" />
