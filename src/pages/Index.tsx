@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { MessageCircle, FileText, Sprout, Bug, CloudSun, Camera, TrendingUp, CalendarDays, Users, Sparkles, Lightbulb, HelpCircle, Brain, CheckCircle2 } from 'lucide-react';
+import { MessageCircle, FileText, Sprout, CloudSun, Camera, TrendingUp, CalendarDays, Users, Lightbulb, HelpCircle, Brain, CheckCircle2 } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { BottomNav } from '@/components/BottomNav';
 import { Footer } from '@/components/Footer';
@@ -9,7 +8,6 @@ import { ClimateAlertBanner } from '@/components/ClimateAlertBanner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { PageTransition, StaggerContainer, StaggerItem, FadeIn } from '@/components/PageTransition';
-import { cn } from '@/lib/utils';
 
 const Index = () => {
   const { t, language } = useLanguage();
@@ -25,24 +23,22 @@ const Index = () => {
   };
 
   const quickActions = [
-    { icon: MessageCircle, title: t('startChat'), to: '/chat', gradient: 'from-emerald-500 to-green-600' },
-    { icon: Sprout, title: t('cropCenter'), to: '/crop-center', gradient: 'from-teal-500 to-green-600' },
-    { emoji: '🐄', title: t('animalHusbandry'), to: '/animal-husbandry', gradient: 'from-amber-500 to-orange-600' },
-    { icon: Lightbulb, title: t('smartRec'), to: '/recommendations', gradient: 'from-yellow-500 to-amber-600' },
-    { icon: TrendingUp, title: t('marketPrices'), to: '/market-prices', gradient: 'from-orange-500 to-amber-600' },
-    { icon: CalendarDays, title: t('calendar'), to: '/calendar', gradient: 'from-blue-500 to-indigo-600' },
-    { icon: Users, title: t('community'), to: '/community', gradient: 'from-purple-500 to-violet-600' },
-    { icon: CloudSun, title: t('weatherForecast'), to: '/weather', gradient: 'from-sky-500 to-blue-600' },
-    { icon: FileText, title: t('schemes'), to: '/schemes', gradient: 'from-fuchsia-500 to-purple-600' },
+    { icon: MessageCircle, title: t('startChat'), to: '/chat' },
+    { icon: Sprout, title: t('cropCenter'), to: '/crop-center' },
+    { emoji: '🐄', title: t('animalHusbandry'), to: '/animal-husbandry' },
+    { icon: Lightbulb, title: t('smartRec'), to: '/recommendations' },
+    { icon: TrendingUp, title: t('marketPrices'), to: '/market-prices' },
+    { icon: CalendarDays, title: t('calendar'), to: '/calendar' },
+    { icon: Users, title: t('community'), to: '/community' },
+    { icon: CloudSun, title: t('weatherForecast'), to: '/weather' },
+    { icon: FileText, title: t('schemes'), to: '/schemes' },
   ];
 
   const featureCards = [
-    { icon: Camera, title: 'AI Crop Doctor', desc: 'Instant disease detection with treatment recommendations', gradient: 'from-emerald-400 to-green-600', to: '/scan' },
-    { icon: TrendingUp, title: 'Live Mandi Prices', desc: 'Real-time market prices from mandis across India', gradient: 'from-orange-400 to-amber-600', to: '/market-prices' },
-    { icon: CloudSun, title: 'Smart Weather', desc: 'Farm-focused forecasts with crop advisory', gradient: 'from-blue-400 to-indigo-600', to: '/weather' },
+    { icon: Camera, title: 'AI Crop Doctor', desc: 'Instant disease detection with treatment recommendations', to: '/scan' },
+    { icon: TrendingUp, title: 'Live Mandi Prices', desc: 'Real-time market prices from mandis across India', to: '/market-prices' },
+    { icon: CloudSun, title: 'Smart Weather', desc: 'Farm-focused forecasts with crop advisory', to: '/weather' },
   ];
-
-  const heroBadges = ['AI Powered', 'Free', '6 Languages'];
 
   const howItWorks = [
     { icon: HelpCircle, title: t('howStep1'), num: 1 },
@@ -55,131 +51,55 @@ const Index = () => {
       <Navbar />
       <PageTransition>
         <main className="flex-1">
-          {/* Hero Section */}
-          <section className="hero-pattern hero-gradient py-16 px-4 relative overflow-hidden">
-            {/* Subtle decorative wheat — consistent size + gentle opacity */}
-            <motion.div
-              className="absolute top-12 left-6 md:left-16 text-5xl pointer-events-none select-none"
-              style={{ opacity: 0.15 }}
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-              aria-hidden
-            >
-              🌾
-            </motion.div>
-            <motion.div
-              className="absolute top-12 right-6 md:right-16 text-5xl pointer-events-none select-none"
-              style={{ opacity: 0.15 }}
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-              aria-hidden
-            >
-              🌾
-            </motion.div>
-
-            <div className="container mx-auto text-center relative z-10">
-              {/* Logo/Icon */}
-              <FadeIn delay={0.1}>
-                <div className="relative mb-6 inline-block">
-                  <motion.div
-                    className="w-24 h-24 bg-gradient-to-br from-primary to-primary/80 rounded-3xl flex items-center justify-center shadow-2xl shadow-primary/30"
-                    initial={{ rotate: 3 }}
-                    whileHover={{ rotate: 0, scale: 1.05 }}
-                    transition={{ type: 'spring', stiffness: 300 }}
-                  >
-                    <span className="text-5xl">🌾</span>
-                  </motion.div>
-                  <motion.div
-                    className="absolute -bottom-2 -right-2 w-10 h-10 bg-accent rounded-xl flex items-center justify-center shadow-lg"
-                    initial={{ rotate: -12 }}
-                    animate={{ rotate: [-12, -8, -12] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                  >
-                    <Sparkles className="w-5 h-5 text-accent-foreground" />
-                  </motion.div>
-                </div>
+          {/* Hero Section — calm, editorial */}
+          <section className="hero-gradient pt-16 pb-12 md:pt-24 md:pb-16 px-4 relative overflow-hidden">
+            <div className="container mx-auto max-w-3xl text-center relative z-10">
+              <FadeIn delay={0.05}>
+                <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/70 backdrop-blur px-3 py-1 text-xs font-medium text-muted-foreground mb-6 shadow-soft">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  AI companion for every farmer
+                </span>
               </FadeIn>
 
-              <FadeIn delay={0.2}>
-                <h1 className="text-4xl md:text-6xl font-bold mb-3">
-                  <span className="gradient-text">{t('appName')}</span>
+              <FadeIn delay={0.1}>
+                <h1 className="text-4xl md:text-6xl font-bold mb-4 text-foreground">
+                  {t('appName')}
                 </h1>
               </FadeIn>
 
-              <FadeIn delay={0.25}>
-                <p className="text-lg md:text-xl text-foreground/80 font-medium mb-2 max-w-lg mx-auto">
+              <FadeIn delay={0.18}>
+                <p className="text-base md:text-lg text-muted-foreground mb-2 max-w-xl mx-auto leading-relaxed">
                   {t('tagline')}
                 </p>
               </FadeIn>
 
-              <FadeIn delay={0.3}>
-                <p className="text-base md:text-lg text-muted-foreground mb-6 max-w-lg mx-auto">
+              <FadeIn delay={0.22}>
+                <p className="text-sm md:text-base text-muted-foreground/80 mb-8 max-w-xl mx-auto">
                   {subTaglines[language] || subTaglines.en}
                 </p>
               </FadeIn>
 
-              {/* Badge pills */}
-              <FadeIn delay={0.35}>
-                <div className="flex flex-wrap items-center justify-center gap-2 mb-8">
-                  {heroBadges.map((b) => (
-                    <span
-                      key={b}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                      {b}
-                    </span>
-                  ))}
-                </div>
-              </FadeIn>
-
-              <FadeIn delay={0.4}>
-                <Link to="/chat" className="block max-w-[280px] mx-auto">
-                  <motion.button
-                    className="w-full group bg-gradient-to-r from-primary to-primary/90 text-primary-foreground px-6 py-4 rounded-2xl text-base md:text-lg font-semibold shadow-xl shadow-primary/25"
-                    whileHover={{ y: -4, boxShadow: '0 25px 50px -12px hsl(var(--primary) / 0.4)' }}
-                    whileTap={{ scale: 0.98 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                  >
-                    <span className="flex items-center justify-center gap-3">
-                      <MessageCircle className="w-5 h-5" />
+              <FadeIn delay={0.28}>
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  <Link to="/chat">
+                    <button className="inline-flex items-center gap-2 rounded-xl bg-primary text-primary-foreground px-5 py-3 text-sm font-medium shadow-soft-md hover:-translate-y-0.5 transition-all duration-200">
+                      <MessageCircle className="w-4 h-4" />
                       {t('startChat')}
-                      <motion.span
-                        animate={{ x: [0, 4, 0] }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                      >
-                        →
-                      </motion.span>
-                    </span>
-                  </motion.button>
-                </Link>
-              </FadeIn>
-            </div>
-          </section>
-
-          {/* Stats strip */}
-          <section className="px-4 -mt-4 relative z-20">
-            <div className="container mx-auto max-w-3xl">
-              <div className="rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 shadow-sm">
-                <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs md:text-sm font-medium text-primary">
-                  <span className="inline-flex items-center gap-1.5">
-                    <Users className="w-4 h-4" /> 10,000+ Farmers Helped
-                  </span>
-                  <span className="opacity-40">•</span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4" /> 6 Languages
-                  </span>
-                  <span className="opacity-40">•</span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4" /> 100% Free
-                  </span>
+                    </button>
+                  </Link>
+                  <Link to="/scan">
+                    <button className="inline-flex items-center gap-2 rounded-xl border border-border bg-card text-foreground px-5 py-3 text-sm font-medium hover:bg-muted transition-all duration-200">
+                      <Camera className="w-4 h-4" />
+                      Scan a crop
+                    </button>
+                  </Link>
                 </div>
-              </div>
+              </FadeIn>
             </div>
           </section>
 
           {/* Weather Alert Widget */}
-          <section className="px-4 mt-6 relative z-20">
+          <section className="px-4 mt-2 relative z-20">
             <div className="container mx-auto max-w-3xl">
               <div className="mb-3"><ClimateAlertBanner /></div>
               <WeatherWidget />
@@ -187,44 +107,35 @@ const Index = () => {
           </section>
 
           {/* Quick Actions Section */}
-          <section className="py-12 px-4 section-pattern">
-            <div className="container mx-auto">
+          <section className="py-14 px-4">
+            <div className="container mx-auto max-w-5xl">
               <FadeIn>
-                <h2 className="text-2xl md:text-3xl font-bold text-center mb-8">
-                  {t('quickActions')}
-                </h2>
+                <div className="flex items-end justify-between mb-6">
+                  <div>
+                    <h2 className="text-xl md:text-2xl font-semibold text-foreground">
+                      {t('quickActions')}
+                    </h2>
+                    <p className="text-sm text-muted-foreground mt-1">Everything you need, one tap away.</p>
+                  </div>
+                </div>
               </FadeIn>
 
-              <StaggerContainer className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 items-stretch">
+              <StaggerContainer className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4 items-stretch">
                 {quickActions.map((action) => (
                   <StaggerItem key={action.to} className="h-full">
                     <Link to={action.to} className="block h-full">
-                      <motion.div
-                        className="h-full"
-                        whileHover={{ y: -4, boxShadow: '0 10px 24px -10px hsl(var(--primary) / 0.25)' }}
-                        whileTap={{ scale: 0.98 }}
-                        transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-                      >
-                        <Card className="h-full min-h-[140px] border-0 shadow-md hover:shadow-xl overflow-hidden group transition-shadow duration-300">
-                          <CardContent className="h-full p-5 flex flex-col items-center justify-center text-center gap-3">
-                            <motion.div
-                              className={cn(
-                                'w-14 h-14 rounded-2xl flex items-center justify-center bg-gradient-to-br shadow-lg',
-                                action.gradient
-                              )}
-                              whileHover={{ scale: 1.1, rotate: 5 }}
-                              transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                            >
-                              {'emoji' in action && action.emoji ? (
-                                <span className="text-3xl leading-none" aria-hidden>{action.emoji}</span>
-                              ) : (
-                                'icon' in action && action.icon ? <action.icon className="h-7 w-7 text-white" /> : null
-                              )}
-                            </motion.div>
-                            <h3 className="font-semibold text-sm leading-tight">{action.title}</h3>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
+                      <Card className="h-full card-hover cursor-pointer">
+                        <CardContent className="h-full p-4 flex flex-col items-center justify-center text-center gap-3 min-h-[112px]">
+                          <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                            {'emoji' in action && action.emoji ? (
+                              <span className="text-xl leading-none" aria-hidden>{action.emoji}</span>
+                            ) : (
+                              'icon' in action && action.icon ? <action.icon className="h-5 w-5" /> : null
+                            )}
+                          </div>
+                          <h3 className="font-medium text-[13px] leading-tight text-foreground">{action.title}</h3>
+                        </CardContent>
+                      </Card>
                     </Link>
                   </StaggerItem>
                 ))}
@@ -233,24 +144,24 @@ const Index = () => {
           </section>
 
           {/* How It Works */}
-          <section className="py-12 px-4 bg-background">
+          <section className="py-14 px-4">
             <div className="container mx-auto max-w-4xl">
               <FadeIn>
-                <h2 className="text-2xl md:text-3xl font-bold text-center mb-10">
+                <h2 className="text-xl md:text-2xl font-semibold text-center mb-10 text-foreground">
                   {t('howItWorks')}
                 </h2>
               </FadeIn>
               <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {howItWorks.map((step) => (
                   <StaggerItem key={step.num}>
-                    <div className="relative h-full rounded-2xl border border-border bg-card p-6 text-center shadow-sm hover:shadow-md transition-shadow">
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center shadow">
+                    <div className="relative h-full rounded-2xl border border-border/70 bg-card p-6 text-center shadow-soft card-hover">
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-semibold flex items-center justify-center shadow-soft">
                         {step.num}
                       </div>
-                      <div className="mt-3 mx-auto w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-4">
-                        <step.icon className="w-7 h-7" />
+                      <div className="mt-3 mx-auto w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4">
+                        <step.icon className="w-6 h-6" />
                       </div>
-                      <h3 className="font-semibold text-base">{step.title}</h3>
+                      <h3 className="font-medium text-[15px] text-foreground">{step.title}</h3>
                     </div>
                   </StaggerItem>
                 ))}
@@ -259,33 +170,21 @@ const Index = () => {
           </section>
 
           {/* Feature Highlights */}
-          <section className="py-12 px-4 bg-gradient-to-b from-background to-secondary/30">
-            <div className="container mx-auto">
+          <section className="py-14 px-4">
+            <div className="container mx-auto max-w-5xl">
               <StaggerContainer className="grid md:grid-cols-3 gap-6">
                 {featureCards.map((feature) => (
                   <StaggerItem key={feature.title}>
                     <Link to={feature.to}>
-                      <motion.div
-                        whileHover={{ y: -6 }}
-                        transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                      >
-                        <Card className="border-0 shadow-lg card-gradient h-full cursor-pointer">
-                          <CardContent className="p-6 text-center">
-                            <motion.div
-                              className={cn(
-                                'w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg bg-gradient-to-br',
-                                feature.gradient
-                              )}
-                              whileHover={{ scale: 1.1, rotate: -5 }}
-                              transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                            >
-                              <feature.icon className="w-8 h-8 text-white" />
-                            </motion.div>
-                            <h3 className="font-bold text-lg mb-2">{feature.title}</h3>
-                            <p className="text-muted-foreground text-sm">{feature.desc}</p>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
+                      <Card className="h-full card-hover cursor-pointer">
+                        <CardContent className="p-6">
+                          <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4">
+                            <feature.icon className="w-5 h-5" />
+                          </div>
+                          <h3 className="font-semibold text-[16px] mb-1.5 text-foreground tracking-tight">{feature.title}</h3>
+                          <p className="text-muted-foreground text-sm leading-relaxed">{feature.desc}</p>
+                        </CardContent>
+                      </Card>
                     </Link>
                   </StaggerItem>
                 ))}

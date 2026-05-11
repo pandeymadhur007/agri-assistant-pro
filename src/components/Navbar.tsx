@@ -40,20 +40,27 @@ export function Navbar() {
   const initial = (user?.user_metadata?.display_name || user?.email || 'U').toString().charAt(0).toUpperCase();
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-green-500 to-green-700 text-white font-bold text-lg shadow-md">
-            G
-          </div>
-          <span className="text-xl font-bold text-primary">{t('appName')}</span>
+    <nav className="sticky top-0 z-50 w-full border-b border-border/70 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
+      <div className="container mx-auto flex h-14 items-center justify-between px-4">
+        <Link to="/" className="flex items-center gap-2.5 group">
+          <span
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-soft transition-transform group-hover:scale-[1.03]"
+            aria-hidden
+          >
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 20c0-5 3-9 8-10-1 5-4 9-8 10z" />
+              <path d="M12 20c0-4-2-8-7-9 1 4 3 8 7 9z" />
+              <path d="M12 20V12" />
+            </svg>
+          </span>
+          <span className="text-[17px] font-semibold tracking-tight text-foreground">{t('appName')}</span>
         </Link>
 
         <div className="flex items-center gap-2">
         <Button
-          variant="outline"
+          variant="ghost"
           size="icon"
-          className="rounded-full border-primary/50 text-primary"
+          className="rounded-full text-muted-foreground hover:text-foreground"
           onClick={toggleTheme}
           aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
           title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
@@ -63,9 +70,9 @@ export function Navbar() {
         {user && <NotificationBell />}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="default" className="gap-2 border-primary/50 text-primary font-medium px-3 sm:px-4">
+            <Button variant="outline" size="sm" className="gap-2 rounded-full text-foreground/80 px-3 sm:px-3.5">
               <Globe className="h-5 w-5" />
-              <span className="text-sm font-semibold hidden sm:inline">{currentLang?.nativeName}</span>
+              <span className="text-sm font-medium hidden sm:inline">{currentLang?.nativeName}</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
@@ -85,7 +92,7 @@ export function Navbar() {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="rounded-full border-primary/50 bg-primary text-primary-foreground font-semibold">
+                <Button variant="default" size="icon" className="rounded-full font-semibold h-9 w-9">
                   {initial}
                 </Button>
               </DropdownMenuTrigger>
@@ -100,7 +107,7 @@ export function Navbar() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button variant="outline" size="icon" className="rounded-full border-primary/50 text-primary" onClick={() => navigate('/login')} aria-label="Login">
+            <Button variant="ghost" size="icon" className="rounded-full text-muted-foreground hover:text-foreground" onClick={() => navigate('/login')} aria-label="Login">
               <LogIn className="h-5 w-5" />
             </Button>
           )}
