@@ -11,93 +11,93 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* Calm sage palette — warm off-white surfaces */
-    --background: 45 24% 96%;          /* #F7F6F2 */
-    --foreground: 140 9% 13%;          /* #1E2421 */
+    --background: 45 22% 97%;          /* #F8F7F4 warm */
+    --foreground: 150 16% 8%;          /* #111715 stronger */
 
     --card: 0 0% 100%;
-    --card-foreground: 140 9% 13%;
+    --card-foreground: 150 16% 8%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 140 9% 13%;
+    --popover-foreground: 150 16% 8%;
 
-    --primary: 144 25% 33%;            /* #3F6B52 deep sage */
-    --primary-foreground: 45 24% 97%;
+    --primary: 150 24% 34%;            /* #426B57 deep sage */
+    --primary-foreground: 45 22% 97%;
 
-    --secondary: 102 25% 70%;          /* #A8C3A0 */
-    --secondary-foreground: 140 12% 18%;
+    --secondary: 145 18% 46%;          /* #5E8B72 mid sage */
+    --secondary-foreground: 45 22% 97%;
 
-    --muted: 45 18% 93%;               /* #F0EFE9 */
-    --muted-foreground: 140 5% 42%;    /* #6B716C */
+    --muted: 45 20% 94%;               /* warm muted */
+    --muted-foreground: 145 6% 40%;    /* #5F6B63 */
 
-    --accent: 72 51% 64%;              /* #C7D96A */
-    --accent-foreground: 140 12% 18%;
+    --accent: 102 22% 70%;             /* #A8C3A0 sage accent */
+    --accent-foreground: 150 16% 8%;
 
-    --destructive: 0 65% 52%;
+    --destructive: 8 60% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 45 12% 89%;              /* #E7E6E0 hairline */
-    --input: 45 12% 89%;
-    --ring: 144 25% 33%;
+    --border: 45 14% 88%;              /* warm hairline */
+    --input: 45 14% 88%;
+    --ring: 150 24% 34%;
 
     --radius: 1rem;
 
     /* Sidebar */
-    --sidebar-background: 45 24% 96%;
-    --sidebar-foreground: 140 12% 22%;
-    --sidebar-primary: 144 25% 33%;
-    --sidebar-primary-foreground: 45 24% 97%;
-    --sidebar-accent: 45 18% 93%;
-    --sidebar-accent-foreground: 140 12% 18%;
-    --sidebar-border: 45 12% 89%;
-    --sidebar-ring: 144 25% 33%;
+    --sidebar-background: 45 22% 97%;
+    --sidebar-foreground: 150 12% 18%;
+    --sidebar-primary: 150 24% 34%;
+    --sidebar-primary-foreground: 45 22% 97%;
+    --sidebar-accent: 45 20% 94%;
+    --sidebar-accent-foreground: 150 16% 12%;
+    --sidebar-border: 45 14% 88%;
+    --sidebar-ring: 150 24% 34%;
 
     /* Elevation tokens */
-    --shadow-sm: 0 1px 2px 0 hsl(140 9% 13% / 0.04);
-    --shadow-md: 0 4px 16px -6px hsl(140 9% 13% / 0.08);
-    --shadow-lg: 0 12px 32px -12px hsl(140 9% 13% / 0.12);
+    --shadow-sm: 0 1px 2px 0 hsl(150 16% 8% / 0.05), 0 1px 1px 0 hsl(150 16% 8% / 0.03);
+    --shadow-md: 0 6px 20px -8px hsl(150 16% 8% / 0.10), 0 2px 6px -2px hsl(150 16% 8% / 0.05);
+    --shadow-lg: 0 18px 40px -16px hsl(150 16% 8% / 0.16), 0 6px 14px -6px hsl(150 16% 8% / 0.08);
   }
 
   .dark {
-    --background: 100 8% 7%;           /* near-black warm */
-    --foreground: 45 15% 94%;
+    --background: 150 12% 6%;          /* #0F1311 warm near-black */
+    --foreground: 45 18% 95%;
 
-    --card: 100 7% 10%;
-    --card-foreground: 45 15% 94%;
+    --card: 150 10% 9%;
+    --card-foreground: 45 18% 95%;
 
-    --popover: 100 7% 10%;
-    --popover-foreground: 45 15% 94%;
+    --popover: 150 10% 9%;
+    --popover-foreground: 45 18% 95%;
 
-    --primary: 138 28% 60%;            /* #7FB494 lifted */
-    --primary-foreground: 100 8% 7%;
+    --primary: 145 32% 62%;            /* lifted sage */
+    --primary-foreground: 150 12% 6%;
 
-    --secondary: 100 7% 14%;
-    --secondary-foreground: 45 15% 90%;
+    --secondary: 150 8% 14%;
+    --secondary-foreground: 45 18% 92%;
 
-    --muted: 100 7% 14%;
-    --muted-foreground: 45 6% 62%;
+    --muted: 150 8% 13%;
+    --muted-foreground: 45 8% 64%;
 
-    --accent: 72 45% 58%;
-    --accent-foreground: 100 8% 7%;
+    --accent: 102 22% 60%;
+    --accent-foreground: 150 12% 6%;
 
-    --destructive: 0 60% 50%;
+    --destructive: 8 60% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 100 5% 18%;
-    --input: 100 5% 18%;
-    --ring: 138 28% 60%;
+    --border: 150 8% 16%;
+    --input: 150 8% 16%;
+    --ring: 145 32% 62%;
 
-    --sidebar-background: 100 8% 7%;
-    --sidebar-foreground: 45 15% 88%;
-    --sidebar-primary: 138 28% 60%;
-    --sidebar-primary-foreground: 100 8% 7%;
-    --sidebar-accent: 100 7% 14%;
-    --sidebar-accent-foreground: 45 15% 90%;
-    --sidebar-border: 100 5% 18%;
-    --sidebar-ring: 138 28% 60%;
+    --sidebar-background: 150 12% 6%;
+    --sidebar-foreground: 45 18% 90%;
+    --sidebar-primary: 145 32% 62%;
+    --sidebar-primary-foreground: 150 12% 6%;
+    --sidebar-accent: 150 8% 13%;
+    --sidebar-accent-foreground: 45 18% 92%;
+    --sidebar-border: 150 8% 16%;
+    --sidebar-ring: 145 32% 62%;
 
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.4);
-    --shadow-md: 0 4px 16px -6px rgb(0 0 0 / 0.5);
-    --shadow-lg: 0 12px 32px -12px rgb(0 0 0 / 0.6);
+    --shadow-md: 0 6px 24px -8px rgb(0 0 0 / 0.55);
+    --shadow-lg: 0 18px 44px -16px rgb(0 0 0 / 0.7);
   }
 }
 
@@ -139,11 +139,18 @@ All colors MUST be HSL.
   }
 }
 
-/* Subtle sage wash for hero backgrounds only */
+/* Subtle organic sage glow for hero backgrounds */
 .hero-gradient {
   background:
-    radial-gradient(80% 60% at 20% 0%, hsl(var(--primary) / 0.08) 0%, transparent 60%),
-    radial-gradient(60% 50% at 80% 10%, hsl(var(--accent) / 0.10) 0%, transparent 70%);
+    radial-gradient(70% 55% at 18% 0%, hsl(var(--primary) / 0.12) 0%, transparent 65%),
+    radial-gradient(55% 50% at 82% 8%, hsl(var(--accent) / 0.18) 0%, transparent 70%),
+    radial-gradient(40% 35% at 50% 100%, hsl(var(--secondary) / 0.08) 0%, transparent 70%);
+}
+
+.dark .hero-gradient {
+  background:
+    radial-gradient(70% 55% at 18% 0%, hsl(var(--primary) / 0.16) 0%, transparent 65%),
+    radial-gradient(55% 50% at 82% 8%, hsl(var(--accent) / 0.10) 0%, transparent 70%);
 }
 
 .card-gradient {
@@ -167,10 +174,24 @@ All colors MUST be HSL.
 
 /* Premium card hover — subtle lift */
 .card-hover {
-  @apply transition-all duration-300 hover:-translate-y-0.5;
+  @apply transition-all duration-300 hover:-translate-y-0.5 hover:border-border;
 }
 .card-hover:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Premium layered card with subtle inner highlight */
+.card-premium {
+  background:
+    linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.96) 100%);
+  box-shadow:
+    var(--shadow-sm),
+    inset 0 1px 0 0 hsl(0 0% 100% / 0.6);
+}
+.dark .card-premium {
+  box-shadow:
+    var(--shadow-sm),
+    inset 0 1px 0 0 hsl(0 0% 100% / 0.04);
 }
 
 /* Gradient text kept for backwards compat — now solid */
