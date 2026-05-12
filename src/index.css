@@ -58,46 +58,48 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 150 12% 6%;          /* #0F1311 warm near-black */
-    --foreground: 45 18% 95%;
+    /* Layered dark sage — soft, premium, cinematic */
+    --background: 150 9% 7%;            /* #0F1311 */
+    --foreground: 100 9% 95%;           /* #F3F5F2 */
 
-    --card: 150 10% 9%;
-    --card-foreground: 45 18% 95%;
+    --card: 147 13% 11%;                /* #181F1B */
+    --card-foreground: 100 9% 95%;
 
-    --popover: 150 10% 9%;
-    --popover-foreground: 45 18% 95%;
+    --popover: 147 13% 11%;
+    --popover-foreground: 100 9% 95%;
 
-    --primary: 145 32% 62%;            /* lifted sage */
-    --primary-foreground: 150 12% 6%;
+    --primary: 140 22% 59%;             /* #7FAE8D softer sage */
+    --primary-foreground: 150 9% 7%;
 
-    --secondary: 150 8% 14%;
-    --secondary-foreground: 45 18% 92%;
+    --secondary: 150 12% 9%;            /* #151B18 */
+    --secondary-foreground: 100 9% 95%;
 
-    --muted: 150 8% 13%;
-    --muted-foreground: 45 8% 64%;
+    --muted: 150 12% 10%;
+    --muted-foreground: 140 8% 77%;     /* #BFC8C2 readable secondary */
 
-    --accent: 102 22% 60%;
-    --accent-foreground: 150 12% 6%;
+    --accent: 140 14% 43%;              /* #5E7D68 muted green */
+    --accent-foreground: 100 9% 95%;
 
     --destructive: 8 60% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 150 8% 16%;
-    --input: 150 8% 16%;
-    --ring: 145 32% 62%;
+    --border: 150 8% 15%;               /* approximates rgba(255,255,255,0.06) over bg */
+    --input: 150 8% 15%;
+    --ring: 140 22% 59%;
 
-    --sidebar-background: 150 12% 6%;
-    --sidebar-foreground: 45 18% 90%;
-    --sidebar-primary: 145 32% 62%;
-    --sidebar-primary-foreground: 150 12% 6%;
-    --sidebar-accent: 150 8% 13%;
-    --sidebar-accent-foreground: 45 18% 92%;
-    --sidebar-border: 150 8% 16%;
-    --sidebar-ring: 145 32% 62%;
+    --sidebar-background: 150 9% 7%;
+    --sidebar-foreground: 100 9% 92%;
+    --sidebar-primary: 140 22% 59%;
+    --sidebar-primary-foreground: 150 9% 7%;
+    --sidebar-accent: 150 12% 10%;
+    --sidebar-accent-foreground: 100 9% 95%;
+    --sidebar-border: 150 8% 15%;
+    --sidebar-ring: 140 22% 59%;
 
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.4);
-    --shadow-md: 0 6px 24px -8px rgb(0 0 0 / 0.55);
-    --shadow-lg: 0 18px 44px -16px rgb(0 0 0 / 0.7);
+    /* Soft, low-glow shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.35);
+    --shadow-md: 0 8px 24px -12px rgb(0 0 0 / 0.5), 0 2px 6px -2px rgb(0 0 0 / 0.3);
+    --shadow-lg: 0 24px 48px -20px rgb(0 0 0 / 0.6), 0 8px 16px -8px rgb(0 0 0 / 0.35);
   }
 }
 
@@ -149,8 +151,8 @@ All colors MUST be HSL.
 
 .dark .hero-gradient {
   background:
-    radial-gradient(70% 55% at 18% 0%, hsl(var(--primary) / 0.16) 0%, transparent 65%),
-    radial-gradient(55% 50% at 82% 8%, hsl(var(--accent) / 0.10) 0%, transparent 70%);
+    radial-gradient(80% 60% at 20% 0%, hsl(var(--primary) / 0.06) 0%, transparent 70%),
+    radial-gradient(60% 50% at 85% 5%, hsl(var(--accent) / 0.04) 0%, transparent 75%);
 }
 
 .card-gradient {
