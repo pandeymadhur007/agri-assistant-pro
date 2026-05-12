@@ -143,7 +143,7 @@ const Index = () => {
             </div>
           </section>
 
-          {/* How It Works */}
+          {/* How It Works — minimal inline rhythm */}
           <section className="py-14 px-4">
             <div className="container mx-auto max-w-4xl">
               <FadeIn>
@@ -151,17 +151,20 @@ const Index = () => {
                   {t('howItWorks')}
                 </h2>
               </FadeIn>
-              <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {howItWorks.map((step) => (
                   <StaggerItem key={step.num}>
-                    <div className="relative h-full rounded-2xl border border-border/70 bg-card p-6 text-center shadow-soft card-hover">
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-semibold flex items-center justify-center shadow-soft">
+                    <div className="flex items-start gap-4 p-5 rounded-2xl border border-border/50 bg-card/60 hover:bg-card transition-colors">
+                      <div className="shrink-0 w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-sm tabular-nums">
                         {step.num}
                       </div>
-                      <div className="mt-3 mx-auto w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4">
-                        <step.icon className="w-6 h-6" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 text-muted-foreground">
+                          <step.icon className="w-4 h-4" />
+                          <span className="text-[11px] uppercase tracking-wider font-medium">Step</span>
+                        </div>
+                        <h3 className="font-medium text-[15px] text-foreground leading-snug">{step.title}</h3>
                       </div>
-                      <h3 className="font-medium text-[15px] text-foreground">{step.title}</h3>
                     </div>
                   </StaggerItem>
                 ))}
