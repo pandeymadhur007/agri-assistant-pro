@@ -44,10 +44,10 @@ export function BottomNav() {
   return (
     <>
       <nav
-        className="md:hidden fixed bottom-3 left-3 right-3 z-50 rounded-2xl border border-border/70 bg-background/85 backdrop-blur-xl shadow-soft-lg"
+        className="md:hidden fixed bottom-3 left-4 right-4 z-50 rounded-2xl border border-border/60 bg-background/70 dark:bg-card/55 backdrop-blur-md shadow-soft"
         aria-label="Bottom navigation"
       >
-        <ul className="grid grid-cols-4 p-1.5 gap-1">
+        <ul className="grid grid-cols-4 p-1 gap-0.5">
           {primary.map((item) => {
             const active = isActive(item.to);
             return (
@@ -55,13 +55,13 @@ export function BottomNav() {
                 <Link
                   to={item.to}
                   className={cn(
-                    'flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[11px] font-medium transition-all duration-200',
+                    'flex flex-col items-center justify-center gap-0.5 py-1.5 rounded-xl text-[10.5px] font-medium transition-all duration-200',
                     active
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                      ? 'text-primary bg-primary/8 dark:bg-primary/10'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
                   )}
                 >
-                  <item.icon className={cn('h-[18px] w-[18px]', active && 'stroke-[2.2]')} />
+                  <item.icon className={cn('h-[17px] w-[17px]', active && 'stroke-[2.1]')} />
                   <span className="leading-none truncate max-w-[70px]">{item.label}</span>
                 </Link>
               </li>
@@ -72,10 +72,10 @@ export function BottomNav() {
               <SheetTrigger asChild>
                 <button
                   type="button"
-                  className="w-full flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200"
+                  className="w-full flex flex-col items-center justify-center gap-0.5 py-1.5 rounded-xl text-[10.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all duration-200"
                   aria-label="More"
                 >
-                  <MoreHorizontal className="h-[18px] w-[18px]" />
+                  <MoreHorizontal className="h-[17px] w-[17px]" />
                   <span className="leading-none">More</span>
                 </button>
               </SheetTrigger>
