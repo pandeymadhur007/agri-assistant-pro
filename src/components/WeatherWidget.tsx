@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getCachedPosition } from '@/lib/geolocation';
+import { cn } from '@/lib/utils';
 
 interface MiniWeather {
   temp: number;
