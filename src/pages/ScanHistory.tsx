@@ -186,7 +186,7 @@ const ScanHistory = () => {
           ) : scans.length === 0 ? (
             <Card>
               <CardContent className="p-12 text-center">
-                <Leaf className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <Leaf className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-700 mb-2">{t.noScans}</h3>
                 <p className="text-gray-500 mb-6">{t.noScansDesc}</p>
                 <Button
@@ -230,7 +230,7 @@ const ScanHistory = () => {
                         <p className="text-sm text-gray-600 mb-2">
                           {scan.diagnosis.disease_name}
                         </p>
-                        <div className="flex items-center text-xs text-gray-400">
+                        <div className="flex items-center text-xs text-muted-foreground">
                           <Calendar className="w-3 h-3 mr-1" />
                           {formatDate(scan.created_at)}
                         </div>
