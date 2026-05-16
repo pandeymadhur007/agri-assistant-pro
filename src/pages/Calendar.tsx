@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
+import { SEO } from '@/components/SEO';
 import { Footer } from '@/components/Footer';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -112,6 +113,10 @@ const Calendar = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-muted/30">
+      <SEO
+        title="Farming Calendar — Sowing & Harvest Timeline"
+        description="Plan sowing, irrigation, fertilization and harvest for major Indian crops with a season-aware farming calendar."
+      />
       <Navbar />
       
       <main className="flex-1 container mx-auto px-4 py-6">

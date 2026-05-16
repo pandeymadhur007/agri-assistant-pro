@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Sprout, Loader2, TrendingUp, Droplets, Calendar, IndianRupee, Award } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
+import { SEO } from '@/components/SEO';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -111,6 +112,10 @@ const SmartRecommendations = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-muted/30">
+      <SEO
+        title="Smart Crop Recommendations"
+        description="Get personalized crop and input recommendations based on your state, soil, season and farm conditions."
+      />
       <Navbar />
       <main className="flex-1 container mx-auto px-4 py-8 max-w-4xl">
         <div className="flex items-center gap-3 mb-6">

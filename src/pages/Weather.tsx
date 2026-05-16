@@ -6,6 +6,7 @@ import {
   CloudSun, CloudDrizzle, CloudLightning, Snowflake, CloudFog
 } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
+import { SEO } from '@/components/SEO';
 import { Footer } from '@/components/Footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -411,6 +412,10 @@ const Weather = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEO
+        title="Farm Weather Forecast & Crop Advisory"
+        description="Hyperlocal weather forecasts with crop-specific advisory for sowing, irrigation, and harvest decisions."
+      />
       <Navbar />
       <main className="flex-1">
         {/* Header with pattern */}

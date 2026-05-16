@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Navbar } from '@/components/Navbar';
+import { SEO } from '@/components/SEO';
 import { BottomNav } from '@/components/BottomNav';
 import { Footer } from '@/components/Footer';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -67,6 +68,10 @@ export default function AnimalHusbandry() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEO
+        title="Animal Husbandry — Breeds & Schemes"
+        description="Compare cattle, buffalo, poultry and goat breeds — daily production, profitability and matching government schemes."
+      />
       <Navbar />
       <main className="flex-1">
         <section className="bg-gradient-to-b from-amber-500/10 to-background py-8 px-4">
