@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Navbar } from '@/components/Navbar';
+import { SEO } from '@/components/SEO';
 import { BottomNav } from '@/components/BottomNav';
 import { Footer } from '@/components/Footer';
 import { useLanguage } from '@/contexts/LanguageContext';

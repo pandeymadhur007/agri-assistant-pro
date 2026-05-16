@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Sprout, Loader2, TrendingUp, Droplets, Calendar, IndianRupee, Award } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
+import { SEO } from '@/components/SEO';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

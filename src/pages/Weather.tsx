@@ -6,6 +6,7 @@ import {
   CloudSun, CloudDrizzle, CloudLightning, Snowflake, CloudFog
 } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
+import { SEO } from '@/components/SEO';
 import { Footer } from '@/components/Footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

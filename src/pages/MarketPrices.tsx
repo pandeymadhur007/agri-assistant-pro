@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
+import { SEO } from '@/components/SEO';
 import { BottomNav } from '@/components/BottomNav';
 import { Footer } from '@/components/Footer';
 import { useLanguage } from '@/contexts/LanguageContext';
