@@ -80,7 +80,7 @@ const Index = () => {
               </FadeIn>
 
               <FadeIn delay={0.22}>
-                <p className="text-sm md:text-base text-muted-foreground/80 mb-8 max-w-xl mx-auto">
+                <p className="text-sm md:text-base text-muted-foreground mb-8 max-w-xl mx-auto">
                   {subTaglines[language] || subTaglines.en}
                 </p>
               </FadeIn>
