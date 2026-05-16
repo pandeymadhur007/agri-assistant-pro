@@ -1,0 +1,26 @@
+# Gram AI
+
+> AI-powered farming assistant for Indian farmers — crop disease diagnosis, live mandi prices, weather forecasts, government schemes, and multilingual voice support.
+
+Gram AI helps farmers across India make better decisions with on-device AI guidance in English, Hindi, Marathi, Telugu, Tamil, and Bengali.
+
+## Pages
+
+- [Home](/): Overview of Gram AI features and entry points.
+- [AI Assistant](/chat): Conversational farming assistant with voice in regional languages.
+- [Crop Center](/crop-center): Scan crops for disease, get guidance, and identify pests.
+- [Crop Guidance](/crop-guidance): Step-by-step cultivation guides for major Indian crops.
+- [Pest & Disease](/pest-disease): Diagnose pests and diseases with treatment recommendations.
+- [Scan Crop](/scan): Upload a crop image for instant AI disease detection.
+- [Market Prices](/market-prices): Live mandi prices for crops across Indian states.
+- [Weather](/weather): Farm-focused weather forecasts and crop advisory.
+- [Farming Calendar](/calendar): Sowing, irrigation, and harvest timelines by crop.
+- [Community](/community): Discussion forum for Indian farmers.
+- [Government Schemes](/schemes): Eligibility and details for Indian agricultural schemes.
+- [Smart Recommendations](/recommendations): Personalized crop and input suggestions.
+- [Animal Husbandry](/animal-husbandry): Livestock care guides and best practices.
+
+## Optional
+
+- [Sign In](/login): User authentication.
+- [Profile](/profile): User account and preferences.
