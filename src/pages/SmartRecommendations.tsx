@@ -111,6 +111,10 @@ const SmartRecommendations = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-muted/30">
+      <SEO
+        title="Smart Crop Recommendations"
+        description="Get personalized crop and input recommendations based on your state, soil, season and farm conditions."
+      />
       <Navbar />
       <main className="flex-1 container mx-auto px-4 py-8 max-w-4xl">
         <div className="flex items-center gap-3 mb-6">

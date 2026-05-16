@@ -230,6 +230,10 @@ const MarketPrices = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-muted/30">
+      <SEO
+        title="Live Mandi Prices Across India"
+        description="Track live mandi prices and MSP rates for crops across Indian states and districts — updated daily."
+      />
       <Navbar />
       
       <main className="flex-1 container mx-auto px-4 py-6">

@@ -8,6 +8,7 @@ import { ClimateAlertBanner } from '@/components/ClimateAlertBanner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { PageTransition, StaggerContainer, StaggerItem, FadeIn } from '@/components/PageTransition';
+import { SEO } from '@/components/SEO';
 
 const Index = () => {
   const { t, language } = useLanguage();
@@ -48,6 +49,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEO
+        title="Gram AI — AI Farming Assistant for Indian Farmers"
+        description="Gram AI helps Indian farmers with crop disease scans, live mandi prices, weather, schemes & voice support in 6 languages."
+        path="/"
+      />
       <Navbar />
       <PageTransition>
         <main className="flex-1">

@@ -411,6 +411,10 @@ const Weather = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEO
+        title="Farm Weather Forecast & Crop Advisory"
+        description="Hyperlocal weather forecasts with crop-specific advisory for sowing, irrigation, and harvest decisions."
+      />
       <Navbar />
       <main className="flex-1">
         {/* Header with pattern */}

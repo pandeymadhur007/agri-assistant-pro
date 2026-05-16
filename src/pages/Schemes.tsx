@@ -74,6 +74,10 @@ const Schemes = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEO
+        title="Government Schemes for Indian Farmers"
+        description="Browse central and state government schemes for Indian farmers — eligibility, benefits, deadlines and how to apply."
+      />
       <Navbar />
       <main className="flex-1">
         <div className="hero-pattern bg-gradient-to-b from-purple-500/10 to-background py-8 px-4">

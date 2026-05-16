@@ -141,6 +141,10 @@ const Community = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-muted/30">
+      <SEO
+        title="Farmer Community — Ask & Share"
+        description="Join Indian farmers to ask questions, share experiences, and learn from each other in the Gram AI community."
+      />
       <Navbar />
       
       <main className="flex-1 container mx-auto px-4 py-6">

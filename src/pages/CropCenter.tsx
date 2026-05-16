@@ -9,6 +9,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import Scan from './Scan';
 import CropGuidance from './CropGuidance';
 import PestDisease from './PestDisease';
+import { SEO } from '@/components/SEO';
 
 const titles: Record<string, { title: string; subtitle: string }> = {
   en: { title: 'Crop Center', subtitle: 'Scan, learn, and protect your crops — all in one place' },
@@ -48,6 +49,20 @@ const CropCenter = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEO
+        title={`${t.title} — Scan, Guide & Pest Help`}
+        description="Scan crops for diseases, get step-by-step cultivation guidance, and identify pests — instant AI help in your language."
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "HowTo",
+          name: "How to use Gram AI Crop Center",
+          step: [
+            { "@type": "HowToStep", name: "Scan", text: "Upload a photo of your crop to detect disease." },
+            { "@type": "HowToStep", name: "Guidance", text: "Read step-by-step cultivation guidance." },
+            { "@type": "HowToStep", name: "Pest & Disease", text: "Diagnose pests and get treatment advice." }
+          ]
+        }}
+      />
       <Navbar />
 
       <div className="hero-pattern bg-gradient-to-b from-primary/10 to-background py-8 px-4">
