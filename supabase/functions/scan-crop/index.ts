@@ -23,9 +23,10 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { imageBase64, language = "en" } = body;
+    const { imageBase64, imageUrl, language = "en" } = body;
+    const imageSource: string | undefined = imageUrl || imageBase64;
 
-    if (!imageBase64 || typeof imageBase64 !== "string") {
+    if (!imageSource || typeof imageSource !== "string") {
       return new Response(
         JSON.stringify({ error: "Image data is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -79,7 +80,7 @@ Be extremely specific and practical for Indian farmers.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-flash-lite",
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: systemPrompt },
@@ -92,7 +93,7 @@ Be extremely specific and practical for Indian farmers.`;
               },
               {
                 type: "image_url",
-                image_url: { url: imageBase64 }
+                image_url: { url: imageSource }
               }
             ]
           }
