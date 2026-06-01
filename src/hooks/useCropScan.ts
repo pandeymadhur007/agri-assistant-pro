@@ -22,6 +22,8 @@ export interface ScanResult {
   created_at: string;
 }
 
+export type ScanStage = 'idle' | 'compressing' | 'uploading' | 'analyzing' | 'done' | 'error';
+
 const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -31,10 +33,13 @@ const fileToBase64 = (file: File): Promise<string> => {
   });
 };
 
-// Resize + compress images before upload so the AI gateway receives a much
-// smaller payload. This drastically reduces upload + analysis latency without
-// hurting diagnosis quality (1024px is plenty for plant disease detection).
-const compressImage = async (file: File, maxDim = 1024, quality = 0.78): Promise<string> => {
+// Aggressive resize + WebP encode. Typical 3MB phone photo -> ~60-90KB.
+// 768px is more than enough resolution for AI leaf disease detection.
+const compressImage = async (
+  file: File,
+  maxDim = 768,
+  quality = 0.72,
+): Promise<{ blob: Blob; previewUrl: string; ext: string; mime: string }> => {
   const dataUrl = await fileToBase64(file);
   return new Promise((resolve) => {
     const img = new Image();
@@ -47,23 +52,47 @@ const compressImage = async (file: File, maxDim = 1024, quality = 0.78): Promise
       canvas.height = h;
       const ctx = canvas.getContext('2d');
       if (!ctx) {
-        resolve(dataUrl);
+        // Fallback: send original
+        fetch(dataUrl).then(r => r.blob()).then(blob => {
+          resolve({ blob, previewUrl: dataUrl, ext: 'jpg', mime: 'image/jpeg' });
+        });
         return;
       }
       ctx.drawImage(img, 0, 0, w, h);
-      try {
-        resolve(canvas.toDataURL('image/jpeg', quality));
-      } catch {
-        resolve(dataUrl);
-      }
+      // Prefer WebP; fall back to JPEG on old browsers.
+      const tryFormat = (mime: 'image/webp' | 'image/jpeg', ext: 'webp' | 'jpg') => {
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              const previewUrl = canvas.toDataURL(mime, quality);
+              resolve({ blob, previewUrl, ext, mime });
+            } else if (mime === 'image/webp') {
+              tryFormat('image/jpeg', 'jpg');
+            } else {
+              fetch(dataUrl).then(r => r.blob()).then(blob => {
+                resolve({ blob, previewUrl: dataUrl, ext: 'jpg', mime: 'image/jpeg' });
+              });
+            }
+          },
+          mime,
+          quality,
+        );
+      };
+      tryFormat('image/webp', 'webp');
     };
-    img.onerror = () => resolve(dataUrl);
+    img.onerror = () => {
+      fetch(dataUrl).then(r => r.blob()).then(blob => {
+        resolve({ blob, previewUrl: dataUrl, ext: 'jpg', mime: 'image/jpeg' });
+      });
+    };
     img.src = dataUrl;
   });
 };
 
 export const useCropScan = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [stage, setStage] = useState<ScanStage>('idle');
+  const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const { language } = useLanguage();
@@ -79,15 +108,36 @@ export const useCropScan = () => {
     initSession();
   }, []);
 
-  const scanImage = async (file: File): Promise<{ diagnosis: CropDiagnosis; imageDataUrl: string } | null> => {
+  const scanImage = async (
+    file: File,
+  ): Promise<{ diagnosis: CropDiagnosis; imageDataUrl: string; imageUrl: string } | null> => {
     setIsAnalyzing(true);
     setError(null);
+    setStage('compressing');
+    setProgress(5);
 
     try {
       const currentSessionId = sessionId || await ensureAnonymousSession();
       if (!currentSessionId) throw new Error('Failed to create session');
 
-      const base64DataUrl = await compressImage(file);
+      // Stage 1: compress
+      const { blob, previewUrl, ext, mime } = await compressImage(file);
+      setProgress(30);
+
+      // Stage 2: upload to storage
+      setStage('uploading');
+      const path = `${currentSessionId}/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('crop-scan-uploads')
+        .upload(path, blob, { contentType: mime, upsert: false });
+      if (upErr) throw new Error(upErr.message);
+      const { data: pub } = supabase.storage.from('crop-scan-uploads').getPublicUrl(path);
+      const publicUrl = pub.publicUrl;
+      setProgress(55);
+
+      // Stage 3: analyze
+      setStage('analyzing');
+      setProgress(70);
 
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/scan-crop`,
@@ -97,7 +147,7 @@ export const useCropScan = () => {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ imageBase64: base64DataUrl, language }),
+          body: JSON.stringify({ imageUrl: publicUrl, language }),
         }
       );
 
@@ -107,16 +157,22 @@ export const useCropScan = () => {
       }
 
       const data = await response.json();
-      return { diagnosis: data.diagnosis, imageDataUrl: base64DataUrl };
+      setProgress(100);
+      setStage('done');
+      return { diagnosis: data.diagnosis, imageDataUrl: previewUrl, imageUrl: publicUrl };
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to analyze image');
+      setStage('error');
       return null;
     } finally {
       setIsAnalyzing(false);
     }
   };
 
-  const saveScanResult = async (imageDataUrl: string, diagnosis: CropDiagnosis): Promise<string | null> => {
+  const saveScanResult = async (
+    imageUrl: string,
+    diagnosis: CropDiagnosis,
+  ): Promise<string | null> => {
     try {
       const currentSessionId = sessionId || await ensureAnonymousSession();
       if (!currentSessionId) throw new Error('Failed to create session');
@@ -125,7 +181,7 @@ export const useCropScan = () => {
         .from('crop_scans')
         .insert([{
           session_id: currentSessionId,
-          image_url: imageDataUrl.substring(0, 500), // Store truncated reference
+          image_url: imageUrl,
           crop_name: diagnosis.crop_name,
           disease_name: diagnosis.disease_name,
           severity: diagnosis.severity,
@@ -219,6 +275,8 @@ export const useCropScan = () => {
     getScanHistory,
     getScanById,
     isAnalyzing,
+    stage,
+    progress,
     error,
     sessionId,
   };

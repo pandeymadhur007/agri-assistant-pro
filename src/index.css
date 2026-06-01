@@ -1,4 +1,42 @@
-@import url("https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
+
+/*
+ * "Basic" by Magnus Gaarde — self-hosted.
+ * Drop the .woff2 files into public/fonts/basic/ and these declarations pick them up.
+ * Until then the stack falls back gracefully to Manrope (very close in feel).
+ */
+@font-face {
+  font-family: "Basic";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/basic/Basic-Regular.woff2") format("woff2"),
+       url("/fonts/basic/Basic-Regular.woff") format("woff");
+}
+@font-face {
+  font-family: "Basic";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/basic/Basic-Medium.woff2") format("woff2"),
+       url("/fonts/basic/Basic-Medium.woff") format("woff");
+}
+@font-face {
+  font-family: "Basic";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/basic/Basic-SemiBold.woff2") format("woff2"),
+       url("/fonts/basic/Basic-SemiBold.woff") format("woff");
+}
+@font-face {
+  font-family: "Basic";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/basic/Basic-Bold.woff2") format("woff2"),
+       url("/fonts/basic/Basic-Bold.woff") format("woff");
+}
 
 @tailwind base;
 @tailwind components;

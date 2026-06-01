@@ -20,8 +20,8 @@ export default {
         bold: '700',
       },
       fontFamily: {
-        sans: ['Satoshi', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
-        display: ['Satoshi', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['Basic', 'Manrope', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        display: ['Basic', 'Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",

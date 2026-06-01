@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, Upload, Loader2, History, Leaf, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Camera, Upload, History, Leaf, Sparkles, CheckCircle2, Image as ImageIcon, Cpu, CloudUpload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -122,7 +122,7 @@ const Scan = ({ embedded = false }: ScanProps = {}) => {
   const { language } = useLanguage();
   const t = translations[language as keyof typeof translations] || translations.en;
   
-  const { scanImage, saveScanResult, isAnalyzing, error } = useCropScan();
+  const { scanImage, saveScanResult, isAnalyzing, error, stage, progress } = useCropScan();
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -153,7 +153,7 @@ const Scan = ({ embedded = false }: ScanProps = {}) => {
     reader.onload = (e) => setPreviewUrl(e.target?.result as string);
     reader.readAsDataURL(file);
 
-    // Scan image (upload + analyze in one step)
+    // Scan image (compress + upload + analyze)
     const result = await scanImage(file);
     if (!result) {
       toast({
@@ -165,13 +165,13 @@ const Scan = ({ embedded = false }: ScanProps = {}) => {
     }
 
     // Save result
-    const scanId = await saveScanResult(result.imageDataUrl, result.diagnosis);
+    const scanId = await saveScanResult(result.imageUrl, result.diagnosis);
     
     // Navigate to result page
     navigate('/scan/result', { 
       state: { 
         scanId,
-        imageUrl: result.imageDataUrl, 
+        imageUrl: result.imageUrl,
         diagnosis: result.diagnosis,
       } 
     });
@@ -195,6 +195,17 @@ const Scan = ({ embedded = false }: ScanProps = {}) => {
 
   const isLoading = isAnalyzing;
 
+  const stageLabel = stage === 'compressing'
+    ? 'Optimising image…'
+    : stage === 'uploading'
+    ? 'Uploading securely…'
+    : stage === 'analyzing'
+    ? t.analyzing
+    : t.analyzing;
+
+  const stageIcon = stage === 'compressing' ? ImageIcon : stage === 'uploading' ? CloudUpload : Cpu;
+  const StageIcon = stageIcon;
+
   const content = (
     <main className="flex-1 container mx-auto px-4 py-8">
       <div className="max-w-2xl mx-auto">
@@ -216,23 +227,39 @@ const Scan = ({ embedded = false }: ScanProps = {}) => {
           <Card className="mb-6 border-0 shadow-xl">
             <CardContent className="p-6">
               {isLoading ? (
-                <div className="text-center py-12">
-                  <div className="relative inline-block">
-                    <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Loader2 className="w-10 h-10 animate-spin text-primary" />
-                    </div>
+                <div className="py-8">
+                  <div className="flex flex-col items-center gap-5">
                     {previewUrl && (
-                      <img 
-                        src={previewUrl} 
-                        alt="Preview" 
-                        className="absolute -bottom-2 -right-2 w-12 h-12 object-cover rounded-xl border-4 border-background shadow-lg"
-                      />
+                      <div className="relative">
+                        <img
+                          src={previewUrl}
+                          alt="Preview"
+                          className="w-32 h-32 object-cover rounded-2xl shadow-lg ring-1 ring-border"
+                        />
+                        <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-primary/30 to-transparent pointer-events-none" />
+                      </div>
                     )}
+                    <div className="w-full max-w-sm">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2 text-foreground">
+                          <StageIcon className="w-4 h-4 text-primary" />
+                          <span className="text-sm font-medium">{stageLabel}</span>
+                        </div>
+                        <span className="text-xs tabular-nums text-muted-foreground">{Math.round(progress)}%</span>
+                      </div>
+                      <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-primary/70 to-primary transition-all duration-500 ease-out"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                      <div className="flex justify-between mt-3 text-[11px] uppercase tracking-wider text-muted-foreground">
+                        <span className={stage === 'compressing' ? 'text-primary font-medium' : ''}>Optimise</span>
+                        <span className={stage === 'uploading' ? 'text-primary font-medium' : ''}>Upload</span>
+                        <span className={stage === 'analyzing' ? 'text-primary font-medium' : ''}>Analyse</span>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-lg font-medium text-foreground mt-6">
-                    {t.analyzing}
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-2">This may take a few seconds...</p>
                 </div>
               ) : (
                 <>
