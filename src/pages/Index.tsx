@@ -9,6 +9,39 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { PageTransition, StaggerContainer, StaggerItem, FadeIn } from '@/components/PageTransition';
 import { SEO } from '@/components/SEO';
+import type { LucideIcon } from 'lucide-react';
+
+type QuickAction = {
+  icon?: LucideIcon;
+  emoji?: string;
+  title: string;
+  to: string;
+};
+
+function QuickTile({ action }: { action: QuickAction }) {
+  return (
+    <Link to={action.to} className="block group h-full">
+      <Card className="h-full card-hover cursor-pointer relative overflow-hidden">
+        <CardContent className="h-full p-4 flex flex-col items-center justify-center text-center gap-3 min-h-[120px]">
+          <div className="relative">
+            <div className="absolute inset-0 rounded-2xl bg-primary/15 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" aria-hidden />
+            <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 ring-1 ring-primary/10 text-primary flex items-center justify-center transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-[1.06]">
+              {action.emoji ? (
+                <span className="text-xl leading-none" aria-hidden>{action.emoji}</span>
+              ) : action.icon ? (
+                <action.icon className="h-5 w-5" strokeWidth={1.6} />
+              ) : null}
+            </div>
+          </div>
+          <h3 className="font-medium text-[13px] leading-tight text-foreground">{action.title}</h3>
+          <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            Explore →
+          </span>
+        </CardContent>
+      </Card>
+    </Link>
+  );
+}
 
 const Index = () => {
   const { t, language } = useLanguage();
