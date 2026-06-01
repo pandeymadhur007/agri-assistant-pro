@@ -112,40 +112,48 @@ const Index = () => {
             </div>
           </section>
 
-          {/* Quick Actions Section */}
+          {/* Quick Actions — centered pyramid (4 / 3 / 2) on desktop, 2-col grid on mobile */}
           <section className="py-14 px-4">
             <div className="container mx-auto max-w-5xl">
               <FadeIn>
-                <div className="flex items-end justify-between mb-6">
-                  <div>
-                    <h2 className="text-xl md:text-2xl font-semibold text-foreground">
-                      {t('quickActions')}
-                    </h2>
-                    <p className="text-sm text-muted-foreground mt-1">Everything you need, one tap away.</p>
-                  </div>
+                <div className="text-center mb-8">
+                  <h2 className="text-xl md:text-2xl font-semibold text-foreground">
+                    {t('quickActions')}
+                  </h2>
+                  <p className="text-sm text-muted-foreground mt-1.5">
+                    Tap any tile — every tool, one tap away.
+                  </p>
                 </div>
               </FadeIn>
 
-              <StaggerContainer className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4 items-stretch">
+              {/* Mobile: clean 2-col grid */}
+              <StaggerContainer className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:hidden">
                 {quickActions.map((action) => (
-                  <StaggerItem key={action.to} className="h-full">
-                    <Link to={action.to} className="block h-full">
-                      <Card className="h-full card-hover cursor-pointer">
-                        <CardContent className="h-full p-4 flex flex-col items-center justify-center text-center gap-3 min-h-[112px]">
-                          <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                            {'emoji' in action && action.emoji ? (
-                              <span className="text-xl leading-none" aria-hidden>{action.emoji}</span>
-                            ) : (
-                              'icon' in action && action.icon ? <action.icon className="h-5 w-5" /> : null
-                            )}
-                          </div>
-                          <h3 className="font-medium text-[13px] leading-tight text-foreground">{action.title}</h3>
-                        </CardContent>
-                      </Card>
-                    </Link>
+                  <StaggerItem key={action.to}>
+                    <QuickTile action={action} />
                   </StaggerItem>
                 ))}
               </StaggerContainer>
+
+              {/* Desktop: centered pyramid */}
+              <div className="hidden md:flex flex-col items-center gap-5">
+                {([
+                  quickActions.slice(0, 4),
+                  quickActions.slice(4, 7),
+                  quickActions.slice(7, 9),
+                ] as typeof quickActions[]).map((row, rowIdx) => (
+                  <StaggerContainer
+                    key={rowIdx}
+                    className="flex justify-center gap-5"
+                  >
+                    {row.map((action) => (
+                      <StaggerItem key={action.to} className="w-44">
+                        <QuickTile action={action} />
+                      </StaggerItem>
+                    ))}
+                  </StaggerContainer>
+                ))}
+              </div>
             </div>
           </section>
 
