@@ -1,68 +1,76 @@
-## Goal
-Polish Gram AI to feel like a premium product (Arc / Linear / Raycast / Notion vibe). No feature, route, or layout structure changes — only visual tokens, components, typography, spacing, and motion.
+## What I'll change
 
-## What changes
+### 1. Font: switch site-wide to "Basic"
+You said you'll upload the `.woff2`/`.ttf` files. I'll:
+- Place them in `public/fonts/basic/` (e.g. `Basic-Regular.woff2`, `Basic-Medium.woff2`, `Basic-Bold.woff2`).
+- Add an `@font-face` block in `src/index.css` with `font-display: swap`.
+- Update `tailwind.config.ts` to make `font-sans` = `Basic, system-ui, sans-serif`, so every page/component picks it up automatically.
+- Preload the Regular weight in `index.html` for a snappy first paint.
 
-### 1. Design tokens (`src/index.css` + `tailwind.config.ts`)
-Replace the current green/yellow palette with the calmer one from the brief:
+**I need from you:** the actual font files. Drag them into chat (Regular + Medium/Bold ideally). If you can't share them, say the word and I'll swap to the closest free match (Manrope) instead.
 
-- `--background` → `#F7F6F2` (warm off-white)
-- `--foreground` → `#1E2421`
-- `--primary` → `#3F6B52` (deep sage)
-- `--secondary` → `#A8C3A0`
-- `--accent` → `#C7D96A`
-- `--card` → `#FFFFFF`
-- `--border` → `#E7E6E0` (hairline)
-- `--muted` → `#F0EFE9`
-- `--muted-foreground` → `#6B716C`
-- `--ring` → primary at low alpha
-- `--radius` → `1rem` (consistent rounded corners)
+### 2. Scanning: make it fast and feel fast
+You picked all four improvements. I'll implement them in this order:
 
-Dark mode: near-black `#10120F` background, warm white text, primary lifted to `#7FB494`, hairline border `rgba(255,255,255,0.07)`.
+**a. Aggressive client-side compression → WebP**
+- `src/hooks/useCropScan.ts` currently caps at 1024px @ JPEG 0.78. Drop to **768px @ WebP 0.72** with a JPEG fallback for old browsers. Typical payload goes from ~250 KB → ~60–90 KB (3–4× smaller upload).
 
-Add new tokens: `--shadow-sm/md/lg` with soft, low-spread elevations (`0 1px 2px / 0 8px 24px -12px`), `--gradient-soft` (very subtle sage wash for hero only).
+**b. Switch model to `google/gemini-2.5-flash-lite`**
+- In `supabase/functions/scan-crop/index.ts`, change the model. It's measurably faster and cheaper. Disease detection on clear leaf photos stays solid; I'll keep the same strict JSON system prompt so accuracy doesn't drift.
 
-Remove the loud `pulse-glow`, neon `hero-pattern`, and bright gradient text. Replace gradient text with solid `text-foreground` + tracking adjustments.
+**c. Upload via Lovable Cloud Storage instead of base64**
+- New public bucket `crop-scan-uploads` (RLS: anyone can `INSERT`, signed URLs for read, auto-cleanup after 24h via a scheduled function).
+- Client uploads the compressed WebP directly → gets a public URL → POSTs only the URL to `scan-crop`. The edge function passes that URL to Gemini (it accepts URLs in `image_url`). Removes the heavy base64 round-trip and lets the upload happen in parallel with UI prep.
+- DB column `image_url` keeps the real signed URL now (instead of the truncated base64 reference).
 
-### 2. Typography
-Swap DM Sans for **Satoshi** (via Fontshare CDN) as primary, with system fallback. Use General Sans only if Satoshi fails. Set:
+**d. Streaming progress + optimistic UI on the Scan page**
+- Three visible stages with a smooth progress bar: **Compressing → Uploading → Analyzing**.
+- Skeleton result card appears the instant analysis starts.
+- Cancellable via `AbortController`.
 
-- Headings: Satoshi 600/700, tighter tracking (-0.02em on h1/h2)
-- Body: Satoshi 400/500, 1.6 line-height
-- Mono numerals on prices/temps/stats via `font-feature-settings: "tnum"`
+**Expected end-to-end time:** ~7–10s today → **~2–4s** on a normal 4G connection.
 
-Update `tailwind.config.ts` font weights and add `fontFamily.sans = ['Satoshi', 'system-ui', ...]`.
+### 3. New logo + icon set (minimal premium AI aesthetic)
+Style brief: geometric monoline, soft rounded edges, single subtle green accent (`#7FAE8D`), Scandinavian/futuristic, no gradients-on-gradients.
 
-### 3. Logo / branding (`Navbar.tsx`)
-Replace the "G" tile with a minimal SVG mark: a sage-green rounded square (radius 10) containing a single stylized leaf stroke in `--accent`. Wordmark "Gram AI" in Satoshi 600, tighter tracking, no gradient. Slightly smaller (h-9 w-9). Apply same mark to favicon (skip favicon swap unless trivial).
+- **Logo:** generate a new mark via `imagegen` — abstract sprout-meets-circuit geometry, single-weight stroke, premium feel. Output as transparent PNG at `src/assets/logo.png` + an SVG-style monochrome variant for the navbar. Replace usage in `Navbar.tsx` and favicon.
+- **Quick Action icons:** replace the current Lucide icons (which feel templatey) with a custom monoline set generated to match — one per action (Chat, Crop Center, Animal Husbandry, Smart Crops, Market Prices, Calendar, Community, Weather, Government Schemes). Stored as individual transparent PNGs in `src/assets/icons/`.
+- The icon container in `AnimatedCard`/`QuickActionCard` becomes a soft tinted square with the new icon centered, plus a quiet hover lift and a one-time entrance shimmer to add curiosity.
 
-### 4. Shared components polish
-- **Card** (`src/components/ui/card.tsx`): bump radius to `rounded-2xl`, hairline border, `shadow-sm`, `bg-card`, remove heavy gradients. Add a `.card-hover` utility: `transition-all duration-300, hover:-translate-y-0.5, hover:shadow-md`.
-- **Button** (`src/components/ui/button.tsx`): default variant uses solid primary with subtle inner highlight; outline uses hairline border + hover bg-muted; ghost cleaner; sizes get more horizontal padding; remove harsh focus rings, use 2px ring at primary/30.
-- **Input / Textarea**: hairline border, `bg-card`, focus ring soft.
-- **Badge**: pill, lighter weight, muted bg variants.
-- **Navbar**: thinner (h-14), backdrop blur stays, hairline bottom border, simpler icon buttons (ghost not outline-circle).
-- **BottomNav**: floating pill with hairline border + soft shadow, active item gets sage pill background instead of bold color jump.
+### 4. Quick Actions: centered pyramid layout
+Current grid is `grid-cols-2 sm:grid-cols-3 lg:grid-cols-5` — stretches edge-to-edge. New layout on `src/pages/Index.tsx` (desktop only; mobile stays a clean 2-col stack for usability):
 
-### 5. Page-level polish (no structural changes)
-- `Index.tsx`: tighter hero spacing, replace `hero-gradient` with subtle `--gradient-soft`, larger heading (text-4xl/5xl), quieter subtitle, quick-action grid uses new card style.
-- `MarketPrices`, `Weather`, `CropCenter`, `Chat`, `Community`, `Calendar`, `ScanResult`: only touch container spacing (`space-y-6`, `py-8`), card classes, button variants, heading sizes. No JSX structure rewrites beyond className edits.
-- Replace inline `bg-green-*`, `text-white`, hard-coded hex with semantic tokens wherever encountered during the pass.
+```text
+[ • ] [ • ] [ • ] [ • ]      ← row 1: 4 cards
+   [ • ] [ • ] [ • ]         ← row 2: 3 cards
+      [ • ] [ • ]            ← row 3: 2 cards
+```
 
-### 6. Animations
-Keep framer-motion `PageTransition`. Add Tailwind keyframes already present (`fade-in`) and add `slide-up` (translateY(8px) → 0, 300ms). Use these on hero text + first card row. Remove `pulse-glow` usage. Keep AI typing dot animation. No spinners replaced — just ensure loaders use a soft pulsing skeleton (`bg-muted animate-pulse`).
+- 9 actions → 4 + 3 + 2 fits perfectly.
+- Implemented as three flex rows wrapped in a `max-w-5xl mx-auto` container so the whole pyramid stays centered on the page regardless of viewport width.
+- Equal gap (`gap-5`), equal card width (`w-44`), staggered entrance animation from top row down for a satisfying reveal.
+- Mobile fallback: standard 2-column grid (pyramids don't read well on narrow screens).
 
-### 7. Out of scope
-- No route changes, no removed features, no new pages.
-- No backend / edge function changes.
-- No light/dark logic changes (theme toggle stays).
-- No copy rewrites.
+### 5. Small polish that comes along
+- Card hover gets a slight scale + soft green glow on the icon only (curiosity hook).
+- "Quick Actions" heading gets a refined kicker line ("Explore →") to invite tapping.
 
-## Risks
-- Satoshi via Fontshare adds ~40KB; acceptable for premium feel.
-- Token swap will visually shift every page; acceptance criterion is "looks calmer + more consistent", not pixel-perfect to the brief mockup.
-- Some pages use hard-coded color classes (e.g. `bg-green-600`); I'll sweep the most visible ones (Index, Navbar, BottomNav, Market/Weather/Chat/Scan) but minor leftovers may remain — easy follow-ups.
+## Files I'll touch
+- `src/index.css` — `@font-face` + font var
+- `tailwind.config.ts` — sans font stack
+- `index.html` — preload font, new favicon
+- `src/hooks/useCropScan.ts` — WebP compression + storage upload + progress callbacks
+- `src/pages/Scan.tsx` — streaming progress UI + skeleton
+- `supabase/functions/scan-crop/index.ts` — model swap + accept URL input
+- New migration — `crop-scan-uploads` bucket + RLS + cleanup function
+- `src/pages/Index.tsx` — pyramid layout
+- `src/components/AnimatedCard.tsx` / `QuickActionCard.tsx` — new icon container styling
+- `src/components/Navbar.tsx` — new logo
+- `src/assets/logo.png` + `src/assets/icons/*.png` — generated assets
+- `public/fonts/basic/*` — your uploaded font files
 
-## Verification
-- Build passes.
-- Spot-check Home, Chat, Market Prices, Scan Result, Community in preview at current viewport. Confirm: new font loaded, sage palette applied, cards feel lighter, no neon green, bottom nav floats cleanly.
+## What I need from you to start
+1. **Font files** for "Basic" (or say "use Manrope" and I'll proceed without).
+2. Confirm the pyramid is **4-3-2** for the 9 quick actions (or tell me a different split).
+
+Reply with the fonts attached and I'll build everything in one pass.
