@@ -33,7 +33,7 @@ function QuickTile({ action }: { action: QuickAction }) {
               ) : null}
             </div>
           </div>
-          <h3 className="font-medium text-[13px] leading-tight text-foreground">{action.title}</h3>
+          <h3 className="font-semibold text-[13px] leading-tight text-foreground">{action.title}</h3>
           <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             Explore →
           </span>
@@ -121,13 +121,13 @@ const Index = () => {
               <FadeIn delay={0.28}>
                 <div className="flex flex-wrap items-center justify-center gap-3">
                   <Link to="/chat">
-                    <button className="inline-flex items-center gap-2 rounded-xl bg-primary text-primary-foreground px-5 py-3 text-sm font-medium shadow-soft-md hover:-translate-y-0.5 transition-all duration-200">
+                    <button className="inline-flex items-center gap-2 rounded-xl bg-primary text-primary-foreground px-5 py-3 text-sm font-semibold shadow-soft-md hover:-translate-y-0.5 transition-all duration-200">
                       <MessageCircle className="w-4 h-4" />
                       {t('startChat')}
                     </button>
                   </Link>
                   <Link to="/scan">
-                    <button className="inline-flex items-center gap-2 rounded-xl border border-border bg-card text-foreground px-5 py-3 text-sm font-medium hover:bg-muted transition-all duration-200">
+                    <button className="inline-flex items-center gap-2 rounded-xl border border-border bg-card text-foreground px-5 py-3 text-sm font-semibold hover:bg-muted transition-all duration-200">
                       <Camera className="w-4 h-4" />
                       Scan a crop
                     </button>
