@@ -149,7 +149,7 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
     font-family: "Satoshi", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-    font-weight: 450;
+    font-weight: 550;
     font-feature-settings: "ss01", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

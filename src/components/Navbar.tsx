@@ -16,7 +16,7 @@ import type { User } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
 import { NotificationBell } from '@/components/NotificationBell';
 import { useTheme } from '@/contexts/ThemeContext';
-import logoMark from '@/assets/logo-mark.png';
+import logoAsset from '@/assets/gram-ai-logo.png.asset.json';
 
 export function Navbar() {
   const { language, setLanguage, t } = useLanguage();
@@ -43,14 +43,14 @@ export function Navbar() {
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border/70 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
-        <Link to="/" className="flex items-center gap-2.5 group">
-          <span
-            className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/15 transition-transform group-hover:scale-[1.04]"
-            aria-hidden
-          >
-            <img src={logoMark} alt="" width={28} height={28} className="h-7 w-7 object-contain" />
-          </span>
-          <span className="text-[17px] font-semibold tracking-tight text-foreground">{t('appName')}</span>
+        <Link to="/" className="flex items-center gap-2 group" aria-label={t('appName')}>
+          <img
+            src={logoAsset.url}
+            alt={t('appName')}
+            width={140}
+            height={40}
+            className="h-9 w-auto object-contain transition-transform group-hover:scale-[1.03]"
+          />
         </Link>
 
         <div className="flex items-center gap-2">
