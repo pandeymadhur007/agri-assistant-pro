@@ -33,7 +33,7 @@ function QuickTile({ action }: { action: QuickAction }) {
               ) : null}
             </div>
           </div>
-          <h3 className="font-semibold text-[13px] leading-tight text-foreground">{action.title}</h3>
+          <h3 className="font-bold text-[13px] leading-tight text-foreground">{action.title}</h3>
           <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             Explore →
           </span>
@@ -150,10 +150,10 @@ const Index = () => {
             <div className="container mx-auto max-w-5xl">
               <FadeIn>
                 <div className="text-center mb-8">
-                  <h2 className="text-xl md:text-2xl font-semibold text-foreground">
+                  <h2 className="text-xl md:text-2xl font-bold text-foreground">
                     {t('quickActions')}
                   </h2>
-                  <p className="text-sm text-muted-foreground mt-1.5">
+                  <p className="text-sm font-semibold text-muted-foreground mt-1.5">
                     Tap any tile — every tool, one tap away.
                   </p>
                 </div>
