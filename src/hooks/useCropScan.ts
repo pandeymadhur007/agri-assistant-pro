@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
-import { ensureAnonymousSession, cacheUserId } from '@/lib/sessionSupabase';
+import { ensureAnonymousSession, cacheUserId, getSessionId } from '@/lib/sessionSupabase';
 
 export interface CropDiagnosis {
   is_plant: boolean;
@@ -24,69 +24,133 @@ export interface ScanResult {
 
 export type ScanStage = 'idle' | 'compressing' | 'uploading' | 'analyzing' | 'done' | 'error';
 
-const fileToBase64 = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
+type CompressedImage = {
+  blob: Blob;
+  previewUrl: string;
+  ext: string;
+  mime: string;
 };
 
-// Aggressive resize + WebP encode. Typical 3MB phone photo -> ~60-90KB.
-// 640px is enough resolution for AI leaf disease detection — keeps payload tiny.
 const compressImage = async (
   file: File,
   maxDim = 640,
   quality = 0.7,
-): Promise<{ blob: Blob; previewUrl: string; ext: string; mime: string }> => {
-  const dataUrl = await fileToBase64(file);
+): Promise<CompressedImage> => {
+  const sourceUrl = URL.createObjectURL(file);
+
   return new Promise((resolve) => {
     const img = new Image();
+
     img.onload = () => {
       const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
-      const w = Math.round(img.width * scale);
-      const h = Math.round(img.height * scale);
+      const width = Math.max(1, Math.round(img.width * scale));
+      const height = Math.max(1, Math.round(img.height * scale));
+
       const canvas = document.createElement('canvas');
-      canvas.width = w;
-      canvas.height = h;
+      canvas.width = width;
+      canvas.height = height;
+
       const ctx = canvas.getContext('2d');
       if (!ctx) {
-        // Fallback: send original
-        fetch(dataUrl).then(r => r.blob()).then(blob => {
-          resolve({ blob, previewUrl: dataUrl, ext: 'jpg', mime: 'image/jpeg' });
+        URL.revokeObjectURL(sourceUrl);
+        resolve({
+          blob: file,
+          previewUrl: URL.createObjectURL(file),
+          ext: file.type === 'image/webp' ? 'webp' : 'jpg',
+          mime: file.type || 'image/jpeg',
         });
         return;
       }
-      ctx.drawImage(img, 0, 0, w, h);
-      // Prefer WebP; fall back to JPEG on old browsers.
-      const tryFormat = (mime: 'image/webp' | 'image/jpeg', ext: 'webp' | 'jpg') => {
-        canvas.toBlob(
-          (blob) => {
-            if (blob) {
-              const previewUrl = canvas.toDataURL(mime, quality);
-              resolve({ blob, previewUrl, ext, mime });
-            } else if (mime === 'image/webp') {
-              tryFormat('image/jpeg', 'jpg');
-            } else {
-              fetch(dataUrl).then(r => r.blob()).then(blob => {
-                resolve({ blob, previewUrl: dataUrl, ext: 'jpg', mime: 'image/jpeg' });
-              });
-            }
-          },
-          mime,
-          quality,
-        );
+
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const settle = (blob: Blob, mime: string, ext: string) => {
+        URL.revokeObjectURL(sourceUrl);
+        resolve({ blob, previewUrl: URL.createObjectURL(blob), mime, ext });
       };
-      tryFormat('image/webp', 'webp');
+
+      if (width === img.width && height === img.height && file.type === 'image/webp' && file.size < 700 * 1024) {
+        URL.revokeObjectURL(sourceUrl);
+        resolve({ blob: file, previewUrl: URL.createObjectURL(file), mime: 'image/webp', ext: 'webp' });
+        return;
+      }
+
+      canvas.toBlob(
+        (webpBlob) => {
+          if (webpBlob) {
+            settle(webpBlob, 'image/webp', 'webp');
+            return;
+          }
+
+          canvas.toBlob(
+            (jpegBlob) => {
+              if (jpegBlob) {
+                settle(jpegBlob, 'image/jpeg', 'jpg');
+                return;
+              }
+
+              URL.revokeObjectURL(sourceUrl);
+              resolve({
+                blob: file,
+                previewUrl: URL.createObjectURL(file),
+                ext: file.type === 'image/webp' ? 'webp' : 'jpg',
+                mime: file.type || 'image/jpeg',
+              });
+            },
+            'image/jpeg',
+            quality,
+          );
+        },
+        'image/webp',
+        quality,
+      );
     };
+
     img.onerror = () => {
-      fetch(dataUrl).then(r => r.blob()).then(blob => {
-        resolve({ blob, previewUrl: dataUrl, ext: 'jpg', mime: 'image/jpeg' });
+      URL.revokeObjectURL(sourceUrl);
+      resolve({
+        blob: file,
+        previewUrl: URL.createObjectURL(file),
+        ext: file.type === 'image/webp' ? 'webp' : 'jpg',
+        mime: file.type || 'image/jpeg',
       });
     };
-    img.src = dataUrl;
+
+    img.src = sourceUrl;
   });
+};
+
+const uploadCompressedImage = async (blob: Blob, ext: string, mime: string) => {
+  const path = `uploads/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+  const { error } = await supabase.storage
+    .from('crop-scan-uploads')
+    .upload(path, blob, { contentType: mime, upsert: false, cacheControl: '3600' });
+
+  if (error) throw new Error(error.message);
+
+  const { data } = supabase.storage.from('crop-scan-uploads').getPublicUrl(path);
+  return data.publicUrl;
+};
+
+const callScanFunction = async (imageUrl: string, language: string) => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 45_000);
+
+  try {
+    return await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/scan-crop`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      },
+      body: JSON.stringify({ imageUrl, language }),
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timer);
+  }
 };
 
 export const useCropScan = () => {
@@ -97,80 +161,71 @@ export const useCropScan = () => {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const { language } = useLanguage();
 
-  useEffect(() => {
-    const initSession = async () => {
-      const id = await ensureAnonymousSession();
-      if (id) {
-        setSessionId(id);
-        cacheUserId(id);
+  const ensureSessionState = async (): Promise<string | null> => {
+    const currentSession = sessionId || await getSessionId();
+    if (currentSession) {
+      if (currentSession !== sessionId) {
+        setSessionId(currentSession);
+        cacheUserId(currentSession);
       }
-    };
-    initSession();
+      return currentSession;
+    }
+
+    const newSessionId = await ensureAnonymousSession();
+    if (newSessionId && newSessionId !== sessionId) {
+      setSessionId(newSessionId);
+      cacheUserId(newSessionId);
+    }
+    return newSessionId;
+  };
+
+  useEffect(() => {
+    void (async () => {
+      const currentSession = await getSessionId();
+      if (currentSession) {
+        setSessionId(currentSession);
+        cacheUserId(currentSession);
+        return;
+      }
+
+      const newSessionId = await ensureAnonymousSession();
+      if (newSessionId) {
+        setSessionId(newSessionId);
+        cacheUserId(newSessionId);
+      }
+    })();
   }, []);
 
   const scanImage = async (
     file: File,
   ): Promise<{ diagnosis: CropDiagnosis; imageDataUrl: string; imageUrl: string } | null> => {
-    // Re-entry guard — prevent duplicate scans from rapid double-clicks
     if (isAnalyzing) return null;
+
     setIsAnalyzing(true);
     setError(null);
     setStage('compressing');
     setProgress(5);
 
     try {
-      const currentSessionId = sessionId || await ensureAnonymousSession();
-      if (!currentSessionId) throw new Error('Failed to create session');
+      void ensureSessionState();
 
-      // Stage 1: compress
       const { blob, previewUrl, ext, mime } = await compressImage(file);
       setProgress(30);
 
-      // Stage 2: upload to storage
       setStage('uploading');
-      const path = `${currentSessionId}/${crypto.randomUUID()}.${ext}`;
-      const { error: upErr } = await supabase.storage
-        .from('crop-scan-uploads')
-        .upload(path, blob, { contentType: mime, upsert: false });
-      if (upErr) throw new Error(upErr.message);
-      const { data: pub } = supabase.storage.from('crop-scan-uploads').getPublicUrl(path);
-      const publicUrl = pub.publicUrl;
+      const publicUrl = await uploadCompressedImage(blob, ext, mime);
       setProgress(55);
 
-      // Stage 3: analyze
       setStage('analyzing');
       setProgress(70);
 
-      // Timeout + 1 retry on transient failures (network / 5xx / gateway hiccups)
-      const callScan = async (): Promise<Response> => {
-        const ac = new AbortController();
-        const timer = setTimeout(() => ac.abort(), 45_000);
-        try {
-          return await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/scan-crop`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-              },
-              body: JSON.stringify({ imageUrl: publicUrl, language }),
-              signal: ac.signal,
-            }
-          );
-        } finally {
-          clearTimeout(timer);
-        }
-      };
-
       let response: Response;
       try {
-        response = await callScan();
+        response = await callScanFunction(publicUrl, language);
         if (!response.ok && response.status >= 500) throw new Error('retry');
       } catch {
-        // One retry after brief backoff
-        await new Promise(r => setTimeout(r, 800));
-        response = await callScan();
+        await new Promise((resolve) => setTimeout(resolve, 800));
+        response = await callScanFunction(publicUrl, language);
       }
 
       if (!response.ok) {
@@ -186,10 +241,10 @@ export const useCropScan = () => {
       setStage('done');
       return { diagnosis: data.diagnosis, imageDataUrl: previewUrl, imageUrl: publicUrl };
     } catch (err) {
-      const msg = err instanceof Error
+      const message = err instanceof Error
         ? (err.name === 'AbortError' ? 'Analysis timed out. Check your connection and try again.' : err.message)
         : 'Failed to analyze image';
-      setError(msg);
+      setError(message);
       setStage('error');
       return null;
     } finally {
@@ -202,8 +257,8 @@ export const useCropScan = () => {
     diagnosis: CropDiagnosis,
   ): Promise<string | null> => {
     try {
-      const currentSessionId = sessionId || await ensureAnonymousSession();
-      if (!currentSessionId) throw new Error('Failed to create session');
+      const currentSessionId = sessionId || await ensureSessionState();
+      if (!currentSessionId) return null;
 
       const { data, error: insertError } = await supabase
         .from('crop_scans')
@@ -233,7 +288,7 @@ export const useCropScan = () => {
 
   const getScanHistory = async (): Promise<ScanResult[]> => {
     try {
-      const currentSessionId = sessionId || await ensureAnonymousSession();
+      const currentSessionId = sessionId || await ensureSessionState();
       if (!currentSessionId) return [];
 
       const { data, error: queryError } = await supabase
@@ -244,7 +299,7 @@ export const useCropScan = () => {
 
       if (queryError) throw new Error(queryError.message);
 
-      return (data || []).map(scan => ({
+      return (data || []).map((scan) => ({
         id: scan.id,
         image_url: scan.image_url,
         diagnosis: {

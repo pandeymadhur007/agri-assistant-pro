@@ -1,13 +1,15 @@
 import { supabase } from '@/integrations/supabase/client';
 
+const ANON_AUTH_TIMEOUT_MS = 4000;
+
 /**
  * Get the current user's ID for session-based features.
  * This uses Supabase anonymous auth for secure server-side session management.
  * If no user is authenticated, returns null.
  */
 export const getSessionId = async (): Promise<string | null> => {
-  const { data: { user } } = await supabase.auth.getUser();
-  return user?.id ?? null;
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.user?.id ?? null;
 };
 
 /**
@@ -18,22 +20,36 @@ export const getSessionId = async (): Promise<string | null> => {
  * 3. Sessions have proper expiration and refresh mechanisms
  */
 export const ensureAnonymousSession = async (): Promise<string | null> => {
-  // Check if user is already authenticated
-  const { data: { user } } = await supabase.auth.getUser();
-  
-  if (user) {
-    return user.id;
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (session?.user) {
+    localStorage.setItem('gram_user_id', session.user.id);
+    return session.user.id;
   }
 
-  // Sign in anonymously for secure session management
-  const { data, error } = await supabase.auth.signInAnonymously();
-  
-  if (error) {
-    console.error('Failed to create anonymous session:', error.message);
+  try {
+    const { data, error } = await Promise.race([
+      supabase.auth.signInAnonymously(),
+      new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Anonymous auth timed out')), ANON_AUTH_TIMEOUT_MS);
+      }),
+    ]);
+
+    if (error) {
+      console.error('Failed to create anonymous session:', error.message);
+      return null;
+    }
+
+    const userId = data.user?.id ?? null;
+    if (userId) {
+      localStorage.setItem('gram_user_id', userId);
+    }
+
+    return userId;
+  } catch (error) {
+    console.error('Failed to create anonymous session:', error instanceof Error ? error.message : 'Unknown error');
     return null;
   }
-
-  return data.user?.id ?? null;
 };
 
 /**
