@@ -26,6 +26,8 @@ export function useChat() {
   }, []);
 
   const sendMessage = useCallback(async (input: string) => {
+    // Prevent duplicate sends from rapid double-clicks / Enter mashing
+    if (isLoading) return;
     const userMsg: Message = { role: 'user', content: input };
     setMessages(prev => [...prev, userMsg]);
     setIsLoading(true);
@@ -56,6 +58,9 @@ export function useChat() {
         cacheUserId(currentSessionId);
       }
 
+      // 60s timeout — chat streams can be long but should not hang forever
+      const ac = new AbortController();
+      const timer = setTimeout(() => ac.abort(), 60_000);
       const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`, {
         method: 'POST',
         headers: {
@@ -67,9 +72,12 @@ export function useChat() {
           messages: [...messages, userMsg],
           language 
         }),
+        signal: ac.signal,
       });
+      clearTimeout(timer);
 
       if (!resp.ok || !resp.body) {
+        if (resp.status === 429) throw new Error('Too many requests. Please wait a moment.');
         throw new Error('Failed to start stream');
       }
 
@@ -106,14 +114,17 @@ export function useChat() {
       }
     } catch (e) {
       console.error('Chat error:', e);
+      const msg = e instanceof Error && e.name === 'AbortError'
+        ? 'Response timed out. Please try again.'
+        : 'Sorry, I encountered an error. Please try again.';
       setMessages(prev => [
         ...prev,
-        { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' },
+        { role: 'assistant', content: msg },
       ]);
     } finally {
       setIsLoading(false);
     }
-  }, [messages, language, sessionId]);
+  }, [messages, language, sessionId, isLoading]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);

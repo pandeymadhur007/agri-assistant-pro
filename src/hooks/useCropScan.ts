@@ -34,11 +34,11 @@ const fileToBase64 = (file: File): Promise<string> => {
 };
 
 // Aggressive resize + WebP encode. Typical 3MB phone photo -> ~60-90KB.
-// 768px is more than enough resolution for AI leaf disease detection.
+// 640px is enough resolution for AI leaf disease detection — keeps payload tiny.
 const compressImage = async (
   file: File,
-  maxDim = 768,
-  quality = 0.72,
+  maxDim = 640,
+  quality = 0.7,
 ): Promise<{ blob: Blob; previewUrl: string; ext: string; mime: string }> => {
   const dataUrl = await fileToBase64(file);
   return new Promise((resolve) => {
@@ -111,6 +111,8 @@ export const useCropScan = () => {
   const scanImage = async (
     file: File,
   ): Promise<{ diagnosis: CropDiagnosis; imageDataUrl: string; imageUrl: string } | null> => {
+    // Re-entry guard — prevent duplicate scans from rapid double-clicks
+    if (isAnalyzing) return null;
     setIsAnalyzing(true);
     setError(null);
     setStage('compressing');
@@ -139,20 +141,43 @@ export const useCropScan = () => {
       setStage('analyzing');
       setProgress(70);
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/scan-crop`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({ imageUrl: publicUrl, language }),
+      // Timeout + 1 retry on transient failures (network / 5xx / gateway hiccups)
+      const callScan = async (): Promise<Response> => {
+        const ac = new AbortController();
+        const timer = setTimeout(() => ac.abort(), 45_000);
+        try {
+          return await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/scan-crop`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+              },
+              body: JSON.stringify({ imageUrl: publicUrl, language }),
+              signal: ac.signal,
+            }
+          );
+        } finally {
+          clearTimeout(timer);
         }
-      );
+      };
+
+      let response: Response;
+      try {
+        response = await callScan();
+        if (!response.ok && response.status >= 500) throw new Error('retry');
+      } catch {
+        // One retry after brief backoff
+        await new Promise(r => setTimeout(r, 800));
+        response = await callScan();
+      }
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 429) {
+          throw new Error('Too many requests. Please wait a moment and try again.');
+        }
         throw new Error(errorData.error || 'Failed to analyze image');
       }
 
@@ -161,7 +186,10 @@ export const useCropScan = () => {
       setStage('done');
       return { diagnosis: data.diagnosis, imageDataUrl: previewUrl, imageUrl: publicUrl };
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to analyze image');
+      const msg = err instanceof Error
+        ? (err.name === 'AbortError' ? 'Analysis timed out. Check your connection and try again.' : err.message)
+        : 'Failed to analyze image';
+      setError(msg);
       setStage('error');
       return null;
     } finally {
