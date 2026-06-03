@@ -180,7 +180,20 @@ export const useCropScan = () => {
   };
 
   useEffect(() => {
-    void ensureSessionState();
+    void (async () => {
+      const currentSession = await getSessionId();
+      if (currentSession) {
+        setSessionId(currentSession);
+        cacheUserId(currentSession);
+        return;
+      }
+
+      const newSessionId = await ensureAnonymousSession();
+      if (newSessionId) {
+        setSessionId(newSessionId);
+        cacheUserId(newSessionId);
+      }
+    })();
   }, []);
 
   const scanImage = async (
