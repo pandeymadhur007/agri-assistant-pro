@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Camera, Upload, History, Leaf, Sparkles, CheckCircle2, Image as ImageIcon, Cpu, CloudUpload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -129,6 +129,14 @@ const Scan = ({ embedded = false }: ScanProps = {}) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
+  useEffect(() => {
+    return () => {
+      if (previewUrl?.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
   const handleFileSelect = async (file: File) => {
     if (!file.type.startsWith('image/')) {
       toast({
@@ -148,10 +156,13 @@ const Scan = ({ embedded = false }: ScanProps = {}) => {
       return;
     }
 
-    // Show preview
-    const reader = new FileReader();
-    reader.onload = (e) => setPreviewUrl(e.target?.result as string);
-    reader.readAsDataURL(file);
+    const nextPreviewUrl = URL.createObjectURL(file);
+    setPreviewUrl((current) => {
+      if (current?.startsWith('blob:')) {
+        URL.revokeObjectURL(current);
+      }
+      return nextPreviewUrl;
+    });
 
     // Scan image (compress + upload + analyze)
     const result = await scanImage(file);
