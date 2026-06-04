@@ -207,7 +207,8 @@ export const useCropScan = () => {
     setProgress(5);
 
     try {
-      void ensureSessionState();
+      // Must await session - storage upload now requires authenticated user (anon auth ok)
+      await ensureSessionState();
 
       const { blob, previewUrl, ext, mime } = await compressImage(file);
       setProgress(30);
