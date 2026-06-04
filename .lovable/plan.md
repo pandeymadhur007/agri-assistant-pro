@@ -1,76 +1,39 @@
-## What I'll change
+## What's wrong today
 
-### 1. Font: switch site-wide to "Basic"
-You said you'll upload the `.woff2`/`.ttf` files. I'll:
-- Place them in `public/fonts/basic/` (e.g. `Basic-Regular.woff2`, `Basic-Medium.woff2`, `Basic-Bold.woff2`).
-- Add an `@font-face` block in `src/index.css` with `font-display: swap`.
-- Update `tailwind.config.ts` to make `font-sans` = `Basic, system-ui, sans-serif`, so every page/component picks it up automatically.
-- Preload the Regular weight in `index.html` for a snappy first paint.
+**Market prices** — `supabase/functions/fetch-market-prices/index.ts` asks Gemini to *invent* "realistic" mandi prices inside hardcoded ranges (Rice 1500–4500/quintal). That's why your app shows Rice at ₹3,100 while search engines quote much higher figures. The project already has `DATA_GOV_API_KEY` configured but it's unused.
 
-**I need from you:** the actual font files. Drag them into chat (Regular + Medium/Bold ideally). If you can't share them, say the word and I'll swap to the closest free match (Manrope) instead.
+Note on the Brave screenshot: ₹99/kg = ₹9,900/quintal is a retail figure, not a mandi (wholesale) price. Real paddy mandi prices on Agmarknet are typically ₹2,000–3,500/quintal. So we shouldn't blindly chase ₹9,900 — we should fetch the *actual* government Agmarknet feed and show real numbers with the real date.
 
-### 2. Scanning: make it fast and feel fast
-You picked all four improvements. I'll implement them in this order:
+**Logo** — currently using `src/assets/gram-ai-logo.png`. You want the small green leaf/sprout icon from `Screenshot_2026-06-03_083610.png`.
 
-**a. Aggressive client-side compression → WebP**
-- `src/hooks/useCropScan.ts` currently caps at 1024px @ JPEG 0.78. Drop to **768px @ WebP 0.72** with a JPEG fallback for old browsers. Typical payload goes from ~250 KB → ~60–90 KB (3–4× smaller upload).
+## Plan
 
-**b. Switch model to `google/gemini-2.5-flash-lite`**
-- In `supabase/functions/scan-crop/index.ts`, change the model. It's measurably faster and cheaper. Disease detection on clear leaf photos stays solid; I'll keep the same strict JSON system prompt so accuracy doesn't drift.
+### 1. Real mandi prices from data.gov.in (Agmarknet)
 
-**c. Upload via Lovable Cloud Storage instead of base64**
-- New public bucket `crop-scan-uploads` (RLS: anyone can `INSERT`, signed URLs for read, auto-cleanup after 24h via a scheduled function).
-- Client uploads the compressed WebP directly → gets a public URL → POSTs only the URL to `scan-crop`. The edge function passes that URL to Gemini (it accepts URLs in `image_url`). Removes the heavy base64 round-trip and lets the upload happen in parallel with UI prep.
-- DB column `image_url` keeps the real signed URL now (instead of the truncated base64 reference).
-
-**d. Streaming progress + optimistic UI on the Scan page**
-- Three visible stages with a smooth progress bar: **Compressing → Uploading → Analyzing**.
-- Skeleton result card appears the instant analysis starts.
-- Cancellable via `AbortController`.
-
-**Expected end-to-end time:** ~7–10s today → **~2–4s** on a normal 4G connection.
-
-### 3. New logo + icon set (minimal premium AI aesthetic)
-Style brief: geometric monoline, soft rounded edges, single subtle green accent (`#7FAE8D`), Scandinavian/futuristic, no gradients-on-gradients.
-
-- **Logo:** generate a new mark via `imagegen` — abstract sprout-meets-circuit geometry, single-weight stroke, premium feel. Output as transparent PNG at `src/assets/logo.png` + an SVG-style monochrome variant for the navbar. Replace usage in `Navbar.tsx` and favicon.
-- **Quick Action icons:** replace the current Lucide icons (which feel templatey) with a custom monoline set generated to match — one per action (Chat, Crop Center, Animal Husbandry, Smart Crops, Market Prices, Calendar, Community, Weather, Government Schemes). Stored as individual transparent PNGs in `src/assets/icons/`.
-- The icon container in `AnimatedCard`/`QuickActionCard` becomes a soft tinted square with the new icon centered, plus a quiet hover lift and a one-time entrance shimmer to add curiosity.
-
-### 4. Quick Actions: centered pyramid layout
-Current grid is `grid-cols-2 sm:grid-cols-3 lg:grid-cols-5` — stretches edge-to-edge. New layout on `src/pages/Index.tsx` (desktop only; mobile stays a clean 2-col stack for usability):
+Rewrite `supabase/functions/fetch-market-prices/index.ts` to call the official Agmarknet resource:
 
 ```text
-[ • ] [ • ] [ • ] [ • ]      ← row 1: 4 cards
-   [ • ] [ • ] [ • ]         ← row 2: 3 cards
-      [ • ] [ • ]            ← row 3: 2 cards
+https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070
+  ?api-key=$DATA_GOV_API_KEY&format=json&limit=2000
 ```
 
-- 9 actions → 4 + 3 + 2 fits perfectly.
-- Implemented as three flex rows wrapped in a `max-w-5xl mx-auto` container so the whole pyramid stays centered on the page regardless of viewport width.
-- Equal gap (`gap-5`), equal card width (`w-44`), staggered entrance animation from top row down for a satisfying reveal.
-- Mobile fallback: standard 2-column grid (pyramids don't read well on narrow screens).
+For each record map: `commodity → crop_name`, `state`, `district`, `market → mandi`, `modal_price → price` (₹/quintal), `arrival_date → price_date`. Compute `price_trend` by comparing the new modal price for the same `(crop, state, mandi)` against the previous row in `market_prices` (up / down / stable, threshold ±2%).
 
-### 5. Small polish that comes along
-- Card hover gets a slight scale + soft green glow on the icon only (curiosity hook).
-- "Quick Actions" heading gets a refined kicker line ("Explore →") to invite tapping.
+Then: filter to the crop list the app already shows, delete old rows, insert in batches of 100. Keep the existing response shape (`{ success, count, updated_at }`) so `MarketPrices.tsx` and `MarketPriceCrop.tsx` need no client changes.
 
-## Files I'll touch
-- `src/index.css` — `@font-face` + font var
-- `tailwind.config.ts` — sans font stack
-- `index.html` — preload font, new favicon
-- `src/hooks/useCropScan.ts` — WebP compression + storage upload + progress callbacks
-- `src/pages/Scan.tsx` — streaming progress UI + skeleton
-- `supabase/functions/scan-crop/index.ts` — model swap + accept URL input
-- New migration — `crop-scan-uploads` bucket + RLS + cleanup function
-- `src/pages/Index.tsx` — pyramid layout
-- `src/components/AnimatedCard.tsx` / `QuickActionCard.tsx` — new icon container styling
-- `src/components/Navbar.tsx` — new logo
-- `src/assets/logo.png` + `src/assets/icons/*.png` — generated assets
-- `public/fonts/basic/*` — your uploaded font files
+Fallback: if the API call fails or returns 0 rows, return `{ error: "Live mandi feed unavailable" }` with status 503 — do NOT fall back to AI-invented numbers. The UI's existing error state will surface this honestly.
 
-## What I need from you to start
-1. **Font files** for "Basic" (or say "use Manrope" and I'll proceed without).
-2. Confirm the pyramid is **4-3-2** for the 9 quick actions (or tell me a different split).
+Keep the AI-based `market-insight` edge function as-is; it just summarizes whatever real prices are in the DB.
 
-Reply with the fonts attached and I'll build everything in one pass.
+### 2. Replace logo
+
+- Upload `Screenshot_2026-06-03_083610.png` via `lovable-assets create` → `src/assets/gram-ai-logo-v2.png.asset.json`.
+- Update the one import in `src/components/Navbar.tsx` to point at the new asset.
+- Delete the old asset pointer + CDN file via `delete_asset`.
+
+(The screenshot is a tight crop of just the icon, so it'll work directly as the header logo. Favicon and PWA icons are separate files and stay untouched unless you want those swapped too — see open question below.)
+
+## Open questions
+
+1. Do you also want the **favicon** (`public/favicon.svg`) and the manifest icons updated to the new leaf icon, or just the in-app header logo?
+2. The data.gov.in feed lists hundreds of mandis but not every crop is reported every day. If a crop in your app has zero rows for today, should the page show "No price reported today" or fall back to the **most recent** mandi price for that crop (with the older date shown)?

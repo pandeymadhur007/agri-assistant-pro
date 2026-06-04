@@ -6,17 +6,49 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Map Agmarknet commodity names → the names the app expects
+const COMMODITY_MAP: Record<string, { name: string; nameHi: string }> = {
+  "Rice": { name: "Rice", nameHi: "चावल" },
+  "Paddy(Dhan)(Common)": { name: "Rice", nameHi: "चावल" },
+  "Paddy(Dhan)(Basmati)": { name: "Rice", nameHi: "चावल" },
+  "Wheat": { name: "Wheat", nameHi: "गेहूं" },
+  "Maize": { name: "Maize", nameHi: "मक्का" },
+  "Bajra(Pearl Millet/Cumbu)": { name: "Bajra", nameHi: "बाजरा" },
+  "Jowar(Sorghum)": { name: "Jowar", nameHi: "ज्वार" },
+  "Arhar (Tur/Red Gram)(Whole)": { name: "Arhar Dal", nameHi: "अरहर दाल" },
+  "Bengal Gram(Gram)(Whole)": { name: "Chana Dal", nameHi: "चना दाल" },
+  "Green Gram (Moong)(Whole)": { name: "Moong Dal", nameHi: "मूंग दाल" },
+  "Black Gram (Urd Beans)(Whole)": { name: "Urad Dal", nameHi: "उड़द दाल" },
+  "Lentil (Masur)(Whole)": { name: "Masoor Dal", nameHi: "मसूर दाल" },
+  "Soyabean": { name: "Soyabean", nameHi: "सोयाबीन" },
+  "Mustard": { name: "Mustard", nameHi: "सरसों" },
+  "Groundnut": { name: "Groundnut", nameHi: "मूंगफली" },
+  "Cotton": { name: "Cotton", nameHi: "कपास" },
+  "Sugarcane": { name: "Sugarcane", nameHi: "गन्ना" },
+  "Onion": { name: "Onion", nameHi: "प्याज" },
+  "Potato": { name: "Potato", nameHi: "आलू" },
+  "Tomato": { name: "Tomato", nameHi: "टमाटर" },
+  "Green Chilli": { name: "Green Chilli", nameHi: "हरी मिर्च" },
+  "Turmeric": { name: "Turmeric", nameHi: "हल्दी" },
+  "Garlic": { name: "Garlic", nameHi: "लहसुन" },
+  "Banana": { name: "Banana", nameHi: "केला" },
+  "Apple": { name: "Apple", nameHi: "सेब" },
+  "Mango": { name: "Mango", nameHi: "आम" },
+};
+
+const AGMARKNET_RESOURCE = "9ef84268-d588-465a-a308-a864a43d0070";
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const DATA_GOV_API_KEY = Deno.env.get("DATA_GOV_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-    if (!LOVABLE_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    if (!DATA_GOV_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       return new Response(
         JSON.stringify({ error: "Service configuration error" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -24,127 +56,100 @@ serve(async (req) => {
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-    const today = new Date().toISOString().split("T")[0];
 
-    // Use AI to generate current realistic market prices
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        response_format: { type: "json_object" },
-        messages: [
-          {
-            role: "system",
-            content: `You are an Indian agricultural market data expert. Generate REALISTIC current mandi prices for today (${today}) that reflect actual Indian market conditions, seasonal trends, and recent price movements. Use real mandi names and districts.`
-          },
-          {
-            role: "user",
-            content: `Generate 60 realistic market price entries for major Indian crops across different states. Include these crops: Rice, Wheat, Maize, Bajra, Jowar, Arhar Dal, Chana Dal, Moong Dal, Urad Dal, Masoor Dal, Soyabean, Mustard, Groundnut, Cotton, Sugarcane, Onion, Potato, Tomato, Green Chilli, Turmeric, Garlic, Banana, Apple, Mango.
-
-Cover these states: Maharashtra, Madhya Pradesh, Uttar Pradesh, Rajasthan, Gujarat, Karnataka, Andhra Pradesh, Tamil Nadu, Punjab, Haryana, West Bengal, Bihar.
-
-Return JSON with a "prices" array where each entry has:
-- crop_name: English name
-- crop_name_hi: Hindi name
-- state: Indian state
-- district: real district name
-- mandi: real mandi/market name in that district
-- price: modal price in INR per quintal (realistic range for that crop)
-- price_trend: "up", "down", or "stable"
-
-Make prices realistic per quintal: Rice 2000-3500, Wheat 2200-2800, Onion 1500-4000, Tomato 1000-5000, Potato 800-2500, Cotton 6000-7500, Soyabean 4000-5500, Sugarcane 280-400 (based on FRP ₹315/quintal), Maize 1800-2500, Bajra 2000-2800, Jowar 2500-3500, Arhar Dal 6000-9000, Chana Dal 4500-6500, Moong Dal 7000-9000, Urad Dal 6000-8500, Masoor Dal 4500-6500, Mustard 4500-6000, Groundnut 5000-7000, Green Chilli 2000-5000, Turmeric 8000-15000, Garlic 3000-8000, Banana 1500-3500, Apple 5000-12000, Mango 2000-6000. IMPORTANT: Sugarcane price must be between 280-400 per quintal. Vary by region.`
-          }
-        ],
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("AI error:", response.status, errorText);
-      if (response.status === 429) {
+    // Fetch live mandi prices from data.gov.in (Agmarknet)
+    const url = `https://api.data.gov.in/resource/${AGMARKNET_RESOURCE}?api-key=${DATA_GOV_API_KEY}&format=json&limit=2000`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 25_000);
+    let agmark: { records?: any[] } = {};
+    try {
+      const r = await fetch(url, { signal: controller.signal });
+      if (!r.ok) {
+        const t = await r.text();
+        console.error("data.gov.in error:", r.status, t.slice(0, 300));
         return new Response(
-          JSON.stringify({ error: "Rate limited, try again later" }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({ error: "Live mandi feed unavailable" }),
+          { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
+      agmark = await r.json();
+    } catch (e) {
+      console.error("data.gov.in fetch failed:", e instanceof Error ? e.message : e);
       return new Response(
-        JSON.stringify({ error: "Failed to generate prices" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "Live mandi feed unavailable" }),
+        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    } finally {
+      clearTimeout(timer);
     }
 
-    const aiData = await response.json();
-    const content = aiData.choices?.[0]?.message?.content;
-    
-    if (!content) {
-      return new Response(
-        JSON.stringify({ error: "No price data generated" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    let parsed;
-    try {
-      parsed = JSON.parse(content);
-    } catch {
-      console.error("Failed to parse AI response");
-      return new Response(
-        JSON.stringify({ error: "Invalid price data format" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Price validation ranges per crop
-    const priceRanges: Record<string, [number, number]> = {
-      "Sugarcane": [200, 500],
-      "Rice": [1500, 4500],
-      "Wheat": [1800, 3500],
-      "Onion": [800, 6000],
-      "Tomato": [500, 8000],
-      "Potato": [500, 3500],
-      "Cotton": [5000, 9000],
-      "Soyabean": [3000, 7000],
-      "Maize": [1200, 3000],
+    const records: any[] = Array.isArray(agmark.records) ? agmark.records : [];
+    const parseDate = (s: string): string | null => {
+      if (!s) return null;
+      // Agmarknet uses DD/MM/YYYY
+      const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+      const d = new Date(s);
+      return isNaN(d.getTime()) ? null : d.toISOString().split("T")[0];
     };
 
-    const priceRows = (parsed.prices || [])
-      .filter((p: any) => {
-        const range = priceRanges[p.crop_name];
-        if (range && (p.price < range[0] || p.price > range[1])) {
-          console.warn(`Rejected outlier: ${p.crop_name} ₹${p.price} (valid: ${range[0]}-${range[1]})`);
-          return false;
-        }
-        return p.crop_name && p.state && p.district && p.mandi && p.price > 0;
-      })
-      .map((p: any) => ({
-        crop_name: p.crop_name,
-        crop_name_hi: p.crop_name_hi || null,
-        state: p.state,
-        district: p.district,
-        mandi: p.mandi,
-        price: p.price,
+    // Load previous prices to compute trend
+    const { data: previous } = await supabase
+      .from("market_prices")
+      .select("crop_name,state,mandi,price");
+    const prevMap = new Map<string, number>();
+    for (const p of previous || []) {
+      prevMap.set(`${p.crop_name}|${p.state}|${p.mandi}`, Number(p.price));
+    }
+
+    const priceRows: any[] = [];
+    for (const rec of records) {
+      const commodity = String(rec.commodity || "").trim();
+      const mapped = COMMODITY_MAP[commodity];
+      if (!mapped) continue;
+      const modal = Number(rec.modal_price);
+      if (!modal || modal <= 0) continue;
+      const state = String(rec.state || "").trim();
+      const district = String(rec.district || "").trim();
+      const mandi = String(rec.market || "").trim();
+      if (!state || !district || !mandi) continue;
+      const price_date = parseDate(rec.arrival_date) || new Date().toISOString().split("T")[0];
+
+      const key = `${mapped.name}|${state}|${mandi}`;
+      const prev = prevMap.get(key);
+      let price_trend: "up" | "down" | "stable" = "stable";
+      if (prev && prev > 0) {
+        const delta = (modal - prev) / prev;
+        if (delta > 0.02) price_trend = "up";
+        else if (delta < -0.02) price_trend = "down";
+      }
+
+      priceRows.push({
+        crop_name: mapped.name,
+        crop_name_hi: mapped.nameHi,
+        state,
+        district,
+        mandi,
+        price: Math.round(modal),
         unit: "quintal",
-        price_date: today,
-        price_trend: p.price_trend || null,
-      }));
+        price_date,
+        price_trend,
+      });
+    }
 
     if (priceRows.length === 0) {
       return new Response(
-        JSON.stringify({ error: "No valid prices generated" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "Live mandi feed returned no usable records" }),
+        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Clear old prices and insert new
+    // Replace old prices with fresh feed
     await supabase.from("market_prices").delete().neq("id", "00000000-0000-0000-0000-000000000000");
 
     let insertedCount = 0;
-    for (let i = 0; i < priceRows.length; i += 50) {
-      const batch = priceRows.slice(i, i + 50);
+    for (let i = 0; i < priceRows.length; i += 100) {
+      const batch = priceRows.slice(i, i + 100);
       const { error: insertError } = await supabase.from("market_prices").insert(batch);
       if (insertError) {
         console.error("Insert error:", insertError.message);
@@ -157,6 +162,7 @@ Make prices realistic per quintal: Rice 2000-3500, Wheat 2200-2800, Onion 1500-4
       JSON.stringify({
         success: true,
         count: insertedCount,
+        source: "data.gov.in/agmarknet",
         updated_at: new Date().toISOString(),
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
