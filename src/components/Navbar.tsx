@@ -16,7 +16,7 @@ import type { User } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
 import { NotificationBell } from '@/components/NotificationBell';
 import { useTheme } from '@/contexts/ThemeContext';
-import logoAsset from '@/assets/gram-ai-logo-v2.png.asset.json';
+import logoAsset from '@/assets/gram-ai-logo-v3.png.asset.json';
 
 export function Navbar() {
   const { language, setLanguage, t } = useLanguage();

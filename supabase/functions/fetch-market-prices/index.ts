@@ -57,33 +57,45 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Fetch live mandi prices from data.gov.in (Agmarknet)
-    const url = `https://api.data.gov.in/resource/${AGMARKNET_RESOURCE}?api-key=${DATA_GOV_API_KEY}&format=json&limit=2000`;
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 25_000);
-    let agmark: { records?: any[] } = {};
-    try {
-      const r = await fetch(url, { signal: controller.signal });
-      if (!r.ok) {
-        const t = await r.text();
-        console.error("data.gov.in error:", r.status, t.slice(0, 300));
-        return new Response(
-          JSON.stringify({ error: "Live mandi feed unavailable" }),
-          { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+    // Fetch live mandi prices from data.gov.in (Agmarknet) — paginate to get nationwide coverage
+    const PAGE_SIZE = 2000;
+    const MAX_PAGES = 5; // up to ~10,000 records
+    const records: any[] = [];
+    for (let page = 0; page < MAX_PAGES; page++) {
+      const offset = page * PAGE_SIZE;
+      const url = `https://api.data.gov.in/resource/${AGMARKNET_RESOURCE}?api-key=${DATA_GOV_API_KEY}&format=json&limit=${PAGE_SIZE}&offset=${offset}`;
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 25_000);
+      try {
+        const r = await fetch(url, { signal: controller.signal });
+        if (!r.ok) {
+          const t = await r.text();
+          console.error("data.gov.in error:", r.status, t.slice(0, 300));
+          if (page === 0) {
+            return new Response(
+              JSON.stringify({ error: "Live mandi feed unavailable" }),
+              { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+          break;
+        }
+        const json = await r.json();
+        const pageRecords: any[] = Array.isArray(json.records) ? json.records : [];
+        records.push(...pageRecords);
+        if (pageRecords.length < PAGE_SIZE) break; // last page
+      } catch (e) {
+        console.error("data.gov.in fetch failed:", e instanceof Error ? e.message : e);
+        if (page === 0) {
+          return new Response(
+            JSON.stringify({ error: "Live mandi feed unavailable" }),
+            { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        break;
+      } finally {
+        clearTimeout(timer);
       }
-      agmark = await r.json();
-    } catch (e) {
-      console.error("data.gov.in fetch failed:", e instanceof Error ? e.message : e);
-      return new Response(
-        JSON.stringify({ error: "Live mandi feed unavailable" }),
-        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    } finally {
-      clearTimeout(timer);
     }
-
-    const records: any[] = Array.isArray(agmark.records) ? agmark.records : [];
     const parseDate = (s: string): string | null => {
       if (!s) return null;
       // Agmarknet uses DD/MM/YYYY
