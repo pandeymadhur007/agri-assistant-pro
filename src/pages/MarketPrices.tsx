@@ -94,7 +94,7 @@ const MarketPrices = () => {
         .from('market_prices')
         .select('id, crop_name, crop_name_hi, state, district, mandi, price, unit, price_date, price_trend')
         .order('price_date', { ascending: false })
-        .limit(120),
+        .limit(2000),
       supabase.from('msp_rates').select('crop_name, msp_price')
     ]);
 
@@ -263,6 +263,13 @@ const MarketPrices = () => {
           </div>
         </div>
 
+        {/* Source / unit disclaimer */}
+        <div className="mb-3 p-3 rounded-lg border border-border bg-muted/40 text-xs text-muted-foreground leading-relaxed">
+          {language === 'hi'
+            ? 'भाव: सरकारी Agmarknet (data.gov.in) से सीधे लिए गए थोक मंडी रेट हैं — ₹ प्रति क्विंटल (1 क्विंटल = 100 किलो)। Google पर दिखने वाले खुदरा (retail) भाव इनसे ज़्यादा होते हैं।'
+            : 'Prices are live wholesale mandi rates from the Government of India Agmarknet feed (data.gov.in), shown in ₹ per quintal (1 quintal = 100 kg). Retail prices on Google are typically higher than these wholesale rates.'}
+        </div>
+
         {/* AI Insight hint banner */}
         <div className="mb-4 p-3 rounded-lg border border-primary/30 bg-primary/5 flex items-start gap-2">
           <Sparkles className="h-4 w-4 text-primary mt-0.5 shrink-0" />
@@ -341,6 +348,9 @@ const MarketPrices = () => {
                       <IndianRupee className="h-5 w-5 text-foreground" />
                       <span className="text-2xl font-bold text-foreground">{price.price.toLocaleString()}</span>
                       <span className="text-sm text-muted-foreground">{l.perQuintal}</span>
+                    </div>
+                    <div className="-mt-2 mb-3 text-xs text-muted-foreground">
+                      ≈ ₹{(price.price / 100).toLocaleString(undefined, { maximumFractionDigits: 2 })}/kg
                     </div>
                     
                     {comparison && (
