@@ -30,6 +30,8 @@ const Auth = lazy(() => import("./pages/Auth"));
 const Login = lazy(() => import("./pages/Login"));
 const Profile = lazy(() => import("./pages/Profile"));
 const AnimalHusbandry = lazy(() => import("./pages/AnimalHusbandry"));
+const About = lazy(() => import("./pages/About"));
+const Privacy = lazy(() => import("./pages/Privacy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -66,6 +68,8 @@ function AnimatedRoutes() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/recommendations" element={<SmartRecommendations />} />
         <Route path="/animal-husbandry" element={<AnimalHusbandry />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/privacy" element={<Privacy />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       </Suspense>
