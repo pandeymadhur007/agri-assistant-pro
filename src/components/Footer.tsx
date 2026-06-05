@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Logo } from '@/components/Logo';
 
 export function Footer() {
   const { t } = useLanguage();
@@ -9,16 +10,7 @@ export function Footer() {
       <div className="container mx-auto px-4 py-12">
         <div className="grid gap-8 md:grid-cols-3">
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-soft" aria-hidden>
-                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 20c0-5 3-9 8-10-1 5-4 9-8 10z" />
-                  <path d="M12 20c0-4-2-8-7-9 1 4 3 8 7 9z" />
-                  <path d="M12 20V12" />
-                </svg>
-              </span>
-              <span className="text-base font-semibold tracking-tight">{t('appName')}</span>
-            </div>
+            <Logo className="h-10 w-auto mb-3" aria-label={t('appName')} />
             <p className="text-sm text-muted-foreground leading-relaxed">{t('tagline')}</p>
           </div>
 
