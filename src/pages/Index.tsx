@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { MessageCircle, FileText, Sprout, CloudSun, Camera, TrendingUp, CalendarDays, Users, Lightbulb, HelpCircle, Brain, CheckCircle2 } from 'lucide-react';
+import { MessageCircle, FileText, Sprout, CloudSun, Camera, TrendingUp, Users, Lightbulb, HelpCircle, Brain, CheckCircle2 } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { BottomNav } from '@/components/BottomNav';
 import { Footer } from '@/components/Footer';
@@ -60,12 +60,11 @@ const Index = () => {
     { icon: MessageCircle, title: t('startChat'), to: '/chat' },
     { icon: Sprout, title: t('cropCenter'), to: '/crop-center' },
     { emoji: '🐄', title: t('animalHusbandry'), to: '/animal-husbandry' },
-    { icon: Lightbulb, title: t('smartRec'), to: '/recommendations' },
+    { icon: Lightbulb, title: t('smartCropPlanner') || 'Smart Crop Planner', to: '/smart-crop-planner' },
     { icon: TrendingUp, title: t('marketPrices'), to: '/market-prices' },
-    { icon: CalendarDays, title: t('calendar'), to: '/calendar' },
-    { icon: Users, title: t('community'), to: '/community' },
     { icon: CloudSun, title: t('weatherForecast'), to: '/weather' },
     { icon: FileText, title: t('schemes'), to: '/schemes' },
+    { icon: Users, title: t('community'), to: '/community' },
   ];
 
   const featureCards = [
@@ -168,25 +167,14 @@ const Index = () => {
                 ))}
               </StaggerContainer>
 
-              {/* Desktop: centered pyramid */}
-              <div className="hidden md:flex flex-col items-center gap-5">
-                {([
-                  quickActions.slice(0, 4),
-                  quickActions.slice(4, 7),
-                  quickActions.slice(7, 9),
-                ] as typeof quickActions[]).map((row, rowIdx) => (
-                  <StaggerContainer
-                    key={rowIdx}
-                    className="flex justify-center gap-5"
-                  >
-                    {row.map((action) => (
-                      <StaggerItem key={action.to} className="w-44">
-                        <QuickTile action={action} />
-                      </StaggerItem>
-                    ))}
-                  </StaggerContainer>
+              {/* Desktop: 4-column grid */}
+              <StaggerContainer className="hidden md:grid grid-cols-4 gap-5">
+                {quickActions.map((action) => (
+                  <StaggerItem key={action.to}>
+                    <QuickTile action={action} />
+                  </StaggerItem>
                 ))}
-              </div>
+              </StaggerContainer>
             </div>
           </section>
 

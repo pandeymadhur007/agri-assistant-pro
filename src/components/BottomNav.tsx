@@ -6,19 +6,21 @@ import {
   TrendingUp,
   MoreHorizontal,
   Camera,
-  CalendarDays,
   CloudSun,
   Users,
   FileText,
   Sprout,
-  Bug,
   Lightbulb,
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 
-export function BottomNav() {
+interface BottomNavProps {
+  noSpacer?: boolean;
+}
+
+export function BottomNav({ noSpacer = false }: BottomNavProps = {}) {
   const { t } = useLanguage();
   const location = useLocation();
   const [moreOpen, setMoreOpen] = useState(false);
@@ -31,8 +33,7 @@ export function BottomNav() {
 
   const moreItems = [
     { to: '/crop-center', label: t('cropCenter'), icon: Sprout },
-    { to: '/recommendations', label: t('smartRec'), icon: Lightbulb },
-    { to: '/calendar', label: t('calendar'), icon: CalendarDays },
+    { to: '/smart-crop-planner', label: t('smartCropPlanner') || 'Smart Crop Planner', icon: Lightbulb },
     { to: '/weather', label: t('weatherForecast'), icon: CloudSun },
     { to: '/community', label: t('community'), icon: Users },
     { to: '/schemes', label: t('schemes'), icon: FileText },
@@ -104,7 +105,7 @@ export function BottomNav() {
         </ul>
       </nav>
       {/* Spacer so content isn't hidden behind floating bar on mobile */}
-      <div className="md:hidden h-20" aria-hidden />
+      {!noSpacer && <div className="md:hidden h-20" aria-hidden />}
     </>
   );
 }

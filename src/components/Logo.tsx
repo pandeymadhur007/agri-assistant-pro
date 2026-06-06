@@ -1,6 +1,6 @@
 import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
-import logoLight from '@/assets/gram-ai-logo-light.png.asset.json';
+import logoLight from '@/assets/gram-ai-logo-light-v2.png.asset.json';
 import logoDark from '@/assets/gram-ai-logo-dark.png.asset.json';
 
 interface LogoProps {

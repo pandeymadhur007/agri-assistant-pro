@@ -33,8 +33,8 @@ const STATES = [
 ];
 
 const labels: Record<string, Record<string, string>> = {
-  en: { title: 'Smart Crop Recommendations', sub: 'Get AI-powered crop suggestions tailored to your land', state: 'State', soil: 'Soil Type', land: 'Land Size', budget: 'Budget per Acre', getRec: 'Get Recommendations', loading: 'Analyzing your farm profile...', back: 'Back', score: 'Match', yield: 'Yield', invest: 'Investment', profit: 'Profit', days: 'days', water: 'Water', tips: 'Tip', selectState: 'Select state', selectSoil: 'Select soil type', selectLand: 'Select land size', selectBudget: 'Select budget' },
-  hi: { title: 'स्मार्ट फसल सुझाव', sub: 'अपनी जमीन के लिए AI-आधारित फसल सुझाव पाएं', state: 'राज्य', soil: 'मिट्टी का प्रकार', land: 'जमीन का आकार', budget: 'प्रति एकड़ बजट', getRec: 'सुझाव प्राप्त करें', loading: 'आपकी जमीन का विश्लेषण हो रहा है...', back: 'वापस', score: 'मेल', yield: 'उपज', invest: 'निवेश', profit: 'मुनाफा', days: 'दिन', water: 'पानी', tips: 'टिप', selectState: 'राज्य चुनें', selectSoil: 'मिट्टी चुनें', selectLand: 'आकार चुनें', selectBudget: 'बजट चुनें' },
+  en: { title: 'Smart Crop Planner', sub: 'AI-powered crop planning, schedules, reminders, and farming guidance in one place.', state: 'State', soil: 'Soil Type', land: 'Land Size', budget: 'Budget per Acre', getRec: 'Get Recommendations', loading: 'Analyzing your farm profile...', back: 'Back', score: 'Match', yield: 'Yield', invest: 'Investment', profit: 'Profit', days: 'days', water: 'Water', tips: 'Tip', selectState: 'Select state', selectSoil: 'Select soil type', selectLand: 'Select land size', selectBudget: 'Select budget' },
+  hi: { title: 'स्मार्ट फसल योजनाकार', sub: 'AI-संचालित फसल योजना, समय-सारिणी, रिमाइंडर और खेती मार्गदर्शन — एक ही जगह।', state: 'राज्य', soil: 'मिट्टी का प्रकार', land: 'जमीन का आकार', budget: 'प्रति एकड़ बजट', getRec: 'सुझाव प्राप्त करें', loading: 'आपकी जमीन का विश्लेषण हो रहा है...', back: 'वापस', score: 'मेल', yield: 'उपज', invest: 'निवेश', profit: 'मुनाफा', days: 'दिन', water: 'पानी', tips: 'टिप', selectState: 'राज्य चुनें', selectSoil: 'मिट्टी चुनें', selectLand: 'आकार चुनें', selectBudget: 'बजट चुनें' },
 };
 
 const soilOptions = [
@@ -129,6 +129,22 @@ const SmartRecommendations = () => {
             </h1>
             <p className="text-muted-foreground text-sm">{t.sub}</p>
           </div>
+        </div>
+
+        {/* Feature chips */}
+        <div className="mb-6 flex flex-wrap gap-2">
+          {[
+            'Crop Recommendations',
+            'Growth Guidance',
+            'Seasonal Planning',
+            'Sowing Schedule',
+            'Irrigation Planning',
+            'Fertilizer Reminders',
+            'Harvest Planning',
+            'Smart Farming Tips',
+          ].map((f) => (
+            <Badge key={f} variant="secondary" className="font-normal">{f}</Badge>
+          ))}
         </div>
 
         {/* Input Form */}
