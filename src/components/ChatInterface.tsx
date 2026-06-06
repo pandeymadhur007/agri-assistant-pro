@@ -214,7 +214,7 @@ export function ChatInterface() {
         <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={handleSubmit} className="border-t bg-background p-4">
+      <form onSubmit={handleSubmit} className="border-t bg-background p-4 pb-[88px] md:pb-4">
         {/* Voice mode toggle bar */}
         {micSupported && ttsSupported && (
           <div className="flex items-center justify-between mb-2 text-xs">
