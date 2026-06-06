@@ -131,6 +131,22 @@ const SmartRecommendations = () => {
           </div>
         </div>
 
+        {/* Feature chips */}
+        <div className="mb-6 flex flex-wrap gap-2">
+          {[
+            'Crop Recommendations',
+            'Growth Guidance',
+            'Seasonal Planning',
+            'Sowing Schedule',
+            'Irrigation Planning',
+            'Fertilizer Reminders',
+            'Harvest Planning',
+            'Smart Farming Tips',
+          ].map((f) => (
+            <Badge key={f} variant="secondary" className="font-normal">{f}</Badge>
+          ))}
+        </div>
+
         {/* Input Form */}
         <Card className="mb-6 border-primary/30 bg-card/95">
           <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
