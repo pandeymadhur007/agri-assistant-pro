@@ -16,7 +16,11 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 
-export function BottomNav() {
+interface BottomNavProps {
+  noSpacer?: boolean;
+}
+
+export function BottomNav({ noSpacer = false }: BottomNavProps = {}) {
   const { t } = useLanguage();
   const location = useLocation();
   const [moreOpen, setMoreOpen] = useState(false);
@@ -101,7 +105,7 @@ export function BottomNav() {
         </ul>
       </nav>
       {/* Spacer so content isn't hidden behind floating bar on mobile */}
-      <div className="md:hidden h-20" aria-hidden />
+      {!noSpacer && <div className="md:hidden h-20" aria-hidden />}
     </>
   );
 }
