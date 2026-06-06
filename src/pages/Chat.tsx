@@ -5,16 +5,16 @@ import { SEO } from '@/components/SEO';
 
 const Chat = () => {
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-[100dvh] flex flex-col">
       <SEO
         title="AI Farming Assistant Chat"
         description="Ask Gram AI anything about farming — crops, pests, weather, schemes. Voice support in Hindi, Marathi, Telugu, Tamil & Bengali."
       />
       <Navbar />
-      <div className="flex-1 overflow-hidden pb-20 md:pb-0">
+      <div className="flex-1 min-h-0 overflow-hidden">
         <ChatInterface />
       </div>
-      <BottomNav />
+      <BottomNav noSpacer />
     </div>
   );
 };
