@@ -9,34 +9,56 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { PageTransition, StaggerContainer, StaggerItem, FadeIn } from '@/components/PageTransition';
 import { SEO } from '@/components/SEO';
+import { cn } from '@/lib/utils';
 import type { LucideIcon } from 'lucide-react';
 
 type QuickAction = {
   icon?: LucideIcon;
   emoji?: string;
   title: string;
+  subtitle?: string;
   to: string;
+  variant?: 'neutral' | 'mint' | 'ocean' | 'teal' | 'schemes';
 };
 
 function QuickTile({ action }: { action: QuickAction }) {
+  const variant = action.variant || 'neutral';
+  const tileClass =
+    variant === 'mint'
+      ? 'bg-gradient-to-br from-emerald-100/80 to-teal-50/60 dark:from-emerald-900/30 dark:to-teal-900/20 border-emerald-300/60 dark:border-emerald-500/30 shadow-[0_0_0_1px_hsl(var(--primary)/0.15),0_8px_30px_-12px_hsl(var(--primary)/0.35)]'
+      : variant === 'ocean'
+      ? 'bg-gradient-to-r from-[#1e3a8a] via-[#0e7490] to-[#15803d] text-white border-transparent'
+      : variant === 'teal'
+      ? 'bg-gradient-to-r from-teal-400 to-blue-500 text-white border-transparent'
+      : variant === 'schemes'
+      ? 'bg-card border-border'
+      : 'bg-card border-border';
+  const titleColor = variant === 'ocean' || variant === 'teal' ? 'text-white' : 'text-foreground';
+  const subColor = variant === 'ocean' || variant === 'teal' ? 'text-white/80' : 'text-muted-foreground';
+  const iconWrap =
+    variant === 'ocean' || variant === 'teal'
+      ? 'bg-white/15 ring-1 ring-white/25 text-white'
+      : variant === 'mint'
+      ? 'bg-emerald-500/15 ring-1 ring-emerald-500/30 text-emerald-700 dark:text-emerald-300'
+      : 'bg-primary/10 ring-1 ring-primary/15 text-primary';
   return (
     <Link to={action.to} className="block group h-full">
-      <Card className="h-full card-hover cursor-pointer relative overflow-hidden">
-        <CardContent className="h-full p-4 flex flex-col items-center justify-center text-center gap-3 min-h-[120px]">
-          <div className="relative">
-            <div className="absolute inset-0 rounded-2xl bg-primary/15 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" aria-hidden />
-            <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 ring-1 ring-primary/10 text-primary flex items-center justify-center transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-[1.06]">
-              {action.emoji ? (
-                <span className="text-xl leading-none" aria-hidden>{action.emoji}</span>
-              ) : action.icon ? (
-                <action.icon className="h-5 w-5" strokeWidth={1.6} />
-              ) : null}
-            </div>
+      <Card className={cn('h-full card-hover cursor-pointer relative overflow-hidden rounded-2xl border transition-all duration-300', tileClass)}>
+        <CardContent className="h-full p-5 flex flex-col items-center justify-center text-center gap-2.5 min-h-[140px]">
+          <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-[1.06]', iconWrap)}>
+            {action.emoji ? (
+              <span className="text-xl leading-none" aria-hidden>{action.emoji}</span>
+            ) : action.icon ? (
+              <action.icon className="h-5 w-5" strokeWidth={1.6} />
+            ) : null}
           </div>
-          <h3 className="font-bold text-[13px] leading-tight text-foreground">{action.title}</h3>
-          <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            Explore →
-          </span>
+          <h3 className={cn('font-semibold text-[14px] leading-tight tracking-tight', titleColor)}>{action.title}</h3>
+          {action.subtitle && (
+            <p className={cn('text-[11px] leading-snug max-w-[16ch]', subColor)}>{action.subtitle}</p>
+          )}
+          {action.variant === 'schemes' && (
+            <span className="mt-1 text-[10px] uppercase tracking-[0.18em] font-semibold text-primary">Explore →</span>
+          )}
         </CardContent>
       </Card>
     </Link>
@@ -56,15 +78,15 @@ const Index = () => {
     bn: 'কৃষকের ডিজিটাল সঙ্গী',
   };
 
-  const quickActions = [
-    { icon: MessageCircle, title: t('startChat'), to: '/chat' },
-    { icon: Sprout, title: t('cropCenter'), to: '/crop-center' },
-    { emoji: '🐄', title: t('animalHusbandry'), to: '/animal-husbandry' },
-    { icon: Lightbulb, title: t('smartCropPlanner') || 'Smart Crop Planner', to: '/smart-crop-planner' },
-    { icon: TrendingUp, title: t('marketPrices'), to: '/market-prices' },
-    { icon: CloudSun, title: t('weatherForecast'), to: '/weather' },
-    { icon: FileText, title: t('schemes'), to: '/schemes' },
-    { icon: Users, title: t('community'), to: '/community' },
+  const quickActions: QuickAction[] = [
+    { icon: MessageCircle, title: t('startChat'), subtitle: 'Ask the AI anything', to: '/chat', variant: 'neutral' },
+    { icon: Sprout, title: t('cropCenter'), subtitle: 'Care, scan & guidance', to: '/crop-center', variant: 'mint' },
+    { emoji: '🐄', title: t('animalHusbandry'), subtitle: 'Livestock health & feed', to: '/animal-husbandry', variant: 'neutral' },
+    { icon: Lightbulb, title: t('smartCropPlanner') || 'Smart Crop Planner', subtitle: 'Sow, irrigate, harvest', to: '/smart-crop-planner', variant: 'ocean' },
+    { icon: TrendingUp, title: t('marketPrices'), subtitle: 'Live mandi rates', to: '/market-prices', variant: 'teal' },
+    { icon: CloudSun, title: t('weatherForecast'), subtitle: 'Farm-focused forecast', to: '/weather', variant: 'neutral' },
+    { icon: FileText, title: t('schemes'), subtitle: 'Govt benefits for you', to: '/schemes', variant: 'schemes' },
+    { icon: Users, title: t('community'), subtitle: 'Connect with farmers', to: '/community', variant: 'neutral' },
   ];
 
   const featureCards = [
@@ -189,15 +211,11 @@ const Index = () => {
               <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {howItWorks.map((step) => (
                   <StaggerItem key={step.num}>
-                    <div className="flex items-start gap-4 p-5 rounded-2xl border border-border/50 bg-card/60 hover:bg-card transition-colors">
-                      <div className="shrink-0 w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-sm tabular-nums">
+                <div className="flex items-center gap-4 p-5 rounded-2xl border border-border/50 bg-card/60 hover:bg-card transition-colors">
+                      <div className="shrink-0 w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-base tabular-nums">
                         {step.num}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1 text-muted-foreground">
-                          <step.icon className="w-4 h-4" />
-                          <span className="text-[11px] uppercase tracking-wider font-medium">Step</span>
-                        </div>
                         <h3 className="font-medium text-[15px] text-foreground leading-snug">{step.title}</h3>
                       </div>
                     </div>
