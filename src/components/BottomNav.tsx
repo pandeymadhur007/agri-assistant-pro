@@ -6,12 +6,10 @@ import {
   TrendingUp,
   MoreHorizontal,
   Camera,
-  CalendarDays,
   CloudSun,
   Users,
   FileText,
   Sprout,
-  Bug,
   Lightbulb,
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -31,8 +29,7 @@ export function BottomNav() {
 
   const moreItems = [
     { to: '/crop-center', label: t('cropCenter'), icon: Sprout },
-    { to: '/recommendations', label: t('smartRec'), icon: Lightbulb },
-    { to: '/calendar', label: t('calendar'), icon: CalendarDays },
+    { to: '/smart-crop-planner', label: t('smartCropPlanner') || 'Smart Crop Planner', icon: Lightbulb },
     { to: '/weather', label: t('weatherForecast'), icon: CloudSun },
     { to: '/community', label: t('community'), icon: Users },
     { to: '/schemes', label: t('schemes'), icon: FileText },
