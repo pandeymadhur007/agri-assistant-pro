@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { lazy, Suspense } from "react";
 import { LanguageProvider } from "@/contexts/LanguageContext";
@@ -20,12 +20,10 @@ const CropCenter = lazy(() => import("./pages/CropCenter"));
 const Weather = lazy(() => import("./pages/Weather"));
 const MarketPrices = lazy(() => import("./pages/MarketPrices"));
 const MarketPriceCrop = lazy(() => import("./pages/MarketPriceCrop"));
-const Calendar = lazy(() => import("./pages/Calendar"));
-const CalendarCrop = lazy(() => import("./pages/CalendarCrop"));
 const Community = lazy(() => import("./pages/Community"));
 const CommunityPost = lazy(() => import("./pages/CommunityPost"));
 const CommunityPostDetail = lazy(() => import("./pages/CommunityPostDetail"));
-const SmartRecommendations = lazy(() => import("./pages/SmartRecommendations"));
+const SmartCropPlanner = lazy(() => import("./pages/SmartRecommendations"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Login = lazy(() => import("./pages/Login"));
 const Profile = lazy(() => import("./pages/Profile"));
@@ -58,15 +56,16 @@ function AnimatedRoutes() {
         <Route path="/scan/history" element={<ScanHistory />} />
         <Route path="/market-prices" element={<MarketPrices />} />
         <Route path="/market-prices/crop/:name" element={<MarketPriceCrop />} />
-        <Route path="/calendar" element={<Calendar />} />
-        <Route path="/calendar/crop/:name" element={<CalendarCrop />} />
+        <Route path="/calendar" element={<Navigate to="/smart-crop-planner" replace />} />
+        <Route path="/calendar/*" element={<Navigate to="/smart-crop-planner" replace />} />
         <Route path="/community" element={<Community />} />
         <Route path="/community/post" element={<CommunityPost />} />
         <Route path="/community/post/:id" element={<CommunityPostDetail />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/login" element={<Login />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/recommendations" element={<SmartRecommendations />} />
+        <Route path="/recommendations" element={<Navigate to="/smart-crop-planner" replace />} />
+        <Route path="/smart-crop-planner" element={<SmartCropPlanner />} />
         <Route path="/animal-husbandry" element={<AnimalHusbandry />} />
         <Route path="/about" element={<About />} />
         <Route path="/privacy" element={<Privacy />} />
