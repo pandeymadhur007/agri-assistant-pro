@@ -10,7 +10,7 @@ export function Footer() {
       <div className="container mx-auto px-4 py-12">
         <div className="grid gap-8 md:grid-cols-3">
           <div>
-            <Logo className="h-10 w-auto mb-3" aria-label={t('appName')} />
+            <Logo showTagline className="mb-3" aria-label={t('appName')} />
             <p className="text-sm text-muted-foreground leading-relaxed">{t('tagline')}</p>
           </div>
 

@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500&display=swap");
 
 /*
  * "Basic" by Magnus Gaarde — self-hosted.
@@ -48,96 +48,93 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Calm sage palette — warm off-white surfaces */
-    --background: 45 22% 97%;          /* #F8F7F4 warm */
-    --foreground: 150 16% 8%;          /* #111715 stronger */
+    /* Light — white + soft light blue */
+    --background: 0 0% 100%;
+    --foreground: 220 15% 18%;
 
     --card: 0 0% 100%;
-    --card-foreground: 150 16% 8%;
+    --card-foreground: 220 15% 18%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 150 16% 8%;
+    --popover-foreground: 220 15% 18%;
 
-    --primary: 150 24% 34%;            /* #426B57 deep sage */
-    --primary-foreground: 45 22% 97%;
+    --primary: 174 62% 32%;            /* teal-green */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 145 18% 46%;          /* #5E8B72 mid sage */
-    --secondary-foreground: 45 22% 97%;
+    --secondary: 205 85% 48%;          /* light blue */
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 45 20% 94%;               /* warm muted */
-    --muted-foreground: 145 6% 40%;    /* #5F6B63 */
+    --muted: 210 60% 97%;              /* #F0F7FC light blue tint */
+    --muted-foreground: 215 14% 46%;
 
-    --accent: 102 22% 70%;             /* #A8C3A0 sage accent */
-    --accent-foreground: 150 16% 8%;
+    --accent: 205 90% 92%;             /* pale blue highlight */
+    --accent-foreground: 205 85% 35%;
 
     --destructive: 8 60% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 45 14% 88%;              /* warm hairline */
-    --input: 45 14% 88%;
-    --ring: 150 24% 34%;
+    --border: 210 30% 91%;
+    --input: 210 30% 91%;
+    --ring: 205 85% 48%;
 
-    --radius: 1rem;
+    --radius: 1.125rem;
 
-    /* Sidebar */
-    --sidebar-background: 45 22% 97%;
-    --sidebar-foreground: 150 12% 18%;
-    --sidebar-primary: 150 24% 34%;
-    --sidebar-primary-foreground: 45 22% 97%;
-    --sidebar-accent: 45 20% 94%;
-    --sidebar-accent-foreground: 150 16% 12%;
-    --sidebar-border: 45 14% 88%;
-    --sidebar-ring: 150 24% 34%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 15% 18%;
+    --sidebar-primary: 174 62% 32%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 60% 97%;
+    --sidebar-accent-foreground: 220 15% 18%;
+    --sidebar-border: 210 30% 91%;
+    --sidebar-ring: 205 85% 48%;
 
-    /* Elevation tokens */
-    --shadow-sm: 0 1px 2px 0 hsl(150 16% 8% / 0.05), 0 1px 1px 0 hsl(150 16% 8% / 0.03);
-    --shadow-md: 0 6px 20px -8px hsl(150 16% 8% / 0.10), 0 2px 6px -2px hsl(150 16% 8% / 0.05);
-    --shadow-lg: 0 18px 40px -16px hsl(150 16% 8% / 0.16), 0 6px 14px -6px hsl(150 16% 8% / 0.08);
+    --shadow-sm: 0 1px 2px 0 hsl(220 15% 18% / 0.04), 0 1px 1px 0 hsl(220 15% 18% / 0.02);
+    --shadow-md: 0 4px 16px -6px hsl(205 85% 48% / 0.10), 0 2px 4px -2px hsl(220 15% 18% / 0.04);
+    --shadow-lg: 0 12px 32px -12px hsl(205 85% 48% / 0.14), 0 4px 10px -4px hsl(220 15% 18% / 0.06);
   }
 
   .dark {
-    /* Layered dark sage — soft, premium, cinematic */
-    --background: 150 9% 7%;            /* #0F1311 */
-    --foreground: 100 9% 95%;           /* #F3F5F2 */
+    /* Dark — true black, not navy */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 96%;
 
-    --card: 147 13% 11%;                /* #181F1B */
-    --card-foreground: 100 9% 95%;
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 96%;
 
-    --popover: 147 13% 11%;
-    --popover-foreground: 100 9% 95%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 96%;
 
-    --primary: 140 22% 59%;             /* #7FAE8D softer sage */
-    --primary-foreground: 150 9% 7%;
+    --primary: 160 55% 45%;
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 150 12% 9%;            /* #151B18 */
-    --secondary-foreground: 100 9% 95%;
+    --secondary: 195 80% 50%;
+    --secondary-foreground: 0 0% 0%;
 
-    --muted: 150 12% 10%;
-    --muted-foreground: 140 8% 77%;     /* #BFC8C2 readable secondary */
+    --muted: 0 0% 9%;
+    --muted-foreground: 0 0% 62%;
 
-    --accent: 140 14% 43%;              /* #5E7D68 muted green */
-    --accent-foreground: 100 9% 95%;
+    --accent: 160 40% 20%;
+    --accent-foreground: 160 55% 55%;
 
     --destructive: 8 60% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 150 8% 15%;               /* approximates rgba(255,255,255,0.06) over bg */
-    --input: 150 8% 15%;
-    --ring: 140 22% 59%;
+    --border: 0 0% 14%;
+    --input: 0 0% 14%;
+    --ring: 160 55% 45%;
 
-    --sidebar-background: 150 9% 7%;
-    --sidebar-foreground: 100 9% 92%;
-    --sidebar-primary: 140 22% 59%;
-    --sidebar-primary-foreground: 150 9% 7%;
-    --sidebar-accent: 150 12% 10%;
-    --sidebar-accent-foreground: 100 9% 95%;
-    --sidebar-border: 150 8% 15%;
-    --sidebar-ring: 140 22% 59%;
+    --sidebar-background: 0 0% 0%;
+    --sidebar-foreground: 0 0% 92%;
+    --sidebar-primary: 160 55% 45%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 9%;
+    --sidebar-accent-foreground: 0 0% 96%;
+    --sidebar-border: 0 0% 14%;
+    --sidebar-ring: 160 55% 45%;
 
-    /* Soft, low-glow shadows */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.35);
-    --shadow-md: 0 8px 24px -12px rgb(0 0 0 / 0.5), 0 2px 6px -2px rgb(0 0 0 / 0.3);
-    --shadow-lg: 0 24px 48px -20px rgb(0 0 0 / 0.6), 0 8px 16px -8px rgb(0 0 0 / 0.35);
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.5);
+    --shadow-md: 0 6px 20px -8px rgb(0 0 0 / 0.65);
+    --shadow-lg: 0 16px 40px -16px rgb(0 0 0 / 0.75);
   }
 }
 
@@ -147,10 +144,8 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
-    font-family: "Satoshi", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-    font-weight: 550;
-    font-feature-settings: "ss01", "cv11";
+    @apply bg-background text-foreground font-sans;
+    font-weight: 400;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     transition: background-color 250ms ease, color 250ms ease;
@@ -161,12 +156,12 @@ All colors MUST be HSL.
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold tracking-tight;
+    @apply font-medium tracking-tight;
     letter-spacing: -0.01em;
   }
 
-  h1 { letter-spacing: -0.025em; }
-  h2 { letter-spacing: -0.02em; }
+  h1 { letter-spacing: -0.02em; }
+  h2 { letter-spacing: -0.015em; }
 
   /* Tabular numerals for prices, temps, stats */
   .tabular-nums, .value-highlight {
@@ -175,22 +170,22 @@ All colors MUST be HSL.
   }
 
   .value-highlight {
-    @apply font-bold text-foreground;
+    @apply font-medium text-foreground;
   }
 }
 
-/* Subtle organic sage glow for hero backgrounds */
+/* Hero — light blue wash / dark minimal glow */
 .hero-gradient {
   background:
-    radial-gradient(70% 55% at 18% 0%, hsl(var(--primary) / 0.12) 0%, transparent 65%),
-    radial-gradient(55% 50% at 82% 8%, hsl(var(--accent) / 0.18) 0%, transparent 70%),
-    radial-gradient(40% 35% at 50% 100%, hsl(var(--secondary) / 0.08) 0%, transparent 70%);
+    radial-gradient(ellipse 80% 55% at 50% -5%, hsl(205 85% 48% / 0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 100% 30%, hsl(205 90% 94% / 0.9) 0%, transparent 50%),
+    hsl(var(--background));
 }
 
 .dark .hero-gradient {
   background:
-    radial-gradient(80% 60% at 20% 0%, hsl(var(--primary) / 0.06) 0%, transparent 70%),
-    radial-gradient(60% 50% at 85% 5%, hsl(var(--accent) / 0.04) 0%, transparent 75%);
+    radial-gradient(ellipse 70% 45% at 50% -5%, hsl(160 55% 42% / 0.06) 0%, transparent 50%),
+    hsl(var(--background));
 }
 
 .card-gradient {
@@ -214,10 +209,160 @@ All colors MUST be HSL.
 
 /* Premium card hover — subtle lift */
 .card-hover {
-  @apply transition-all duration-300 hover:-translate-y-0.5 hover:border-border;
+  @apply transition-all duration-300 ease-out hover:-translate-y-1;
 }
 .card-hover:hover {
   box-shadow: var(--shadow-lg);
+}
+
+/* Dashboard quick-action tile variants */
+.tile-primary {
+  background: linear-gradient(135deg, hsl(192 55% 28%) 0%, hsl(172 50% 32%) 100%);
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 8px 24px -10px hsl(192 55% 28% / 0.35);
+}
+.dark .tile-primary {
+  background: linear-gradient(135deg, hsl(160 55% 32%) 0%, hsl(172 50% 28%) 55%, hsl(160 50% 35%) 100%);
+  box-shadow: 0 8px 28px -10px hsl(160 55% 32% / 0.3);
+}
+
+.tile-secondary {
+  background: linear-gradient(90deg, hsl(205 75% 42%) 0%, hsl(205 70% 88%) 55%, hsl(0 0% 100%) 100%);
+  border-color: hsl(205 40% 88%);
+  color: hsl(220 15% 18%);
+  box-shadow: var(--shadow-sm);
+}
+.dark .tile-secondary {
+  background: linear-gradient(135deg, hsl(205 60% 28%) 0%, hsl(195 65% 32%) 50%, hsl(172 45% 30%) 100%);
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 8px 28px -10px hsl(195 65% 32% / 0.25);
+}
+
+.tile-neutral {
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
+  box-shadow: var(--shadow-sm);
+}
+.dark .tile-neutral {
+  background: hsl(0 0% 7%);
+  border-color: hsl(0 0% 16%);
+}
+
+.tile-glass {
+  background: hsl(var(--card) / 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-color: hsl(var(--border));
+  box-shadow: var(--shadow-sm);
+}
+.dark .tile-glass {
+  background: hsl(0 0% 7% / 0.9);
+  border-color: hsl(0 0% 16%);
+}
+
+.tile-schemes {
+  background: hsl(var(--card));
+  border-color: hsl(205 85% 48% / 0.3);
+  box-shadow: var(--shadow-sm);
+}
+.dark .tile-schemes {
+  background: hsl(0 0% 7%);
+  border-color: hsl(195 80% 45% / 0.25);
+}
+
+.tile-community {
+  background:
+    linear-gradient(135deg, hsl(205 85% 48% / 0.08) 0%, hsl(205 90% 94% / 0.6) 100%),
+    hsl(var(--card));
+  border-color: hsl(var(--border));
+  box-shadow: var(--shadow-sm);
+}
+.dark .tile-community {
+  background:
+    linear-gradient(135deg, hsl(195 80% 45% / 0.08) 0%, hsl(160 55% 42% / 0.05) 100%),
+    hsl(0 0% 7%);
+  border-color: hsl(0 0% 16%);
+}
+
+.tile-icon-primary {
+  background: hsl(0 0% 100% / 0.18);
+  border: 1px solid hsl(0 0% 100% / 0.22);
+  color: white;
+}
+
+.tile-icon-secondary {
+  background: hsl(205 85% 48% / 0.12);
+  border: 1px solid hsl(205 85% 48% / 0.18);
+  color: hsl(205 70% 38%);
+}
+.dark .tile-icon-secondary {
+  background: hsl(0 0% 100% / 0.18);
+  border: 1px solid hsl(0 0% 100% / 0.22);
+  color: white;
+}
+
+.tile-icon-neutral {
+  background: hsl(205 85% 48% / 0.08);
+  border: 1px solid hsl(205 85% 48% / 0.12);
+  color: hsl(205 70% 38%);
+}
+.dark .tile-icon-neutral {
+  background: hsl(0 0% 12%);
+  border-color: hsl(0 0% 20%);
+  color: hsl(0 0% 90%);
+}
+
+.tile-icon-weather {
+  background: hsl(160 55% 42% / 0.08);
+  border: 1px solid hsl(160 55% 42% / 0.12);
+  color: hsl(160 55% 38%);
+  box-shadow: 0 0 18px -4px hsl(160 55% 42% / 0.2);
+}
+.dark .tile-icon-weather {
+  background: hsl(160 55% 42% / 0.1);
+  border-color: hsl(160 55% 42% / 0.18);
+  color: hsl(160 55% 55%);
+  box-shadow: 0 0 18px -4px hsl(160 55% 42% / 0.15);
+}
+
+/* Feature cards — glass panel */
+.feature-glass {
+  background: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(205 90% 97%) 100%);
+  border: 1px solid hsl(var(--border));
+  box-shadow: var(--shadow-sm);
+}
+.dark .feature-glass {
+  background: hsl(0 0% 7% / 0.95);
+  border-color: hsl(0 0% 16%);
+}
+
+.btn-hero-primary {
+  background: linear-gradient(135deg, hsl(192 55% 32%) 0%, hsl(172 50% 36%) 100%);
+  color: white;
+  box-shadow: 0 4px 14px -4px hsl(192 55% 32% / 0.35);
+}
+.btn-hero-primary:hover {
+  box-shadow: 0 6px 20px -4px hsl(192 55% 32% / 0.45);
+  transform: translateY(-1px);
+}
+
+.btn-hero-secondary {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+.btn-hero-secondary:hover {
+  background: hsl(var(--muted));
+  transform: translateY(-1px);
+}
+.dark .btn-hero-secondary {
+  background: hsl(0 0% 7%);
+  border-color: hsl(0 0% 16%);
+}
+.dark .btn-hero-secondary:hover {
+  background: hsl(0 0% 12%);
 }
 
 /* Premium layered card with subtle inner highlight */

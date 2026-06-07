@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { Globe, User as UserIcon, LogOut, LogIn, Moon } from 'lucide-react';
+import { Globe, User as UserIcon, LogOut, LogIn, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -41,22 +41,22 @@ export function Navbar() {
   const initial = (user?.user_metadata?.display_name || user?.email || 'U').toString().charAt(0).toUpperCase();
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-border/70 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
+    <nav className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/85 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2 group" aria-label={t('appName')}>
-          <Logo className="h-11 w-auto transition-transform duration-300 group-hover:scale-[1.03]" aria-label={t('appName')} />
+          <Logo compact className="transition-transform duration-300 group-hover:scale-[1.02]" aria-label={t('appName')} />
         </Link>
 
         <div className="flex items-center gap-2">
         <Button
           variant="ghost"
           size="icon"
-          className="rounded-full text-muted-foreground hover:text-foreground"
+          className="rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60"
           onClick={toggleTheme}
           aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
           title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
         >
-          <Moon className="h-5 w-5" />
+          {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </Button>
         {user && <NotificationBell />}
         <DropdownMenu>
@@ -83,7 +83,7 @@ export function Navbar() {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="default" size="icon" className="rounded-full font-semibold h-9 w-9">
+                <Button variant="default" size="icon" className="rounded-full font-semibold h-9 w-9 bg-primary/90 hover:bg-primary shadow-soft">
                   {initial}
                 </Button>
               </DropdownMenuTrigger>
