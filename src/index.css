@@ -48,36 +48,36 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Light — white + soft light blue */
-    --background: 0 0% 100%;
-    --foreground: 220 15% 18%;
+    /* Light — soft sage-white wash (from reference) */
+    --background: 140 20% 98%;         /* #F7FAF7 */
+    --foreground: 200 40% 12%;         /* deep navy-ink */
 
     --card: 0 0% 100%;
-    --card-foreground: 220 15% 18%;
+    --card-foreground: 200 40% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 15% 18%;
+    --popover-foreground: 200 40% 12%;
 
-    --primary: 174 62% 32%;            /* teal-green */
+    --primary: 155 25% 35%;            /* sage green */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 205 85% 48%;          /* light blue */
+    --secondary: 205 45% 25%;          /* deep teal-navy */
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 60% 97%;              /* #F0F7FC light blue tint */
-    --muted-foreground: 215 14% 46%;
+    --muted: 140 15% 95%;
+    --muted-foreground: 200 12% 42%;
 
-    --accent: 205 90% 92%;             /* pale blue highlight */
-    --accent-foreground: 205 85% 35%;
+    --accent: 150 30% 90%;
+    --accent-foreground: 155 30% 25%;
 
     --destructive: 8 60% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 30% 91%;
-    --input: 210 30% 91%;
-    --ring: 205 85% 48%;
+    --border: 150 15% 90%;             /* #E6ECE7 hairline */
+    --input: 150 15% 90%;
+    --ring: 155 25% 35%;
 
-    --radius: 1.125rem;
+    --radius: 1.25rem;                 /* 20px */
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 220 15% 18%;
@@ -88,40 +88,40 @@ All colors MUST be HSL.
     --sidebar-border: 210 30% 91%;
     --sidebar-ring: 205 85% 48%;
 
-    --shadow-sm: 0 1px 2px 0 hsl(220 15% 18% / 0.04), 0 1px 1px 0 hsl(220 15% 18% / 0.02);
-    --shadow-md: 0 4px 16px -6px hsl(205 85% 48% / 0.10), 0 2px 4px -2px hsl(220 15% 18% / 0.04);
-    --shadow-lg: 0 12px 32px -12px hsl(205 85% 48% / 0.14), 0 4px 10px -4px hsl(220 15% 18% / 0.06);
+    --shadow-sm: 0 1px 2px 0 hsl(200 30% 15% / 0.04), 0 1px 3px 0 hsl(200 30% 15% / 0.03);
+    --shadow-md: 0 6px 20px -8px hsl(200 30% 15% / 0.10), 0 2px 6px -2px hsl(200 30% 15% / 0.05);
+    --shadow-lg: 0 20px 40px -16px hsl(200 30% 15% / 0.14), 0 6px 14px -6px hsl(200 30% 15% / 0.06);
   }
 
   .dark {
-    /* Dark — true black, not navy */
-    --background: 0 0% 0%;
-    --foreground: 0 0% 96%;
+    /* Dark — near-black sage (from reference) */
+    --background: 150 15% 4%;          /* #0B0F0D */
+    --foreground: 140 10% 92%;         /* #E8EFEA */
 
-    --card: 0 0% 7%;
-    --card-foreground: 0 0% 96%;
+    --card: 150 12% 8%;                /* #131A17 */
+    --card-foreground: 140 10% 92%;
 
-    --popover: 0 0% 7%;
-    --popover-foreground: 0 0% 96%;
+    --popover: 150 12% 8%;
+    --popover-foreground: 140 10% 92%;
 
-    --primary: 160 55% 45%;
-    --primary-foreground: 0 0% 0%;
+    --primary: 150 40% 55%;
+    --primary-foreground: 150 15% 4%;
 
-    --secondary: 195 80% 50%;
-    --secondary-foreground: 0 0% 0%;
+    --secondary: 200 55% 55%;
+    --secondary-foreground: 150 15% 4%;
 
-    --muted: 0 0% 9%;
-    --muted-foreground: 0 0% 62%;
+    --muted: 150 10% 10%;
+    --muted-foreground: 145 6% 60%;
 
-    --accent: 160 40% 20%;
-    --accent-foreground: 160 55% 55%;
+    --accent: 150 25% 18%;
+    --accent-foreground: 150 40% 65%;
 
     --destructive: 8 60% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 14%;
-    --input: 0 0% 14%;
-    --ring: 160 55% 45%;
+    --border: 150 10% 14%;             /* #1F2A24 hairline */
+    --input: 150 10% 14%;
+    --ring: 150 40% 55%;
 
     --sidebar-background: 0 0% 0%;
     --sidebar-foreground: 0 0% 92%;
@@ -156,7 +156,7 @@ All colors MUST be HSL.
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-medium tracking-tight;
+    @apply font-display font-medium tracking-tight;
     letter-spacing: -0.01em;
   }
 
@@ -177,14 +177,15 @@ All colors MUST be HSL.
 /* Hero — light blue wash / dark minimal glow */
 .hero-gradient {
   background:
-    radial-gradient(ellipse 80% 55% at 50% -5%, hsl(205 85% 48% / 0.07) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 40% at 100% 30%, hsl(205 90% 94% / 0.9) 0%, transparent 50%),
+    radial-gradient(ellipse 80% 55% at 50% -5%, hsl(155 30% 55% / 0.10) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 45% at 100% 30%, hsl(200 40% 88% / 0.55) 0%, transparent 55%),
     hsl(var(--background));
 }
 
 .dark .hero-gradient {
   background:
-    radial-gradient(ellipse 70% 45% at 50% -5%, hsl(160 55% 42% / 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse 70% 45% at 50% -5%, hsl(150 45% 40% / 0.10) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 100% 20%, hsl(200 55% 35% / 0.08) 0%, transparent 55%),
     hsl(var(--background));
 }
 
@@ -217,27 +218,29 @@ All colors MUST be HSL.
 
 /* Dashboard quick-action tile variants */
 .tile-primary {
-  background: linear-gradient(135deg, hsl(192 55% 28%) 0%, hsl(172 50% 32%) 100%);
+  /* Crop Center — deep navy → teal (from reference) */
+  background: linear-gradient(135deg, hsl(205 55% 22%) 0%, hsl(190 40% 32%) 100%);
   border-color: transparent;
   color: white;
-  box-shadow: 0 8px 24px -10px hsl(192 55% 28% / 0.35);
+  box-shadow: 0 10px 28px -12px hsl(205 55% 22% / 0.45);
 }
 .dark .tile-primary {
-  background: linear-gradient(135deg, hsl(160 55% 32%) 0%, hsl(172 50% 28%) 55%, hsl(160 50% 35%) 100%);
-  box-shadow: 0 8px 28px -10px hsl(160 55% 32% / 0.3);
+  background: linear-gradient(135deg, hsl(200 50% 18%) 0%, hsl(160 40% 24%) 100%);
+  box-shadow: 0 0 32px -4px hsl(150 60% 45% / 0.15), 0 10px 28px -12px hsl(200 50% 18% / 0.5);
 }
 
 .tile-secondary {
-  background: linear-gradient(90deg, hsl(205 75% 42%) 0%, hsl(205 70% 88%) 55%, hsl(0 0% 100%) 100%);
-  border-color: hsl(205 40% 88%);
-  color: hsl(220 15% 18%);
-  box-shadow: var(--shadow-sm);
-}
-.dark .tile-secondary {
-  background: linear-gradient(135deg, hsl(205 60% 28%) 0%, hsl(195 65% 32%) 50%, hsl(172 45% 30%) 100%);
+  /* Smart Crop Planner — teal → sage (from reference) */
+  background: linear-gradient(135deg, hsl(200 55% 28%) 0%, hsl(155 30% 55%) 100%);
   border-color: transparent;
   color: white;
-  box-shadow: 0 8px 28px -10px hsl(195 65% 32% / 0.25);
+  box-shadow: 0 10px 28px -12px hsl(200 55% 28% / 0.4);
+}
+.dark .tile-secondary {
+  background: linear-gradient(135deg, hsl(200 55% 22%) 0%, hsl(155 35% 30%) 100%);
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 0 32px -4px hsl(150 60% 45% / 0.15), 0 10px 28px -12px hsl(200 55% 22% / 0.5);
 }
 
 .tile-neutral {
@@ -246,8 +249,8 @@ All colors MUST be HSL.
   box-shadow: var(--shadow-sm);
 }
 .dark .tile-neutral {
-  background: hsl(0 0% 7%);
-  border-color: hsl(0 0% 16%);
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
 }
 
 .tile-glass {
@@ -263,27 +266,26 @@ All colors MUST be HSL.
 }
 
 .tile-schemes {
-  background: hsl(var(--card));
-  border-color: hsl(205 85% 48% / 0.3);
+  /* Government Schemes — soft mint→sky wash card (from reference) */
+  background: linear-gradient(135deg, hsl(150 35% 92%) 0%, hsl(200 45% 94%) 100%);
+  border-color: hsl(150 25% 85%);
   box-shadow: var(--shadow-sm);
 }
 .dark .tile-schemes {
-  background: hsl(0 0% 7%);
-  border-color: hsl(195 80% 45% / 0.25);
+  background: linear-gradient(135deg, hsl(150 20% 10%) 0%, hsl(200 25% 12%) 100%);
+  border-color: hsl(150 15% 18%);
 }
 
 .tile-community {
   background:
-    linear-gradient(135deg, hsl(205 85% 48% / 0.08) 0%, hsl(205 90% 94% / 0.6) 100%),
-    hsl(var(--card));
+    linear-gradient(135deg, hsl(150 40% 94%) 0%, hsl(200 45% 96%) 100%);
   border-color: hsl(var(--border));
   box-shadow: var(--shadow-sm);
 }
 .dark .tile-community {
   background:
-    linear-gradient(135deg, hsl(195 80% 45% / 0.08) 0%, hsl(160 55% 42% / 0.05) 100%),
-    hsl(0 0% 7%);
-  border-color: hsl(0 0% 16%);
+    linear-gradient(135deg, hsl(150 20% 10%) 0%, hsl(200 25% 12%) 100%);
+  border-color: hsl(var(--border));
 }
 
 .tile-icon-primary {
@@ -293,9 +295,9 @@ All colors MUST be HSL.
 }
 
 .tile-icon-secondary {
-  background: hsl(205 85% 48% / 0.12);
-  border: 1px solid hsl(205 85% 48% / 0.18);
-  color: hsl(205 70% 38%);
+  background: hsl(0 0% 100% / 0.18);
+  border: 1px solid hsl(0 0% 100% / 0.22);
+  color: white;
 }
 .dark .tile-icon-secondary {
   background: hsl(0 0% 100% / 0.18);
@@ -304,47 +306,45 @@ All colors MUST be HSL.
 }
 
 .tile-icon-neutral {
-  background: hsl(205 85% 48% / 0.08);
-  border: 1px solid hsl(205 85% 48% / 0.12);
-  color: hsl(205 70% 38%);
+  background: hsl(150 25% 94%);
+  border: 1px solid hsl(150 20% 88%);
+  color: hsl(200 40% 20%);
 }
 .dark .tile-icon-neutral {
-  background: hsl(0 0% 12%);
-  border-color: hsl(0 0% 20%);
-  color: hsl(0 0% 90%);
+  background: hsl(150 12% 12%);
+  border-color: hsl(150 10% 18%);
+  color: hsl(140 15% 88%);
 }
 
 .tile-icon-weather {
-  background: hsl(160 55% 42% / 0.08);
-  border: 1px solid hsl(160 55% 42% / 0.12);
-  color: hsl(160 55% 38%);
-  box-shadow: 0 0 18px -4px hsl(160 55% 42% / 0.2);
+  background: hsl(150 30% 92%);
+  border: 1px solid hsl(150 25% 84%);
+  color: hsl(155 35% 30%);
 }
 .dark .tile-icon-weather {
-  background: hsl(160 55% 42% / 0.1);
-  border-color: hsl(160 55% 42% / 0.18);
-  color: hsl(160 55% 55%);
-  box-shadow: 0 0 18px -4px hsl(160 55% 42% / 0.15);
+  background: hsl(150 20% 12%);
+  border-color: hsl(150 15% 18%);
+  color: hsl(150 40% 65%);
 }
 
 /* Feature cards — glass panel */
 .feature-glass {
-  background: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(205 90% 97%) 100%);
+  background: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(150 25% 97%) 100%);
   border: 1px solid hsl(var(--border));
   box-shadow: var(--shadow-sm);
 }
 .dark .feature-glass {
-  background: hsl(0 0% 7% / 0.95);
-  border-color: hsl(0 0% 16%);
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
 }
 
 .btn-hero-primary {
-  background: linear-gradient(135deg, hsl(192 55% 32%) 0%, hsl(172 50% 36%) 100%);
+  background: linear-gradient(135deg, hsl(200 55% 25%) 0%, hsl(155 35% 40%) 100%);
   color: white;
-  box-shadow: 0 4px 14px -4px hsl(192 55% 32% / 0.35);
+  box-shadow: 0 6px 18px -6px hsl(200 55% 25% / 0.4);
 }
 .btn-hero-primary:hover {
-  box-shadow: 0 6px 20px -4px hsl(192 55% 32% / 0.45);
+  box-shadow: 0 10px 24px -6px hsl(200 55% 25% / 0.55);
   transform: translateY(-1px);
 }
 
