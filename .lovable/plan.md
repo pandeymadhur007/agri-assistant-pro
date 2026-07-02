@@ -1,39 +1,65 @@
-## What's wrong today
+# Gram AI — Reference-Matched UI Redesign
 
-**Market prices** — `supabase/functions/fetch-market-prices/index.ts` asks Gemini to *invent* "realistic" mandi prices inside hardcoded ranges (Rice 1500–4500/quintal). That's why your app shows Rice at ₹3,100 while search engines quote much higher figures. The project already has `DATA_GOV_API_KEY` configured but it's unused.
+Goal: restyle the app to match the 4 uploaded reference screenshots (2 dark + 2 light) exactly — same palette, tile treatments, spacing, and typography — without changing any feature, route, or backend logic.
 
-Note on the Brave screenshot: ₹99/kg = ₹9,900/quintal is a retail figure, not a mandi (wholesale) price. Real paddy mandi prices on Agmarknet are typically ₹2,000–3,500/quintal. So we shouldn't blindly chase ₹9,900 — we should fetch the *actual* government Agmarknet feed and show real numbers with the real date.
+## Visual spec (locked to references)
 
-**Logo** — currently using `src/assets/gram-ai-logo.png`. You want the small green leaf/sprout icon from `Screenshot_2026-06-03_083610.png`.
+**Light theme**
+- Background: soft white → very light sage vertical wash (`#F7FAF7 → #EEF3EE`)
+- Tiles: pure white `#FFFFFF` with hairline border `#E6ECE7`, radius `20px`, soft shadow
+- Accent tiles use gradients:
+  - Crop Center: deep navy→teal `#1E3A5F → #2F5F6E`
+  - Smart Crop Planner: teal→sage `#2F5F6E → #6FA88C`
+  - Market Prices: navy→sage `#1E3A5F → #6FA88C`
+  - Community: mint→sky wash `#DCEBE1 → #E4EEF6`
+- Icons/text on light tiles: dark navy `#0F1E2E`; on gradient tiles: white
 
-## Plan
+**Dark theme**
+- Background: near-black `#0B0F0D` with faint sage vignette
+- Tiles: `#131A17` with hairline border `#1F2A24`, radius `20px`, subtle inner highlight
+- Same accent gradients but with a soft outer glow (`box-shadow: 0 0 32px rgba(74,222,128,0.12)`)
+- Text: `#E8EFEA` primary, `#8A968F` secondary
 
-### 1. Real mandi prices from data.gov.in (Agmarknet)
+**Typography**
+- Headings: **Fraunces** (or **Instrument Serif**) — matches the elegant "Quick Actions" heading in refs
+- Body / UI: **Inter Tight** at weight 500–600 for tiles, 400 for descriptions
+- Load via Google Fonts in `index.html`
 
-Rewrite `supabase/functions/fetch-market-prices/index.ts` to call the official Agmarknet resource:
+## Layout (matches references)
 
-```text
-https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070
-  ?api-key=$DATA_GOV_API_KEY&format=json&limit=2000
-```
+- Quick Actions grid: **4 × 2** on desktop, **2 × 4** on mobile, generous 20px gaps
+- Tile: centered icon (thin monoline, 1.5 stroke) + label below; no description on gradient tiles, small "EXPLORE →" only on Government Schemes
+- "How It Works": 3 numbered circles in a row, STEP label + title (keep as in ref image)
+- Feature highlight cards below (AI Crop Doctor / Mandi Prices / Smart Weather) with monoline illustrations — already close, will restyle borders + spacing to match
 
-For each record map: `commodity → crop_name`, `state`, `district`, `market → mandi`, `modal_price → price` (₹/quintal), `arrival_date → price_date`. Compute `price_trend` by comparing the new modal price for the same `(crop, state, mandi)` against the previous row in `market_prices` (up / down / stable, threshold ±2%).
+## Files to change (UI only)
 
-Then: filter to the crop list the app already shows, delete old rows, insert in batches of 100. Keep the existing response shape (`{ success, count, updated_at }`) so `MarketPrices.tsx` and `MarketPriceCrop.tsx` need no client changes.
+1. `src/index.css` — palette tokens, background wash, tile utilities (`tile-primary`, `tile-secondary`, `tile-neutral`, `tile-schemes`, `tile-community`), shadow + border tokens for both themes
+2. `tailwind.config.ts` — swap font family to Fraunces (display) + Inter Tight (sans)
+3. `index.html` — Google Fonts link for Fraunces + Inter Tight
+4. `src/pages/Index.tsx` — restore "STEP" label in How It Works, tighten tile markup to match ref (icon-only + label, no per-tile description on gradient tiles), 4-col grid
+5. `src/components/Navbar.tsx` — match slim header from ref (logo left, theme + bell + language + avatar right)
+6. `src/components/ui/card.tsx` + `button.tsx` — radius + border tuning to `rounded-[20px]`
 
-Fallback: if the API call fails or returns 0 rows, return `{ error: "Live mandi feed unavailable" }` with status 503 — do NOT fall back to AI-invented numbers. The UI's existing error state will surface this honestly.
+## Functionality verification (no code changes, just checks)
 
-Keep the AI-based `market-insight` edge function as-is; it just summarizes whatever real prices are in the DB.
+After the redesign lands, I'll drive the running preview with Playwright to verify:
+- Home loads, all 8 quick action tiles route correctly
+- Chat sends + receives a reply
+- Scan uploads a compressed image and returns a result
+- Market Prices loads live Agmarknet rows
+- Weather widget renders current conditions
+- Theme toggle swaps light ↔ dark cleanly
+- Language selector switches strings
 
-### 2. Replace logo
+Any breakage found → fix in the same pass.
 
-- Upload `Screenshot_2026-06-03_083610.png` via `lovable-assets create` → `src/assets/gram-ai-logo-v2.png.asset.json`.
-- Update the one import in `src/components/Navbar.tsx` to point at the new asset.
-- Delete the old asset pointer + CDN file via `delete_asset`.
+## Out of scope
 
-(The screenshot is a tight crop of just the icon, so it'll work directly as the header logo. Favicon and PWA icons are separate files and stay untouched unless you want those swapped too — see open question below.)
+- No feature additions, no route changes, no backend/edge-function edits, no schema changes.
+- Farming Tools and Crop Transportation sections (mentioned earlier) are NOT included here — separate task.
 
-## Open questions
+## Confirm before I build
 
-1. Do you also want the **favicon** (`public/favicon.svg`) and the manifest icons updated to the new leaf icon, or just the in-app header logo?
-2. The data.gov.in feed lists hundreds of mandis but not every crop is reported every day. If a crop in your app has zero rows for today, should the page show "No price reported today" or fall back to the **most recent** mandi price for that crop (with the older date shown)?
+- Font pick: **Fraunces + Inter Tight** (elegant serif display + modern sans body). Reply "use X" if you want a different pair (e.g. Instrument Serif, Satoshi, General Sans).
+- OK to drop per-tile descriptions on the 4 gradient tiles to match the reference exactly? (Neutral white tiles keep just the label too, per ref.)

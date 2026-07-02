@@ -55,48 +55,41 @@ const iconVariantClass: Record<TileVariant, string> = {
 function QuickTile({ action }: { action: QuickAction }) {
   const isPrimary = action.variant === 'primary';
   const isSecondary = action.variant === 'secondary';
+  const isGradient = isPrimary || isSecondary;
 
   const titleColor = isPrimary
     ? 'text-white'
     : isSecondary
-      ? 'text-foreground dark:text-white'
+      ? 'text-white'
       : 'text-foreground';
-  const descColor = isPrimary
-    ? 'text-white/75'
-    : isSecondary
-      ? 'text-muted-foreground dark:text-white/75'
-      : 'text-muted-foreground';
 
   return (
     <Link to={action.to} className="block group h-full">
       <div
         className={cn(
-          'h-full rounded-[18px] border card-hover cursor-pointer relative overflow-hidden',
+          'h-full rounded-[20px] border card-hover cursor-pointer relative overflow-hidden',
           'flex flex-col items-center justify-center text-center',
-          'p-5 md:p-6 min-h-[168px] md:min-h-[180px] gap-3',
+          'p-5 md:p-6 min-h-[168px] md:min-h-[180px] gap-4',
           tileVariantClass[action.variant],
         )}
       >
         <div
           className={cn(
-            'w-14 h-14 rounded-2xl flex items-center justify-center',
+            'w-12 h-12 rounded-2xl flex items-center justify-center',
             'transition-transform duration-300 ease-out',
             'group-hover:-translate-y-0.5 group-hover:scale-[1.05]',
             iconVariantClass[action.variant],
           )}
         >
-          <action.icon className="h-6 w-6" strokeWidth={1.5} />
+          <action.icon className="h-[22px] w-[22px]" strokeWidth={1.5} />
         </div>
-        <div className="space-y-1">
-          <h3 className={cn('font-medium text-[15px] leading-tight tracking-tight', titleColor)}>
+        <div className="space-y-1.5">
+          <h3 className={cn('font-sans font-medium text-[15px] leading-tight tracking-tight', titleColor)}>
             {action.title}
           </h3>
-          <p className={cn('text-[12px] leading-snug max-w-[20ch] mx-auto', descColor)}>
-            {action.description}
-          </p>
         </div>
         {action.variant === 'schemes' && (
-          <span className="text-[10px] uppercase tracking-[0.16em] font-medium text-secondary">
+          <span className="text-[10px] uppercase tracking-[0.18em] font-semibold text-secondary/80 dark:text-primary/80">
             Explore →
           </span>
         )}
@@ -277,7 +270,7 @@ const Index = () => {
             <div className="container mx-auto max-w-5xl">
               <FadeIn>
                 <div className="text-center mb-10">
-                  <h2 className="text-2xl md:text-[1.75rem] font-medium text-foreground tracking-tight">
+                  <h2 className="font-display text-3xl md:text-[2rem] font-medium text-foreground tracking-tight">
                     {t('quickActions')}
                   </h2>
                   <p className="text-sm text-muted-foreground mt-2">
@@ -300,7 +293,7 @@ const Index = () => {
           <section className="py-12 md:py-16 px-4 border-t border-border/50">
             <div className="container mx-auto max-w-5xl">
               <FadeIn>
-                <h2 className="text-2xl md:text-[1.75rem] font-medium text-center mb-12 text-foreground tracking-tight">
+                <h2 className="font-display text-3xl md:text-[2rem] font-medium text-center mb-12 text-foreground tracking-tight">
                   {t('howItWorks')}
                 </h2>
               </FadeIn>
@@ -314,9 +307,12 @@ const Index = () => {
                         <div className="shrink-0 w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-medium text-sm tabular-nums border border-primary/15">
                           {step.num}
                         </div>
-                        <div className="flex items-center gap-2 min-w-0">
-                          <step.stepIcon className="h-4 w-4 text-muted-foreground shrink-0" strokeWidth={1.5} />
-                          <h3 className="font-medium text-[15px] text-foreground leading-snug truncate">
+                        <div className="flex flex-col min-w-0">
+                          <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] text-muted-foreground font-semibold">
+                            <step.stepIcon className="h-3.5 w-3.5" strokeWidth={1.75} />
+                            Step
+                          </div>
+                          <h3 className="font-medium text-[15px] text-foreground leading-snug truncate mt-0.5">
                             {step.stepTitle}
                           </h3>
                         </div>
