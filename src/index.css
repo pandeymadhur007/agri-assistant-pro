@@ -267,9 +267,9 @@ All colors MUST be HSL.
 
 .tile-schemes {
   /* Government Schemes — soft mint→sky wash card (from reference) */
-  background: linear-gradient(135deg, hsl(150 35% 92%) 0%, hsl(200 45% 94%) 100%);
-  border-color: hsl(150 25% 85%);
-  box-shadow: var(--shadow-sm);
+  background: linear-gradient(135deg, hsl(150 40% 88%) 0%, hsl(200 55% 90%) 100%);
+  border-color: hsl(150 25% 78%);
+  box-shadow: var(--shadow-md);
 }
 .dark .tile-schemes {
   background: linear-gradient(135deg, hsl(150 20% 10%) 0%, hsl(200 25% 12%) 100%);
@@ -278,9 +278,9 @@ All colors MUST be HSL.
 
 .tile-community {
   background:
-    linear-gradient(135deg, hsl(150 40% 94%) 0%, hsl(200 45% 96%) 100%);
-  border-color: hsl(var(--border));
-  box-shadow: var(--shadow-sm);
+    linear-gradient(135deg, hsl(150 45% 90%) 0%, hsl(200 55% 92%) 100%);
+  border-color: hsl(150 25% 80%);
+  box-shadow: var(--shadow-md);
 }
 .dark .tile-community {
   background:
