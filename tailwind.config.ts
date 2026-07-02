@@ -20,8 +20,8 @@ export default {
         bold: '700',
       },
       fontFamily: {
-        sans: ['Basic', 'Manrope', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
-        display: ['Basic', 'Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['"Inter Tight"', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        display: ['Fraunces', '"Inter Tight"', 'ui-serif', 'Georgia', 'serif'],
       },
       colors: {
         border: "hsl(var(--border))",
