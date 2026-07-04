@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { SEO } from '@/components/SEO';
@@ -40,8 +40,8 @@ interface MarketPricesCache {
 
 const MARKET_PRICES_CACHE_KEY = 'market-prices-cache-v1';
 const MARKET_PRICES_CACHE_TTL_MS = 15 * 60 * 1000;
-const EMPTY_DATA_RETRY_LIMIT = 2;
-const EMPTY_DATA_RETRY_DELAY_MS = 1200;
+const EMPTY_DATA_RETRY_LIMIT = 1;
+const EMPTY_DATA_RETRY_DELAY_MS = 800;
 
 const readMarketPricesCache = (): MarketPricesCache | null => {
   try {
@@ -85,8 +85,8 @@ const MarketPrices = () => {
   const [selectedCrop, setSelectedCrop] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const states = [...new Set(prices.map(p => p.state))].sort();
-  const crops = [...new Set(prices.map(p => p.crop_name))].sort();
+  const states = useMemo(() => [...new Set(prices.map(p => p.state))].sort(), [prices]);
+  const crops = useMemo(() => [...new Set(prices.map(p => p.crop_name))].sort(), [prices]);
 
   const queryMarketData = useCallback(async () => {
     const [pricesRes, mspRes] = await Promise.all([
@@ -94,7 +94,7 @@ const MarketPrices = () => {
         .from('market_prices')
         .select('id, crop_name, crop_name_hi, state, district, mandi, price, unit, price_date, price_trend')
         .order('price_date', { ascending: false })
-        .limit(2000),
+        .limit(600),
       supabase.from('msp_rates').select('crop_name, msp_price')
     ]);
 
@@ -170,14 +170,15 @@ const MarketPrices = () => {
     }
   };
 
-  const filteredPrices = prices.filter(p => {
-    const matchesState = selectedState === 'all' || p.state === selectedState;
-    const matchesCrop = selectedCrop === 'all' || p.crop_name === selectedCrop;
-    const matchesSearch = searchQuery === '' || 
-      p.crop_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.mandi.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesState && matchesCrop && matchesSearch;
-  });
+  const filteredPrices = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return prices.filter(p => {
+      if (selectedState !== 'all' && p.state !== selectedState) return false;
+      if (selectedCrop !== 'all' && p.crop_name !== selectedCrop) return false;
+      if (q && !p.crop_name.toLowerCase().includes(q) && !p.mandi.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }, [prices, selectedState, selectedCrop, searchQuery]);
 
   const getTrendIcon = (trend: string | null) => {
     if (trend === 'up') return <TrendingUp className="h-4 w-4 text-green-600" />;
