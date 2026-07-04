@@ -1,0 +1,2 @@
+DROP POLICY IF EXISTS "Authenticated users can read upvotes" ON public.upvotes;
+CREATE POLICY "Users can read their own upvotes" ON public.upvotes FOR SELECT TO authenticated USING (auth.uid() = user_id);
