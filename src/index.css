@@ -48,34 +48,34 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Light — soft sage-white wash (from reference) */
-    --background: 140 20% 98%;         /* #F7FAF7 */
-    --foreground: 200 40% 12%;         /* deep navy-ink */
+    /* Light — crisp white with sky-blue wash */
+    --background: 205 70% 98%;         /* #F4FAFE */
+    --foreground: 215 45% 14%;         /* deep ink navy */
 
     --card: 0 0% 100%;
-    --card-foreground: 200 40% 12%;
+    --card-foreground: 215 45% 14%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 200 40% 12%;
+    --popover-foreground: 215 45% 14%;
 
-    --primary: 155 25% 35%;            /* sage green */
+    --primary: 205 85% 52%;            /* sky blue */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 205 45% 25%;          /* deep teal-navy */
+    --secondary: 210 60% 35%;          /* deep sky */
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 140 15% 95%;
-    --muted-foreground: 200 12% 42%;
+    --muted: 205 55% 95%;
+    --muted-foreground: 215 20% 42%;
 
-    --accent: 150 30% 90%;
-    --accent-foreground: 155 30% 25%;
+    --accent: 200 90% 92%;
+    --accent-foreground: 210 60% 25%;
 
     --destructive: 8 60% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 150 15% 90%;             /* #E6ECE7 hairline */
-    --input: 150 15% 90%;
-    --ring: 155 25% 35%;
+    --border: 205 45% 90%;             /* soft sky hairline */
+    --input: 205 45% 90%;
+    --ring: 205 85% 52%;
 
     --radius: 1.25rem;                 /* 20px */
 
@@ -177,8 +177,9 @@ All colors MUST be HSL.
 /* Hero — light blue wash / dark minimal glow */
 .hero-gradient {
   background:
-    radial-gradient(ellipse 80% 55% at 50% -5%, hsl(155 30% 55% / 0.10) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 45% at 100% 30%, hsl(200 40% 88% / 0.55) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 55% at 50% -5%, hsl(205 85% 70% / 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 45% at 100% 30%, hsl(200 90% 85% / 0.55) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 40% at 0% 40%, hsl(210 80% 92% / 0.5) 0%, transparent 55%),
     hsl(var(--background));
 }
 
@@ -218,11 +219,11 @@ All colors MUST be HSL.
 
 /* Dashboard quick-action tile variants */
 .tile-primary {
-  /* Crop Center — deep navy → teal (from reference) */
-  background: linear-gradient(135deg, hsl(205 55% 22%) 0%, hsl(190 40% 32%) 100%);
+  /* Crop Center — deep sky → sky blue */
+  background: linear-gradient(135deg, hsl(215 65% 28%) 0%, hsl(205 85% 52%) 100%);
   border-color: transparent;
   color: white;
-  box-shadow: 0 10px 28px -12px hsl(205 55% 22% / 0.45);
+  box-shadow: 0 10px 28px -12px hsl(205 65% 30% / 0.45);
 }
 .dark .tile-primary {
   background: linear-gradient(135deg, hsl(200 50% 18%) 0%, hsl(160 40% 24%) 100%);
@@ -230,11 +231,11 @@ All colors MUST be HSL.
 }
 
 .tile-secondary {
-  /* Smart Crop Planner — teal → sage (from reference) */
-  background: linear-gradient(135deg, hsl(200 55% 28%) 0%, hsl(155 30% 55%) 100%);
+  /* Smart Crop Planner — sky gradient */
+  background: linear-gradient(135deg, hsl(205 80% 45%) 0%, hsl(195 90% 70%) 100%);
   border-color: transparent;
   color: white;
-  box-shadow: 0 10px 28px -12px hsl(200 55% 28% / 0.4);
+  box-shadow: 0 10px 28px -12px hsl(205 80% 45% / 0.4);
 }
 .dark .tile-secondary {
   background: linear-gradient(135deg, hsl(200 55% 22%) 0%, hsl(155 35% 30%) 100%);
@@ -266,9 +267,9 @@ All colors MUST be HSL.
 }
 
 .tile-schemes {
-  /* Government Schemes — soft mint→sky wash card (from reference) */
-  background: linear-gradient(135deg, hsl(150 40% 88%) 0%, hsl(200 55% 90%) 100%);
-  border-color: hsl(150 25% 78%);
+  /* Government Schemes — white → sky wash */
+  background: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(200 90% 92%) 100%);
+  border-color: hsl(205 55% 85%);
   box-shadow: var(--shadow-md);
 }
 .dark .tile-schemes {
@@ -278,8 +279,8 @@ All colors MUST be HSL.
 
 .tile-community {
   background:
-    linear-gradient(135deg, hsl(150 45% 90%) 0%, hsl(200 55% 92%) 100%);
-  border-color: hsl(150 25% 80%);
+    linear-gradient(135deg, hsl(200 95% 94%) 0%, hsl(210 90% 90%) 100%);
+  border-color: hsl(205 55% 85%);
   box-shadow: var(--shadow-md);
 }
 .dark .tile-community {
@@ -306,9 +307,9 @@ All colors MUST be HSL.
 }
 
 .tile-icon-neutral {
-  background: hsl(150 25% 94%);
-  border: 1px solid hsl(150 20% 88%);
-  color: hsl(200 40% 20%);
+  background: hsl(205 70% 95%);
+  border: 1px solid hsl(205 55% 88%);
+  color: hsl(215 55% 22%);
 }
 .dark .tile-icon-neutral {
   background: hsl(150 12% 12%);
@@ -317,9 +318,9 @@ All colors MUST be HSL.
 }
 
 .tile-icon-weather {
-  background: hsl(150 30% 92%);
-  border: 1px solid hsl(150 25% 84%);
-  color: hsl(155 35% 30%);
+  background: hsl(200 90% 92%);
+  border: 1px solid hsl(205 65% 84%);
+  color: hsl(210 65% 32%);
 }
 .dark .tile-icon-weather {
   background: hsl(150 20% 12%);
@@ -329,7 +330,7 @@ All colors MUST be HSL.
 
 /* Feature cards — glass panel */
 .feature-glass {
-  background: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(150 25% 97%) 100%);
+  background: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(205 70% 97%) 100%);
   border: 1px solid hsl(var(--border));
   box-shadow: var(--shadow-sm);
 }
@@ -339,12 +340,12 @@ All colors MUST be HSL.
 }
 
 .btn-hero-primary {
-  background: linear-gradient(135deg, hsl(200 55% 25%) 0%, hsl(155 35% 40%) 100%);
+  background: linear-gradient(135deg, hsl(215 65% 28%) 0%, hsl(205 85% 55%) 100%);
   color: white;
-  box-shadow: 0 6px 18px -6px hsl(200 55% 25% / 0.4);
+  box-shadow: 0 6px 18px -6px hsl(210 70% 35% / 0.4);
 }
 .btn-hero-primary:hover {
-  box-shadow: 0 10px 24px -6px hsl(200 55% 25% / 0.55);
+  box-shadow: 0 10px 24px -6px hsl(210 70% 35% / 0.55);
   transform: translateY(-1px);
 }
 
