@@ -9,6 +9,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import Index from "./pages/Index";
+import { PageSkeleton } from "./components/PageSkeleton";
 
 // Lazy-loaded routes for code splitting (reduces unused JS in initial bundle)
 const Chat = lazy(() => import("./pages/Chat"));
@@ -39,7 +40,7 @@ function AnimatedRoutes() {
   
   return (
     <AnimatePresence mode="wait">
-      <Suspense fallback={<div className="min-h-screen" aria-hidden />}>
+      <Suspense fallback={<PageSkeleton />}>
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Index />} />
         <Route path="/assistant" element={<Chat />} />
