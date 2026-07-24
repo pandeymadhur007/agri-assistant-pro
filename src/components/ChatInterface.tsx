@@ -1,13 +1,13 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Send, Loader2, Mic, MicOff, Volume2, VolumeX, Headphones, Hand } from 'lucide-react';
+import { Send, Loader2, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useChat, Message } from '@/hooks/useChat';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useCloudSpeechRecognition } from '@/hooks/useCloudSpeechRecognition';
 import { useMurfTTS } from '@/hooks/useMurfTTS';
-import { useVoiceMode, useSilenceDetector } from '@/hooks/useVoiceMode';
+import { useVoiceAssistant } from '@/hooks/useVoiceAssistant';
+import { VoiceOrb } from '@/components/VoiceOrb';
 import { cn } from '@/lib/utils';
 
 // Clean AI response by removing any markdown formatting
@@ -64,48 +64,30 @@ export function ChatInterface() {
       sendMessage(prefill);
     }
   }, [location.state, messages.length, sendMessage]);
-  
-  // Voice features
-  const { isRecording, isProcessing, transcript, activeStream, isSupported: micSupported, startRecording, stopRecording, resetTranscript } = useCloudSpeechRecognition();
+
+  // TTS
   const { isPlaying, isLoading: ttsLoading, isSupported: ttsSupported, speak, stop: stopSpeaking } = useMurfTTS();
   const [autoSpeak, setAutoSpeak] = useState(true);
-  const { mode: voiceMode, toggle: toggleVoiceMode, isHandsFree } = useVoiceMode();
 
-  // In hands-free mode, detect silence on the SAME mic stream → auto-stop & send
-  useSilenceDetector(
-    isHandsFree && isRecording,
-    1100,
-    () => { stopRecording(); },
-    activeStream
-  );
+  // Continuous voice assistant (ChatGPT-style)
+  const handleTranscript = useCallback((text: string) => {
+    setInput('');
+    sendMessage(text);
+  }, [sendMessage]);
 
-  // Hands-free auto-loop: when assistant finishes speaking, auto-start mic
-  useEffect(() => {
-    if (!isHandsFree || !micSupported) return;
-    if (!isPlaying && !ttsLoading && !isLoading && !isRecording && !isProcessing && messages.length > 0) {
-      const last = messages[messages.length - 1];
-      if (last.role === 'assistant') {
-        const timer = setTimeout(() => startRecording(language), 250);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [isHandsFree, isPlaying, ttsLoading, isLoading, isRecording, isProcessing, messages, micSupported, startRecording, language]);
-
-  // Hands-free: when transcript arrives & we're not recording anymore, auto-send
-  useEffect(() => {
-    if (!isHandsFree) return;
-    if (transcript && !isRecording && !isProcessing && !isLoading) {
-      const text = transcript.trim();
-      if (text.length > 0) {
-        resetTranscript();
-        sendMessage(text);
-        setInput('');
-      }
-    }
-  }, [isHandsFree, transcript, isRecording, isProcessing, isLoading, resetTranscript, sendMessage]);
-
-  // Derived state for mic button
-  const isListening = isRecording || isProcessing;
+  const {
+    state: voiceState,
+    interim,
+    isSupported: voiceSupported,
+    toggle: toggleVoice,
+    stop: stopListening,
+  } = useVoiceAssistant({
+    language,
+    isThinking: isLoading,
+    isSpeaking: isPlaying,
+    stopSpeaking,
+    onTranscript: handleTranscript,
+  });
 
   // Suggested questions based on current language
   const suggestedQuestions = [
@@ -119,12 +101,10 @@ export function ChatInterface() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Update input when transcript changes
+  // Mirror live transcript into the input field for visibility
   useEffect(() => {
-    if (transcript) {
-      setInput(transcript);
-    }
-  }, [transcript]);
+    if (interim) setInput(interim);
+  }, [interim]);
 
   // Auto-speak new assistant messages
   useEffect(() => {
@@ -141,8 +121,7 @@ export function ChatInterface() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
-    stopRecording();
-    resetTranscript();
+    stopListening();
     sendMessage(input.trim());
     setInput('');
   };
@@ -150,14 +129,6 @@ export function ChatInterface() {
   const handleSuggestedQuestion = (question: string) => {
     if (isLoading) return;
     sendMessage(question);
-  };
-
-  const toggleMic = () => {
-    if (isRecording) {
-      stopRecording();
-    } else {
-      startRecording(language);
-    }
   };
 
   const toggleAutoSpeak = () => {
@@ -215,55 +186,31 @@ export function ChatInterface() {
       </div>
 
       <form onSubmit={handleSubmit} className="border-t bg-background p-4 pb-[88px] md:pb-4">
-        {/* Voice mode toggle bar */}
-        {micSupported && ttsSupported && (
-          <div className="flex items-center justify-between mb-2 text-xs">
-            <button
-              type="button"
-              onClick={toggleVoiceMode}
-              className={cn(
-                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition-colors",
-                isHandsFree
-                  ? "bg-primary/10 border-primary/30 text-primary"
-                  : "bg-muted border-border text-muted-foreground hover:bg-muted/80"
-              )}
-              title={isHandsFree ? "Hands-free mode (auto)" : "Push-to-talk mode"}
-            >
-              {isHandsFree ? <Headphones className="h-3 w-3" /> : <Hand className="h-3 w-3" />}
-              {isHandsFree ? (t('handsFree') || 'Hands-free') : (t('pushToTalk') || 'Push-to-talk')}
-            </button>
-            {isHandsFree && (isRecording || isPlaying) && (
-              <span className="text-primary animate-pulse">
-                {isRecording ? '● listening' : '🔊 speaking'}
-              </span>
-            )}
+        {/* Continuous voice assistant orb */}
+        {voiceSupported && (
+          <div className="flex justify-center mb-3">
+            <VoiceOrb
+              state={voiceState}
+              onClick={toggleVoice}
+              label={interim || undefined}
+            />
           </div>
         )}
+        {!voiceSupported && (
+          <p className="text-xs text-muted-foreground text-center mb-2">
+            Voice input isn't supported in this browser — please type below.
+          </p>
+        )}
         <div className="flex gap-2">
-          {/* Mic button */}
-          {micSupported && (
-            <Button
-              type="button"
-              size="icon"
-              variant={isListening ? "destructive" : "outline"}
-              onClick={toggleMic}
-              className={isRecording ? "animate-pulse" : ""}
-              disabled={isProcessing}
-            >
-              {isProcessing ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : isRecording ? (
-                <MicOff className="h-4 w-4" />
-              ) : (
-                <Mic className="h-4 w-4" />
-              )}
-            </Button>
-          )}
-          
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={isRecording ? "Recording..." : isProcessing ? "Transcribing..." : t('chatPlaceholder')}
+            placeholder={
+              voiceState === 'listening' ? 'Listening…' :
+              voiceState === 'thinking' ? 'Thinking…' :
+              voiceState === 'speaking' ? 'Speaking…' :
+              t('chatPlaceholder')
+            }
             className="min-h-[50px] max-h-[200px] resize-none"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
