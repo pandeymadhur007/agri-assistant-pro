@@ -12,15 +12,15 @@ interface Opts {
   isSpeaking: boolean;
   stopSpeaking: () => void;
   onTranscript: (text: string) => void;
-  autoListenAfterSpeak?: boolean;
 }
 
 /**
  * ChatGPT-style continuous voice assistant.
- * - Tap once to start listening
- * - Auto-stops on silence (native SR behavior with continuous=false)
- * - Sends transcript upstream, waits while thinking, resumes after TTS
- * - Interrupts TTS the moment new speech is detected
+ * - Tap once → mic stays on until the user taps Stop
+ * - Continuous recognition auto-restarts on unexpected `onend`
+ * - Silence detection commits the utterance and sends it upstream
+ * - Recognition is paused while thinking/speaking, resumed automatically after TTS
+ * - Barge-in: speaking again interrupts TTS immediately
  */
 export function useVoiceAssistant({
   language = 'en',
@@ -28,7 +28,6 @@ export function useVoiceAssistant({
   isSpeaking,
   stopSpeaking,
   onTranscript,
-  autoListenAfterSpeak = true,
 }: Opts) {
   const SR = typeof window !== 'undefined'
     ? ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)
@@ -40,42 +39,71 @@ export function useVoiceAssistant({
   const [error, setError] = useState<string | null>(null);
 
   const recRef = useRef<any>(null);
+  // "enabled" = user intent to be in voice-mode. Persists across restarts, pauses.
+  const enabledRef = useRef(false);
+  const [enabled, setEnabled] = useState(false);
   const startingRef = useRef(false);
   const finalRef = useRef('');
   const interimRef = useRef('');
+  const silenceTimerRef = useRef<number | null>(null);
+  const restartTimerRef = useRef<number | null>(null);
   const isSpeakingRef = useRef(isSpeaking);
+  const isThinkingRef = useRef(isThinking);
   isSpeakingRef.current = isSpeaking;
+  isThinkingRef.current = isThinking;
 
-  const stop = useCallback(() => {
-    const rec = recRef.current;
-    if (rec) {
-      try { rec.stop(); } catch { /* noop */ }
+  const clearSilence = () => {
+    if (silenceTimerRef.current) {
+      window.clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
     }
-    setListening(false);
-  }, []);
+  };
+  const clearRestart = () => {
+    if (restartTimerRef.current) {
+      window.clearTimeout(restartTimerRef.current);
+      restartTimerRef.current = null;
+    }
+  };
 
-  const start = useCallback(async () => {
+  const commit = useCallback(() => {
+    clearSilence();
+    const text = (finalRef.current || interimRef.current).trim();
+    finalRef.current = '';
+    interimRef.current = '';
+    setInterim('');
+    if (text) {
+      // Pause recognition while the assistant thinks/speaks
+      const rec = recRef.current;
+      if (rec) { try { rec.stop(); } catch { /* noop */ } }
+      onTranscript(text);
+    }
+  }, [onTranscript]);
+
+  const startRecognition = useCallback(() => {
     if (!SR) { setError('unsupported'); return; }
-    if (startingRef.current || listening) return;
+    if (startingRef.current) return;
+    if (recRef.current) return; // already running
+    if (isThinkingRef.current || isSpeakingRef.current) return;
     startingRef.current = true;
-    setError(null);
 
     try {
-      // Prevent recognition sessions overlapping — force-close any prior instance
-      if (recRef.current) {
-        try { recRef.current.abort(); } catch { /* noop */ }
-        recRef.current = null;
-      }
-
       const rec = new SR();
       rec.lang = LANG_MAP[language] || 'en-IN';
-      rec.continuous = false;
+      rec.continuous = true;
       rec.interimResults = true;
       rec.maxAlternatives = 1;
 
       finalRef.current = '';
       interimRef.current = '';
       setInterim('');
+
+      rec.onstart = () => {
+        setListening(true);
+        setError(null);
+      };
+
+      rec.onaudiostart = () => { /* mic hot */ };
+      rec.onaudioend = () => { /* mic cool */ };
 
       rec.onresult = (e: any) => {
         let interimText = '';
@@ -85,71 +113,142 @@ export function useVoiceAssistant({
           if (r.isFinal) finalText += r[0].transcript;
           else interimText += r[0].transcript;
         }
-        // Barge-in: cancel any AI speech the moment the user starts speaking
+        // Barge-in
         if ((interimText || finalText) && isSpeakingRef.current) {
           stopSpeaking();
         }
         if (finalText) finalRef.current += finalText;
         interimRef.current = interimText;
-        setInterim(interimText);
+        setInterim((finalRef.current + ' ' + interimText).trim());
+
+        // Reset silence timer on every new chunk
+        clearSilence();
+        silenceTimerRef.current = window.setTimeout(() => {
+          commit();
+        }, 1400);
+      };
+
+      rec.onspeechend = () => {
+        // Some browsers fire this reliably; commit shortly after
+        clearSilence();
+        silenceTimerRef.current = window.setTimeout(() => commit(), 600);
       };
 
       rec.onerror = (e: any) => {
         const err = e?.error || 'error';
-        // "no-speech" / "aborted" are benign — treat as normal stop
-        if (err !== 'no-speech' && err !== 'aborted') setError(err);
-        setListening(false);
+        if (err === 'not-allowed' || err === 'service-not-allowed') {
+          setError('permission-denied');
+          enabledRef.current = false;
+          setEnabled(false);
+        } else if (err !== 'no-speech' && err !== 'aborted') {
+          setError(err);
+        }
       };
 
       rec.onend = () => {
         setListening(false);
-        const text = (finalRef.current || interimRef.current).trim();
-        finalRef.current = '';
-        interimRef.current = '';
-        setInterim('');
         recRef.current = null;
-        if (text) onTranscript(text);
+        clearSilence();
+        // Flush any pending final text if we ended without a silence commit
+        const pending = (finalRef.current || interimRef.current).trim();
+        if (pending && !isThinkingRef.current && !isSpeakingRef.current) {
+          finalRef.current = '';
+          interimRef.current = '';
+          setInterim('');
+          onTranscript(pending);
+          return; // wait for think/speak cycle to auto-resume
+        }
+        // Auto-restart if voice mode is still enabled and we're idle
+        if (enabledRef.current && !isThinkingRef.current && !isSpeakingRef.current) {
+          clearRestart();
+          restartTimerRef.current = window.setTimeout(() => startRecognition(), 250);
+        }
       };
 
       recRef.current = rec;
       rec.start();
-      setListening(true);
     } catch (e: any) {
-      setError(e?.message || 'start_failed');
-      setListening(false);
+      // "already started" — swallow, session exists
+      const msg = e?.message || '';
+      if (!/already started/i.test(msg)) setError(msg || 'start_failed');
+      recRef.current = null;
     } finally {
       startingRef.current = false;
     }
-  }, [SR, language, listening, onTranscript, stopSpeaking]);
+  }, [SR, language, stopSpeaking, commit, onTranscript]);
+
+  const stop = useCallback(() => {
+    enabledRef.current = false;
+    setEnabled(false);
+    clearRestart();
+    clearSilence();
+    const rec = recRef.current;
+    if (rec) {
+      try { rec.onend = null; rec.abort(); } catch { /* noop */ }
+    }
+    recRef.current = null;
+    setListening(false);
+    setInterim('');
+    finalRef.current = '';
+    interimRef.current = '';
+  }, []);
+
+  const start = useCallback(async () => {
+    if (!SR) { setError('unsupported'); return; }
+    // Proactively ask for mic permission so the first tap works reliably
+    try {
+      if (navigator?.mediaDevices?.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach((t) => t.stop());
+      }
+    } catch {
+      setError('permission-denied');
+      return;
+    }
+    enabledRef.current = true;
+    setEnabled(true);
+    startRecognition();
+  }, [SR, startRecognition]);
 
   const toggle = useCallback(() => {
-    if (listening) stop();
+    if (enabledRef.current) stop();
     else start();
-  }, [listening, start, stop]);
+  }, [start, stop]);
 
-  // Auto-return to listening after the assistant finishes speaking
-  const prevSpeakingRef = useRef(false);
+  // Auto-resume listening after the assistant finishes thinking + speaking
   useEffect(() => {
-    if (prevSpeakingRef.current && !isSpeaking && autoListenAfterSpeak && !isThinking) {
-      const t = setTimeout(() => { start(); }, 300);
-      prevSpeakingRef.current = isSpeaking;
-      return () => clearTimeout(t);
-    }
-    prevSpeakingRef.current = isSpeaking;
-  }, [isSpeaking, isThinking, autoListenAfterSpeak, start]);
+    if (!enabled) return;
+    if (isThinking || isSpeaking) return;
+    if (recRef.current) return;
+    clearRestart();
+    restartTimerRef.current = window.setTimeout(() => startRecognition(), 250);
+    return () => clearRestart();
+  }, [enabled, isThinking, isSpeaking, startRecognition]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      enabledRef.current = false;
+      clearSilence();
+      clearRestart();
       const rec = recRef.current;
       if (rec) {
-        try { rec.onresult = null; rec.onend = null; rec.onerror = null; rec.abort(); } catch { /* noop */ }
+        try {
+          rec.onresult = null; rec.onend = null; rec.onerror = null;
+          rec.onstart = null; rec.onspeechend = null;
+          rec.onaudiostart = null; rec.onaudioend = null;
+          rec.abort();
+        } catch { /* noop */ }
       }
       recRef.current = null;
     };
   }, []);
 
-  const state: VoiceState = isThinking ? 'thinking' : isSpeaking ? 'speaking' : listening ? 'listening' : 'idle';
+  const state: VoiceState =
+    isThinking ? 'thinking' :
+    isSpeaking ? 'speaking' :
+    (listening || enabled) ? 'listening' :
+    'idle';
 
-  return { state, listening, interim, error, isSupported, start, stop, toggle };
+  return { state, listening, enabled, interim, error, isSupported, start, stop, toggle };
 }
