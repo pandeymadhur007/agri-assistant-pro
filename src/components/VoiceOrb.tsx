@@ -15,6 +15,7 @@ const STATE_LABEL: Record<VoiceState, string> = {
   listening: 'Listening…',
   thinking: 'Thinking…',
   speaking: 'Speaking — tap to interrupt',
+  processing: 'Processing…',
 };
 
 export function VoiceOrb({ state, onClick, disabled, label, className }: Props) {

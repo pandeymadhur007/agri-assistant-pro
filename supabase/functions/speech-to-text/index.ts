@@ -6,14 +6,25 @@ const corsHeaders = {
 };
 
 // Language mapping for better transcription hints
-const LANGUAGE_HINTS: Record<string, string> = {
-  'en': 'English (Indian accent)',
-  'hi': 'Hindi',
-  'mr': 'Marathi',
-  'te': 'Telugu',
-  'ta': 'Tamil',
-  'bn': 'Bengali',
+const LANG_MAP: Record<string, string> = {
+  'en': 'en-IN',
+  'hi': 'hi-IN',
+  'mr': 'mr-IN',
+  'te': 'te-IN',
+  'ta': 'ta-IN',
+  'bn': 'bn-IN',
 };
+
+// Convert base64 to binary data
+function base64ToUint8Array(base64: string) {
+  const binaryString = atob(base64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
 
 serve(async (req: Request) => {
   // Handle CORS preflight
@@ -31,59 +42,52 @@ serve(async (req: Request) => {
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      console.error('LOVABLE_API_KEY is not configured');
+    const SARVAM_API_KEY = Deno.env.get('SARVAM_API_KEY');
+    if (!SARVAM_API_KEY) {
+      console.error('SARVAM_API_KEY is not configured');
       return new Response(
         JSON.stringify({ error: 'Speech service not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const languageHint = LANGUAGE_HINTS[language] || 'English';
-    
-    console.log(`Processing speech-to-text request for language: ${language}`);
+    const targetLang = LANG_MAP[language] || LANG_MAP['en'];
+    console.log(`Processing speech-to-text request for language: ${language} mapped to ${targetLang}`);
 
-    // Use Gemini's audio understanding capabilities
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    // Decode base64 audio to binary
+    let audioBytes: Uint8Array;
+    try {
+      audioBytes = base64ToUint8Array(audio);
+    } catch (e) {
+      console.error("Invalid base64 audio data", e);
+      return new Response(
+        JSON.stringify({ error: 'Invalid audio encoding' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const formData = new FormData();
+    const blob = new Blob([audioBytes], { type: 'audio/wav' });
+    formData.append('file', blob, 'audio.wav');
+    formData.append('model', 'saaras:v3');
+    formData.append('mode', 'transcribe');
+    // Using language 'unknown' allows Sarvam's API to auto-detect if the provided code is not accurate, but specifying helps.
+    // Given the task says "English, Hindi, Marathi, Telugu, Tamil, Bengali", let's pass the mapped language.
+    formData.append('language_code', targetLang);
+
+    // Use Sarvam's STT API
+    const response = await fetch('https://api.sarvam.ai/speech-to-text', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
+        'api-subscription-key': SARVAM_API_KEY,
+        // Don't set Content-Type here, let fetch handle the boundary for multipart/form-data
       },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          {
-            role: 'system',
-            content: `You are a speech-to-text transcription assistant. Your only job is to transcribe the audio accurately. 
-The audio is likely in ${languageHint}. 
-Return ONLY the transcribed text, nothing else. No quotes, no explanations, no prefixes like "The transcription is:".
-If you cannot understand the audio or it's silent, return an empty string.`
-          },
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: 'Transcribe this audio:'
-              },
-              {
-                type: 'input_audio',
-                input_audio: {
-                  data: audio,
-                  format: 'wav'
-                }
-              }
-            ]
-          }
-        ],
-      }),
+      body: formData,
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('AI Gateway error:', response.status, errorText);
+      console.error('Sarvam API error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
@@ -105,7 +109,7 @@ If you cannot understand the audio or it's silent, return an empty string.`
     }
 
     const data = await response.json();
-    const transcript = data.choices?.[0]?.message?.content?.trim() || '';
+    const transcript = data.transcript || '';
     
     console.log(`Transcription successful: "${transcript.substring(0, 50)}..."`);
 
@@ -115,7 +119,6 @@ If you cannot understand the audio or it's silent, return an empty string.`
     );
 
   } catch (error) {
-    // Log error type only, not full message to avoid leaking internal details
     console.error('Speech-to-text error:', error instanceof Error ? error.name : 'Unknown');
     return new Response(
       JSON.stringify({ error: 'Unable to process audio' }),
