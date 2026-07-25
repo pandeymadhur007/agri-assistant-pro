@@ -5,24 +5,23 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Language mapping for better transcription hints
-const LANGUAGE_HINTS: Record<string, string> = {
-  'en': 'English (Indian accent)',
-  'hi': 'Hindi',
-  'mr': 'Marathi',
-  'te': 'Telugu',
-  'ta': 'Tamil',
-  'bn': 'Bengali',
-};
+// ISO-639-1 language codes accepted by the transcription model.
+const SUPPORTED_LANGS = new Set(['en', 'hi', 'mr', 'te', 'ta', 'bn']);
+
+function base64ToBytes(base64: string): Uint8Array {
+  const bin = atob(base64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
 
 serve(async (req: Request) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { audio, language = 'en' } = await req.json();
+    const { audio, language = 'en', mimeType = 'audio/webm' } = await req.json();
 
     if (!audio) {
       return new Response(
@@ -40,51 +39,35 @@ serve(async (req: Request) => {
       );
     }
 
-    const languageHint = LANGUAGE_HINTS[language] || 'English';
-    
-    console.log(`Processing speech-to-text request for language: ${language}`);
+    console.log(`STT request: lang=${language} mime=${mimeType} bytes~=${Math.round((audio.length * 3) / 4)}`);
 
-    // Use Gemini's audio understanding capabilities
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    // Decode base64 -> Blob and forward to the dedicated STT endpoint.
+    const bytes = base64ToBytes(audio);
+    // Map mime -> extension. OpenAI infers container from the filename.
+    const ext = mimeType.includes('wav') ? 'wav'
+      : mimeType.includes('mp4') || mimeType.includes('m4a') ? 'm4a'
+      : mimeType.includes('mpeg') || mimeType.includes('mp3') ? 'mp3'
+      : mimeType.includes('ogg') ? 'ogg'
+      : 'webm';
+    const audioBlob = new Blob([bytes], { type: mimeType });
+
+    const form = new FormData();
+    form.append('file', audioBlob, `recording.${ext}`);
+    form.append('model', 'openai/gpt-4o-transcribe');
+    if (SUPPORTED_LANGS.has(language)) {
+      form.append('language', language);
+    }
+
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/audio/transcriptions', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          {
-            role: 'system',
-            content: `You are a speech-to-text transcription assistant. Your only job is to transcribe the audio accurately. 
-The audio is likely in ${languageHint}. 
-Return ONLY the transcribed text, nothing else. No quotes, no explanations, no prefixes like "The transcription is:".
-If you cannot understand the audio or it's silent, return an empty string.`
-          },
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: 'Transcribe this audio:'
-              },
-              {
-                type: 'input_audio',
-                input_audio: {
-                  data: audio,
-                  format: 'wav'
-                }
-              }
-            ]
-          }
-        ],
-      }),
+      headers: { 'Authorization': `Bearer ${LOVABLE_API_KEY}` },
+      body: form,
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('AI Gateway error:', response.status, errorText);
-      
+      console.error('STT gateway error:', response.status, errorText);
+
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
@@ -97,16 +80,16 @@ If you cannot understand the audio or it's silent, return an empty string.`
           { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      
+
       return new Response(
-        JSON.stringify({ error: 'Failed to transcribe audio' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Failed to transcribe audio', details: errorText }),
+        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     const data = await response.json();
-    const transcript = data.choices?.[0]?.message?.content?.trim() || '';
-    
+    const transcript = (data.text ?? data.transcript ?? '').trim();
+
     console.log(`Transcription successful: "${transcript.substring(0, 50)}..."`);
 
     return new Response(
@@ -115,8 +98,7 @@ If you cannot understand the audio or it's silent, return an empty string.`
     );
 
   } catch (error) {
-    // Log error type only, not full message to avoid leaking internal details
-    console.error('Speech-to-text error:', error instanceof Error ? error.name : 'Unknown');
+    console.error('Speech-to-text error:', error instanceof Error ? error.message : 'Unknown');
     return new Response(
       JSON.stringify({ error: 'Unable to process audio' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
