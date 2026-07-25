@@ -1,65 +1,56 @@
-# Gram AI — Reference-Matched UI Redesign
 
-Goal: restyle the app to match the 4 uploaded reference screenshots (2 dark + 2 light) exactly — same palette, tile treatments, spacing, and typography — without changing any feature, route, or backend logic.
+## Why voice-to-text isn't working today
 
-## Visual spec (locked to references)
+The current `useVoiceAssistant` hook relies on the browser's built-in `SpeechRecognition` API (Web Speech). That API is the reason it fails:
 
-**Light theme**
-- Background: soft white → very light sage vertical wash (`#F7FAF7 → #EEF3EE`)
-- Tiles: pure white `#FFFFFF` with hairline border `#E6ECE7`, radius `20px`, soft shadow
-- Accent tiles use gradients:
-  - Crop Center: deep navy→teal `#1E3A5F → #2F5F6E`
-  - Smart Crop Planner: teal→sage `#2F5F6E → #6FA88C`
-  - Market Prices: navy→sage `#1E3A5F → #6FA88C`
-  - Community: mint→sky wash `#DCEBE1 → #E4EEF6`
-- Icons/text on light tiles: dark navy `#0F1E2E`; on gradient tiles: white
+- **Not supported on most browsers.** It only works in Chrome/Edge on desktop and Chrome on Android. Firefox, Safari (desktop), Brave, in-app browsers, and most Android WebViews return "unsupported" or silently stop after 1–2 seconds.
+- **Requires Google's speech servers** — blocked on many networks and in India frequently drops mid-utterance.
+- **No support inside a Capacitor/Play Store build** (which is where this app is heading).
+- **Poor accuracy for Hindi/Marathi/Telugu/Tamil/Bengali** even when it does connect.
 
-**Dark theme**
-- Background: near-black `#0B0F0D` with faint sage vignette
-- Tiles: `#131A17` with hairline border `#1F2A24`, radius `20px`, subtle inner highlight
-- Same accent gradients but with a soft outer glow (`box-shadow: 0 0 32px rgba(74,222,128,0.12)`)
-- Text: `#E8EFEA` primary, `#8A968F` secondary
+You do **not** need to sign up for a new third-party API. The project already has:
 
-**Typography**
-- Headings: **Fraunces** (or **Instrument Serif**) — matches the elegant "Quick Actions" heading in refs
-- Body / UI: **Inter Tight** at weight 500–600 for tiles, 400 for descriptions
-- Load via Google Fonts in `index.html`
+1. An edge function `supabase/functions/speech-to-text/index.ts` that transcribes audio via the **Lovable AI Gateway** (no extra key needed — `LOVABLE_API_KEY` is already set).
+2. A hook `src/hooks/useCloudSpeechRecognition.ts` that records mic audio, converts it to WAV, and calls that function.
 
-## Layout (matches references)
+They're just not wired into the voice orb. We'll switch to them and upgrade to the purpose-built transcription model.
 
-- Quick Actions grid: **4 × 2** on desktop, **2 × 4** on mobile, generous 20px gaps
-- Tile: centered icon (thin monoline, 1.5 stroke) + label below; no description on gradient tiles, small "EXPLORE →" only on Government Schemes
-- "How It Works": 3 numbered circles in a row, STEP label + title (keep as in ref image)
-- Feature highlight cards below (AI Crop Doctor / Mandi Prices / Smart Weather) with monoline illustrations — already close, will restyle borders + spacing to match
+## Plan
 
-## Files to change (UI only)
+### 1. Upgrade the edge function to the real STT model
+`supabase/functions/speech-to-text/index.ts`
+- Replace the current Gemini chat-completions call (which is fragile for audio and rejects webm/mp4) with the dedicated `/v1/audio/transcriptions` endpoint using **`openai/gpt-4o-transcribe`** — Lovable AI's default speech-to-text model, higher accuracy, supports Hindi/Marathi/Telugu/Tamil/Bengali auto-detect.
+- Accept the audio as base64, decode to a Blob, send as `multipart/form-data` with `file`, `model`, and optional `language` (ISO-639-1) hint.
+- Keep the same `{ transcript }` response shape so the frontend doesn't change contract.
+- Return proper 4xx errors so the UI can show "please try again" instead of a generic 500.
 
-1. `src/index.css` — palette tokens, background wash, tile utilities (`tile-primary`, `tile-secondary`, `tile-neutral`, `tile-schemes`, `tile-community`), shadow + border tokens for both themes
-2. `tailwind.config.ts` — swap font family to Fraunces (display) + Inter Tight (sans)
-3. `index.html` — Google Fonts link for Fraunces + Inter Tight
-4. `src/pages/Index.tsx` — restore "STEP" label in How It Works, tighten tile markup to match ref (icon-only + label, no per-tile description on gradient tiles), 4-col grid
-5. `src/components/Navbar.tsx` — match slim header from ref (logo left, theme + bell + language + avatar right)
-6. `src/components/ui/card.tsx` + `button.tsx` — radius + border tuning to `rounded-[20px]`
+### 2. Rewrite the voice hook to use cloud STT
+`src/hooks/useVoiceAssistant.ts`
+- Remove all `SpeechRecognition` code.
+- Use `MediaRecorder` (webm on Chrome/Android, mp4 on iOS Safari) with silence detection via the Web Audio API (`AnalyserNode` on the mic stream):
+  - Start recording on tap.
+  - Watch RMS volume; when below threshold for ~1.4 s after some speech was detected, stop the recorder → send blob to `speech-to-text` edge function → get transcript → hand to Gemini chat → speak reply → auto-resume recording.
+  - Barge-in: if volume rises while TTS is speaking, cancel `speechSynthesis` immediately.
+- Keep the same public API (`state`, `listening`, `interim`, `error`, `isSupported`, `start`, `stop`, `toggle`) so `VoiceOrb.tsx` and `ChatInterface.tsx` don't need changes.
+- `isSupported` now checks `navigator.mediaDevices.getUserMedia` + `MediaRecorder` — works in Safari, Firefox, Brave, and Capacitor.
+- `interim` will show "Listening…" / "Transcribing…" instead of live partial text (cloud STT is non-streaming per utterance; still feels instant because we only send after silence).
 
-## Functionality verification (no code changes, just checks)
+### 3. Pass the selected language to STT
+- Read the user's active language from `LanguageContext` and forward it to the edge function so Hindi/Marathi/etc. are transcribed correctly.
 
-After the redesign lands, I'll drive the running preview with Playwright to verify:
-- Home loads, all 8 quick action tiles route correctly
-- Chat sends + receives a reply
-- Scan uploads a compressed image and returns a result
-- Market Prices loads live Agmarknet rows
-- Weather widget renders current conditions
-- Theme toggle swaps light ↔ dark cleanly
-- Language selector switches strings
+### 4. Minor UI copy
+`src/components/VoiceOrb.tsx`
+- Update the unsupported-browser message to reflect the new requirement ("microphone access") rather than "SpeechRecognition not supported".
 
-Any breakage found → fix in the same pass.
+## What you get
+- Works in **every modern browser + Capacitor Android build**.
+- Much better accuracy in Indian languages.
+- Same ChatGPT-style flow: tap once → listen → auto-stop on silence → think → speak → auto-resume.
+- No new API keys, no new signup, no extra cost beyond your existing Lovable AI credits.
 
-## Out of scope
+## Files to change
+- `supabase/functions/speech-to-text/index.ts` — swap to `/v1/audio/transcriptions` with `openai/gpt-4o-transcribe`.
+- `src/hooks/useVoiceAssistant.ts` — rewrite to use `MediaRecorder` + Web Audio silence detection + cloud STT.
+- `src/components/VoiceOrb.tsx` — tiny copy tweak for the fallback message.
 
-- No feature additions, no route changes, no backend/edge-function edits, no schema changes.
-- Farming Tools and Crop Transportation sections (mentioned earlier) are NOT included here — separate task.
-
-## Confirm before I build
-
-- Font pick: **Fraunces + Inter Tight** (elegant serif display + modern sans body). Reply "use X" if you want a different pair (e.g. Instrument Serif, Satoshi, General Sans).
-- OK to drop per-tile descriptions on the 4 gradient tiles to match the reference exactly? (Neutral white tiles keep just the label too, per ref.)
+No database changes, no new secrets, no changes to `ChatInterface.tsx` or any page.
