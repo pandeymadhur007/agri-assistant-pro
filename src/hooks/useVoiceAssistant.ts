@@ -11,27 +11,14 @@ interface Opts {
   onTranscript: (text: string) => void;
 }
 
-// Silence detection tuning
-const SILENCE_RMS = 0.012;         // below this = "quiet"
-const SPEECH_RMS = 0.03;           // above this = "user is speaking"
-const SILENCE_MS = 1400;           // silence before we cut the utterance
-const MAX_UTTERANCE_MS = 15000;    // hard cap per utterance
-const MIN_UTTERANCE_MS = 400;      // ignore accidental taps / clicks
-
-function pickMimeType(): string {
-  if (typeof MediaRecorder === 'undefined') return 'audio/webm';
-  const candidates = [
-    'audio/webm;codecs=opus',
-    'audio/webm',
-    'audio/mp4',            // iOS Safari
-    'audio/mp4;codecs=mp4a.40.2',
-    'audio/ogg;codecs=opus',
-  ];
-  for (const c of candidates) {
-    if (MediaRecorder.isTypeSupported(c)) return c;
-  }
-  return '';
-}
+// Silence detection tuning for farm/noisy mobile environments.
+const SILENCE_RMS = 0.01;
+const SPEECH_RMS = 0.022;
+const SILENCE_MS = 950;
+const MAX_UTTERANCE_MS = 10000;
+const MIN_UTTERANCE_MS = 350;
+const TARGET_SAMPLE_RATE = 16000;
+const MIN_WAV_BYTES = 2400;
 
 function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -44,6 +31,70 @@ function blobToBase64(blob: Blob): Promise<string> {
     reader.onerror = reject;
     reader.readAsDataURL(blob);
   });
+}
+
+function downsampleBuffer(input: Float32Array, inputSampleRate: number, outputSampleRate: number): Float32Array {
+  if (outputSampleRate === inputSampleRate) return input;
+  const ratio = inputSampleRate / outputSampleRate;
+  const outputLength = Math.max(1, Math.round(input.length / ratio));
+  const output = new Float32Array(outputLength);
+  let inputOffset = 0;
+
+  for (let i = 0; i < outputLength; i++) {
+    const nextInputOffset = Math.round((i + 1) * ratio);
+    let sum = 0;
+    let count = 0;
+    for (let j = inputOffset; j < nextInputOffset && j < input.length; j++) {
+      sum += input[j];
+      count++;
+    }
+    output[i] = count > 0 ? sum / count : 0;
+    inputOffset = nextInputOffset;
+  }
+
+  return output;
+}
+
+function encodeWav(chunks: Float32Array[], inputSampleRate: number): Blob {
+  const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+  const merged = new Float32Array(totalLength);
+  let offset = 0;
+  for (const chunk of chunks) {
+    merged.set(chunk, offset);
+    offset += chunk.length;
+  }
+
+  const samples = downsampleBuffer(merged, inputSampleRate, TARGET_SAMPLE_RATE);
+  const dataLength = samples.length * 2;
+  const buffer = new ArrayBuffer(44 + dataLength);
+  const view = new DataView(buffer);
+
+  const writeString = (pos: number, value: string) => {
+    for (let i = 0; i < value.length; i++) view.setUint8(pos + i, value.charCodeAt(i));
+  };
+
+  writeString(0, 'RIFF');
+  view.setUint32(4, 36 + dataLength, true);
+  writeString(8, 'WAVE');
+  writeString(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, TARGET_SAMPLE_RATE, true);
+  view.setUint32(28, TARGET_SAMPLE_RATE * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeString(36, 'data');
+  view.setUint32(40, dataLength, true);
+
+  let wavOffset = 44;
+  for (let i = 0; i < samples.length; i++) {
+    const sample = Math.max(-1, Math.min(1, samples[i]));
+    view.setInt16(wavOffset, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
+    wavOffset += 2;
+  }
+
+  return new Blob([buffer], { type: 'audio/wav' });
 }
 
 /**
@@ -75,13 +126,12 @@ export function useVoiceAssistant({
   const enabledRef = useRef(false);
 
   const streamRef = useRef<MediaStream | null>(null);
-  const recorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
-  const mimeTypeRef = useRef<string>('audio/webm');
+  const processorRef = useRef<ScriptProcessorNode | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const pcmChunksRef = useRef<Float32Array[]>([]);
+  const sampleRateRef = useRef(TARGET_SAMPLE_RATE);
 
   const audioCtxRef = useRef<AudioContext | null>(null);
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const rafRef = useRef<number | null>(null);
 
   const speechDetectedRef = useRef(false);
   const lastSpeechAtRef = useRef(0);
@@ -94,12 +144,10 @@ export function useVoiceAssistant({
   isThinkingRef.current = isThinking;
 
   const cleanupStream = useCallback(() => {
-    if (rafRef.current) {
-      cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-    }
-    try { analyserRef.current?.disconnect(); } catch { /* noop */ }
-    analyserRef.current = null;
+    try { processorRef.current?.disconnect(); } catch { /* noop */ }
+    try { sourceRef.current?.disconnect(); } catch { /* noop */ }
+    processorRef.current = null;
+    sourceRef.current = null;
     if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
       audioCtxRef.current.close().catch(() => {});
     }
@@ -108,43 +156,71 @@ export function useVoiceAssistant({
       streamRef.current.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
     }
-    recorderRef.current = null;
-    chunksRef.current = [];
+    pcmChunksRef.current = [];
   }, []);
 
   const transcribe = useCallback(async (blob: Blob) => {
     try {
+      if (blob.size < MIN_WAV_BYTES) {
+        setInterim('');
+        return;
+      }
       const base64 = await blobToBase64(blob);
-      const { data, error: fnError } = await supabase.functions.invoke('speech-to-text', {
-        body: { audio: base64, language, mimeType: mimeTypeRef.current },
+      const invokePromise = supabase.functions.invoke('speech-to-text', {
+        body: { audio: base64, language, mimeType: 'audio/wav' },
       });
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        window.setTimeout(() => reject(new Error('Transcription timed out')), 25000);
+      });
+      const { data, error: fnError } = await Promise.race([invokePromise, timeoutPromise]);
       if (fnError) {
         console.error('STT invoke error:', fnError);
         setError('transcription-failed');
+        setInterim('Could not understand. Tap mic and try again.');
         return;
       }
       const text = (data?.transcript || '').trim();
       if (text) {
         setInterim('');
         onTranscript(text);
+      } else {
+        setInterim('I did not catch that. Please speak again.');
       }
     } catch (e) {
       console.error('STT exception:', e);
       setError('transcription-failed');
+      setInterim('Voice took too long. Please try again.');
     }
   }, [language, onTranscript]);
 
   const stopRecorderAndSend = useCallback(() => {
     if (stoppingRef.current) return;
-    const rec = recorderRef.current;
-    if (!rec || rec.state === 'inactive') return;
     stoppingRef.current = true;
-    try { rec.stop(); } catch { /* noop */ }
-  }, []);
+    const chunks = pcmChunksRef.current.slice();
+    const duration = performance.now() - utteranceStartRef.current;
+    const shouldSend = speechDetectedRef.current && duration >= MIN_UTTERANCE_MS && chunks.length > 0;
+    const sampleRate = sampleRateRef.current;
+    cleanupStream();
+    setListening(false);
+    stoppingRef.current = false;
+
+    if (shouldSend) {
+      const wavBlob = encodeWav(chunks, sampleRate);
+      setInterim('Transcribing…');
+      void transcribe(wavBlob);
+    } else {
+      setInterim('');
+      if (enabledRef.current && !isThinkingRef.current && !isSpeakingRef.current) {
+        window.setTimeout(() => { void startRecordingRef.current?.(); }, 150);
+      }
+    }
+  }, [cleanupStream, transcribe]);
+
+  const startRecordingRef = useRef<(() => Promise<void>) | null>(null);
 
   const startRecording = useCallback(async () => {
     if (!isSupported) { setError('unsupported'); return; }
-    if (recorderRef.current) return;
+    if (audioCtxRef.current || processorRef.current) return;
     if (isThinkingRef.current || isSpeakingRef.current) return;
 
     try {
@@ -158,63 +234,37 @@ export function useVoiceAssistant({
       });
       streamRef.current = stream;
 
-      const mimeType = pickMimeType();
-      mimeTypeRef.current = mimeType || 'audio/webm';
-      const recorder = mimeType
-        ? new MediaRecorder(stream, { mimeType })
-        : new MediaRecorder(stream);
-      recorderRef.current = recorder;
-      chunksRef.current = [];
+      pcmChunksRef.current = [];
       stoppingRef.current = false;
       speechDetectedRef.current = false;
       utteranceStartRef.current = performance.now();
       lastSpeechAtRef.current = performance.now();
-
-      recorder.ondataavailable = (e) => {
-        if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
-      };
-      recorder.onstop = () => {
-        const chunks = chunksRef.current;
-        const duration = performance.now() - utteranceStartRef.current;
-        cleanupStream();
-        setListening(false);
-        stoppingRef.current = false;
-        // Only send if the user actually said something
-        if (speechDetectedRef.current && duration >= MIN_UTTERANCE_MS && chunks.length > 0) {
-          const blob = new Blob(chunks, { type: mimeTypeRef.current });
-          setInterim('Transcribing…');
-          transcribe(blob);
-        } else {
-          setInterim('');
-          // No speech captured — resume listening if still enabled
-          if (enabledRef.current && !isThinkingRef.current && !isSpeakingRef.current) {
-            window.setTimeout(() => { void startRecording(); }, 200);
-          }
-        }
-      };
-      recorder.onerror = (e: any) => {
-        console.error('Recorder error:', e?.error || e);
-        setError('recorder-error');
-      };
 
       // Web Audio silence detection
       const AudioCtx =
         (window as any).AudioContext || (window as any).webkitAudioContext;
       const ctx = new AudioCtx();
       audioCtxRef.current = ctx;
-      const source = ctx.createMediaStreamSource(stream);
-      const analyser = ctx.createAnalyser();
-      analyser.fftSize = 1024;
-      source.connect(analyser);
-      analyserRef.current = analyser;
-      const buffer = new Float32Array(analyser.fftSize);
+      sampleRateRef.current = ctx.sampleRate || TARGET_SAMPLE_RATE;
 
-      const tick = () => {
-        if (!analyserRef.current || !recorderRef.current) return;
-        analyser.getFloatTimeDomainData(buffer);
+      if (ctx.state === 'suspended') {
+        await ctx.resume();
+      }
+
+      const source = ctx.createMediaStreamSource(stream);
+      sourceRef.current = source;
+      const processor = ctx.createScriptProcessor(4096, 1, 1);
+      processorRef.current = processor;
+
+      processor.onaudioprocess = (event) => {
+        if (stoppingRef.current || !enabledRef.current) return;
+        const input = event.inputBuffer.getChannelData(0);
+        const frame = new Float32Array(input);
+        pcmChunksRef.current.push(frame);
+
         let sum = 0;
-        for (let i = 0; i < buffer.length; i++) sum += buffer[i] * buffer[i];
-        const rms = Math.sqrt(sum / buffer.length);
+        for (let i = 0; i < frame.length; i++) sum += frame[i] * frame[i];
+        const rms = Math.sqrt(sum / frame.length);
         const now = performance.now();
 
         if (rms > SPEECH_RMS) {
@@ -238,15 +288,13 @@ export function useVoiceAssistant({
           stopRecorderAndSend();
           return;
         }
-
-        rafRef.current = requestAnimationFrame(tick);
       };
 
-      recorder.start(200);
+      source.connect(processor);
+      processor.connect(ctx.destination);
       setListening(true);
       setError(null);
-      setInterim('Listening…');
-      rafRef.current = requestAnimationFrame(tick);
+      setInterim('Listening… speak now');
     } catch (e: any) {
       console.error('Failed to start recording:', e);
       const name = e?.name || '';
@@ -257,26 +305,25 @@ export function useVoiceAssistant({
       } else {
         setError('start-failed');
       }
+      setInterim('Microphone could not start. Check permission and try again.');
       enabledRef.current = false;
       setEnabled(false);
       cleanupStream();
       setListening(false);
     }
-  }, [isSupported, stopSpeaking, transcribe, cleanupStream, stopRecorderAndSend]);
+  }, [isSupported, stopSpeaking, cleanupStream, stopRecorderAndSend]);
+
+  useEffect(() => {
+    startRecordingRef.current = startRecording;
+  }, [startRecording]);
 
   const stop = useCallback(() => {
     enabledRef.current = false;
     setEnabled(false);
     setInterim('');
-    const rec = recorderRef.current;
-    if (rec && rec.state !== 'inactive') {
-      // We're stopping voice mode entirely: discard whatever was being recorded.
-      speechDetectedRef.current = false;
-      try { rec.stop(); } catch { /* noop */ }
-    } else {
-      cleanupStream();
-      setListening(false);
-    }
+    speechDetectedRef.current = false;
+    cleanupStream();
+    setListening(false);
   }, [cleanupStream]);
 
   const start = useCallback(async () => {
@@ -296,7 +343,7 @@ export function useVoiceAssistant({
   useEffect(() => {
     if (!enabled) return;
     if (isThinking || isSpeaking) return;
-    if (recorderRef.current) return;
+    if (audioCtxRef.current || processorRef.current) return;
     const id = window.setTimeout(() => { void startRecording(); }, 250);
     return () => window.clearTimeout(id);
   }, [enabled, isThinking, isSpeaking, startRecording]);
@@ -305,11 +352,7 @@ export function useVoiceAssistant({
   useEffect(() => {
     return () => {
       enabledRef.current = false;
-      const rec = recorderRef.current;
-      if (rec && rec.state !== 'inactive') {
-        speechDetectedRef.current = false;
-        try { rec.stop(); } catch { /* noop */ }
-      }
+      speechDetectedRef.current = false;
       cleanupStream();
     };
   }, [cleanupStream]);
