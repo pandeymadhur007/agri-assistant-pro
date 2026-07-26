@@ -102,11 +102,6 @@ export function ChatInterface() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Mirror live transcript into the input field for visibility
-  useEffect(() => {
-    if (interim) setInput(interim);
-  }, [interim]);
-
   // Auto-speak new assistant messages
   useEffect(() => {
     if (autoSpeak && messages.length > 0 && !isLoading) {

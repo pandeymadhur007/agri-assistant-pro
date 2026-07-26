@@ -100,11 +100,11 @@ function encodeWav(chunks: Float32Array[], inputSampleRate: number): Blob {
 /**
  * ChatGPT-style continuous voice assistant powered by cloud STT.
  * - Tap once → mic stays on until the user taps Stop
- * - MediaRecorder captures each utterance; Web Audio RMS detects silence
+ * - Web Audio captures clean PCM and encodes each utterance as WAV
  * - On silence: audio → speech-to-text edge function → onTranscript()
  * - Recording pauses while thinking/speaking, auto-resumes after TTS
  * - Barge-in: talking while TTS plays cancels it immediately
- * - Works in every modern browser (Safari, Firefox, Chrome, Brave) + Capacitor
+ * - Works in every modern browser with microphone + Web Audio support
  */
 export function useVoiceAssistant({
   language = 'en',
@@ -117,7 +117,7 @@ export function useVoiceAssistant({
     typeof navigator !== 'undefined' &&
     !!navigator.mediaDevices?.getUserMedia &&
     typeof window !== 'undefined' &&
-    typeof (window as any).MediaRecorder !== 'undefined';
+    !!((window as any).AudioContext || (window as any).webkitAudioContext);
 
   const [listening, setListening] = useState(false);
   const [interim, setInterim] = useState('');
@@ -128,6 +128,7 @@ export function useVoiceAssistant({
   const streamRef = useRef<MediaStream | null>(null);
   const processorRef = useRef<ScriptProcessorNode | null>(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const silentGainRef = useRef<GainNode | null>(null);
   const pcmChunksRef = useRef<Float32Array[]>([]);
   const sampleRateRef = useRef(TARGET_SAMPLE_RATE);
 
@@ -146,8 +147,10 @@ export function useVoiceAssistant({
   const cleanupStream = useCallback(() => {
     try { processorRef.current?.disconnect(); } catch { /* noop */ }
     try { sourceRef.current?.disconnect(); } catch { /* noop */ }
+    try { silentGainRef.current?.disconnect(); } catch { /* noop */ }
     processorRef.current = null;
     sourceRef.current = null;
+    silentGainRef.current = null;
     if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
       audioCtxRef.current.close().catch(() => {});
     }
@@ -255,6 +258,9 @@ export function useVoiceAssistant({
       sourceRef.current = source;
       const processor = ctx.createScriptProcessor(4096, 1, 1);
       processorRef.current = processor;
+      const silentGain = ctx.createGain();
+      silentGain.gain.value = 0;
+      silentGainRef.current = silentGain;
 
       processor.onaudioprocess = (event) => {
         if (stoppingRef.current || !enabledRef.current) return;
@@ -291,7 +297,8 @@ export function useVoiceAssistant({
       };
 
       source.connect(processor);
-      processor.connect(ctx.destination);
+      processor.connect(silentGain);
+      silentGain.connect(ctx.destination);
       setListening(true);
       setError(null);
       setInterim('Listening… speak now');
@@ -318,13 +325,18 @@ export function useVoiceAssistant({
   }, [startRecording]);
 
   const stop = useCallback(() => {
+    const hasCapturedSpeech = speechDetectedRef.current && pcmChunksRef.current.length > 0;
     enabledRef.current = false;
     setEnabled(false);
     setInterim('');
+    if (hasCapturedSpeech && (audioCtxRef.current || processorRef.current)) {
+      stopRecorderAndSend();
+      return;
+    }
     speechDetectedRef.current = false;
     cleanupStream();
     setListening(false);
-  }, [cleanupStream]);
+  }, [cleanupStream, stopRecorderAndSend]);
 
   const start = useCallback(async () => {
     if (!isSupported) { setError('unsupported'); return; }
