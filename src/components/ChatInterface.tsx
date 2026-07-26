@@ -78,6 +78,7 @@ export function ChatInterface() {
   const {
     state: voiceState,
     interim,
+    error: voiceError,
     isSupported: voiceSupported,
     toggle: toggleVoice,
     stop: stopListening,
@@ -100,11 +101,6 @@ export function ChatInterface() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-
-  // Mirror live transcript into the input field for visibility
-  useEffect(() => {
-    if (interim) setInput(interim);
-  }, [interim]);
 
   // Auto-speak new assistant messages
   useEffect(() => {
@@ -196,9 +192,18 @@ export function ChatInterface() {
             />
           </div>
         )}
+        {voiceError && (
+          <p className="text-xs text-destructive text-center mb-2">
+            {voiceError === 'permission-denied'
+              ? 'Allow microphone access, then tap the mic again.'
+              : voiceError === 'no-microphone'
+                ? 'No microphone was found on this device.'
+                : 'Voice could not convert clearly. Please speak closer and try again.'}
+          </p>
+        )}
         {!voiceSupported && (
           <p className="text-xs text-muted-foreground text-center mb-2">
-            Voice input isn't supported in this browser — please type below.
+            Voice input needs microphone access in this browser — please type below.
           </p>
         )}
         <div className="flex gap-2">
