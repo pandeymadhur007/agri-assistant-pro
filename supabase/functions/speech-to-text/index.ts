@@ -42,8 +42,10 @@ serve(async (req: Request) => {
     }
 
     const estimatedBytes = Math.round((audio.length * 3) / 4);
-    if (estimatedBytes < 1024) {
-      return jsonResponse({ error: 'Recording is too short. Please try again.' }, 400);
+    // 16 kHz mono 16-bit WAV: ~0.5s minimum. Shorter clips are rejected upstream
+    // as "Audio file might be corrupted or unsupported".
+    if (estimatedBytes < 16044) {
+      return jsonResponse({ error: 'Recording is too short. Please speak for at least a second.' }, 400);
     }
     if (estimatedBytes > MAX_AUDIO_BYTES) {
       return jsonResponse({ error: 'Recording is too large. Please speak a shorter message.' }, 413);
