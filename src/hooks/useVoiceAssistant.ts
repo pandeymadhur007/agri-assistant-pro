@@ -140,6 +140,8 @@ export function useVoiceAssistant({
   const lastSpeechAtRef = useRef(0);
   const utteranceStartRef = useRef(0);
   const stoppingRef = useRef(false);
+  // Timestamp before which we must not call the STT function again (rate-limit backoff).
+  const cooldownUntilRef = useRef(0);
 
   const isSpeakingRef = useRef(isSpeaking);
   const isThinkingRef = useRef(isThinking);
@@ -170,6 +172,10 @@ export function useVoiceAssistant({
         setInterim('');
         return;
       }
+      if (Date.now() < cooldownUntilRef.current) {
+        setInterim('Voice service is busy. Retrying shortly…');
+        return;
+      }
       const base64 = await blobToBase64(blob);
       const invokePromise = supabase.functions.invoke('speech-to-text', {
         body: { audio: base64, language, mimeType: 'audio/wav' },
@@ -180,6 +186,15 @@ export function useVoiceAssistant({
       const { data, error: fnError } = await Promise.race([invokePromise, timeoutPromise]);
       if (fnError) {
         console.error('STT invoke error:', fnError);
+        const msg = String(fnError.message || '');
+        if (msg.includes('429') || /rate limit/i.test(msg)) {
+          cooldownUntilRef.current = Date.now() + BACKOFF_MS;
+          setError('rate-limited');
+          setInterim('Voice service is busy. Please wait a few seconds.');
+          return;
+        }
+        // Bad audio: back off briefly so we don't loop on the same failure.
+        cooldownUntilRef.current = Date.now() + 1500;
         setError('transcription-failed');
         setInterim('Could not understand. Tap mic and try again.');
         return;
