@@ -373,7 +373,8 @@ export function useVoiceAssistant({
     if (!enabled) return;
     if (isThinking || isSpeaking) return;
     if (audioCtxRef.current || processorRef.current) return;
-    const id = window.setTimeout(() => { void startRecording(); }, 250);
+    const wait = Math.max(250, cooldownUntilRef.current - Date.now());
+    const id = window.setTimeout(() => { void startRecording(); }, wait);
     return () => window.clearTimeout(id);
   }, [enabled, isThinking, isSpeaking, startRecording]);
 
