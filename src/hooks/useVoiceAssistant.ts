@@ -16,9 +16,11 @@ const SILENCE_RMS = 0.01;
 const SPEECH_RMS = 0.022;
 const SILENCE_MS = 950;
 const MAX_UTTERANCE_MS = 10000;
-const MIN_UTTERANCE_MS = 350;
+const MIN_UTTERANCE_MS = 700;
 const TARGET_SAMPLE_RATE = 16000;
-const MIN_WAV_BYTES = 2400;
+// 16 kHz * 2 bytes * 0.6 s + 44-byte header — anything shorter is rejected by the STT model.
+const MIN_WAV_BYTES = 44 + Math.round(TARGET_SAMPLE_RATE * 2 * 0.6);
+const BACKOFF_MS = 6000;
 
 function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -138,6 +140,8 @@ export function useVoiceAssistant({
   const lastSpeechAtRef = useRef(0);
   const utteranceStartRef = useRef(0);
   const stoppingRef = useRef(false);
+  // Timestamp before which we must not call the STT function again (rate-limit backoff).
+  const cooldownUntilRef = useRef(0);
 
   const isSpeakingRef = useRef(isSpeaking);
   const isThinkingRef = useRef(isThinking);
@@ -168,6 +172,10 @@ export function useVoiceAssistant({
         setInterim('');
         return;
       }
+      if (Date.now() < cooldownUntilRef.current) {
+        setInterim('Voice service is busy. Retrying shortly…');
+        return;
+      }
       const base64 = await blobToBase64(blob);
       const invokePromise = supabase.functions.invoke('speech-to-text', {
         body: { audio: base64, language, mimeType: 'audio/wav' },
@@ -178,6 +186,15 @@ export function useVoiceAssistant({
       const { data, error: fnError } = await Promise.race([invokePromise, timeoutPromise]);
       if (fnError) {
         console.error('STT invoke error:', fnError);
+        const msg = String(fnError.message || '');
+        if (msg.includes('429') || /rate limit/i.test(msg)) {
+          cooldownUntilRef.current = Date.now() + BACKOFF_MS;
+          setError('rate-limited');
+          setInterim('Voice service is busy. Please wait a few seconds.');
+          return;
+        }
+        // Bad audio: back off briefly so we don't loop on the same failure.
+        cooldownUntilRef.current = Date.now() + 1500;
         setError('transcription-failed');
         setInterim('Could not understand. Tap mic and try again.');
         return;
@@ -356,7 +373,8 @@ export function useVoiceAssistant({
     if (!enabled) return;
     if (isThinking || isSpeaking) return;
     if (audioCtxRef.current || processorRef.current) return;
-    const id = window.setTimeout(() => { void startRecording(); }, 250);
+    const wait = Math.max(250, cooldownUntilRef.current - Date.now());
+    const id = window.setTimeout(() => { void startRecording(); }, wait);
     return () => window.clearTimeout(id);
   }, [enabled, isThinking, isSpeaking, startRecording]);
 
