@@ -16,9 +16,11 @@ const SILENCE_RMS = 0.01;
 const SPEECH_RMS = 0.022;
 const SILENCE_MS = 950;
 const MAX_UTTERANCE_MS = 10000;
-const MIN_UTTERANCE_MS = 350;
+const MIN_UTTERANCE_MS = 700;
 const TARGET_SAMPLE_RATE = 16000;
-const MIN_WAV_BYTES = 2400;
+// 16 kHz * 2 bytes * 0.6 s + 44-byte header — anything shorter is rejected by the STT model.
+const MIN_WAV_BYTES = 44 + Math.round(TARGET_SAMPLE_RATE * 2 * 0.6);
+const BACKOFF_MS = 6000;
 
 function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
