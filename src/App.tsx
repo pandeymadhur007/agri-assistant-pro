@@ -30,6 +30,7 @@ const Login = lazy(() => import("./pages/Login"));
 const Profile = lazy(() => import("./pages/Profile"));
 const AnimalHusbandry = lazy(() => import("./pages/AnimalHusbandry"));
 const About = lazy(() => import("./pages/About"));
+const VoiceTest = lazy(() => import("./pages/VoiceTest"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -69,6 +70,7 @@ function AnimatedRoutes() {
         <Route path="/smart-crop-planner" element={<SmartCropPlanner />} />
         <Route path="/animal-husbandry" element={<AnimalHusbandry />} />
         <Route path="/about" element={<About />} />
+        <Route path="/voice-test" element={<VoiceTest />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
