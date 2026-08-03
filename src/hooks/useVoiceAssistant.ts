@@ -12,11 +12,12 @@ interface Opts {
 }
 
 // Silence detection tuning for farm/noisy mobile environments.
-const SILENCE_RMS = 0.01;
-const SPEECH_RMS = 0.022;
-const SILENCE_MS = 950;
-const MAX_UTTERANCE_MS = 10000;
-const MIN_UTTERANCE_MS = 700;
+const SILENCE_RMS = 0.004;
+const SPEECH_RMS = 0.009;
+const SPEECH_PEAK = 0.035;
+const SILENCE_MS = 700;
+const MAX_UTTERANCE_MS = 7000;
+const MIN_UTTERANCE_MS = 600;
 const TARGET_SAMPLE_RATE = 16000;
 // 16 kHz * 2 bytes * 0.6 s + 44-byte header — anything shorter is rejected by the STT model.
 const MIN_WAV_BYTES = 44 + Math.round(TARGET_SAMPLE_RATE * 2 * 0.6);
@@ -122,6 +123,7 @@ export function useVoiceAssistant({
     !!((window as any).AudioContext || (window as any).webkitAudioContext);
 
   const [listening, setListening] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
   const [interim, setInterim] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [enabled, setEnabled] = useState(false);
@@ -140,6 +142,7 @@ export function useVoiceAssistant({
   const lastSpeechAtRef = useRef(0);
   const utteranceStartRef = useRef(0);
   const stoppingRef = useRef(false);
+  const transcribingRef = useRef(false);
   // Timestamp before which we must not call the STT function again (rate-limit backoff).
   const cooldownUntilRef = useRef(0);
 
@@ -167,6 +170,9 @@ export function useVoiceAssistant({
   }, []);
 
   const transcribe = useCallback(async (blob: Blob) => {
+    if (transcribingRef.current) return;
+    transcribingRef.current = true;
+    setTranscribing(true);
     try {
       if (blob.size < MIN_WAV_BYTES) {
         setInterim('');
@@ -180,10 +186,12 @@ export function useVoiceAssistant({
       const invokePromise = supabase.functions.invoke('speech-to-text', {
         body: { audio: base64, language, mimeType: 'audio/wav' },
       });
+      let timeoutId = 0;
       const timeoutPromise = new Promise<never>((_, reject) => {
-        window.setTimeout(() => reject(new Error('Transcription timed out')), 25000);
+        timeoutId = window.setTimeout(() => reject(new Error('Transcription timed out')), 30000);
       });
       const { data, error: fnError } = await Promise.race([invokePromise, timeoutPromise]);
+      window.clearTimeout(timeoutId);
       if (fnError) {
         console.error('STT invoke error:', fnError);
         const msg = String(fnError.message || '');
@@ -210,6 +218,9 @@ export function useVoiceAssistant({
       console.error('STT exception:', e);
       setError('transcription-failed');
       setInterim('Voice took too long. Please try again.');
+    } finally {
+      transcribingRef.current = false;
+      setTranscribing(false);
     }
   }, [language, onTranscript]);
 
@@ -230,7 +241,7 @@ export function useVoiceAssistant({
       void transcribe(wavBlob);
     } else {
       setInterim('');
-      if (enabledRef.current && !isThinkingRef.current && !isSpeakingRef.current) {
+      if (enabledRef.current && !transcribingRef.current && !isThinkingRef.current && !isSpeakingRef.current) {
         window.setTimeout(() => { void startRecordingRef.current?.(); }, 150);
       }
     }
@@ -241,7 +252,7 @@ export function useVoiceAssistant({
   const startRecording = useCallback(async () => {
     if (!isSupported) { setError('unsupported'); return; }
     if (audioCtxRef.current || processorRef.current) return;
-    if (isThinkingRef.current || isSpeakingRef.current) return;
+    if (transcribingRef.current || isThinkingRef.current || isSpeakingRef.current) return;
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -286,11 +297,16 @@ export function useVoiceAssistant({
         pcmChunksRef.current.push(frame);
 
         let sum = 0;
-        for (let i = 0; i < frame.length; i++) sum += frame[i] * frame[i];
+        let peak = 0;
+        for (let i = 0; i < frame.length; i++) {
+          const amplitude = Math.abs(frame[i]);
+          sum += frame[i] * frame[i];
+          if (amplitude > peak) peak = amplitude;
+        }
         const rms = Math.sqrt(sum / frame.length);
         const now = performance.now();
 
-        if (rms > SPEECH_RMS) {
+        if (rms > SPEECH_RMS || peak > SPEECH_PEAK) {
           if (!speechDetectedRef.current) {
             speechDetectedRef.current = true;
             setInterim('Listening…');
@@ -371,12 +387,12 @@ export function useVoiceAssistant({
   // Auto-resume listening after the assistant finishes thinking + speaking
   useEffect(() => {
     if (!enabled) return;
-    if (isThinking || isSpeaking) return;
+    if (transcribing || isThinking || isSpeaking) return;
     if (audioCtxRef.current || processorRef.current) return;
     const wait = Math.max(250, cooldownUntilRef.current - Date.now());
     const id = window.setTimeout(() => { void startRecording(); }, wait);
     return () => window.clearTimeout(id);
-  }, [enabled, isThinking, isSpeaking, startRecording]);
+  }, [enabled, transcribing, isThinking, isSpeaking, startRecording]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -388,7 +404,7 @@ export function useVoiceAssistant({
   }, [cleanupStream]);
 
   const state: VoiceState =
-    isThinking ? 'thinking' :
+    (isThinking || transcribing) ? 'thinking' :
     isSpeaking ? 'speaking' :
     (listening || enabled) ? 'listening' :
     'idle';
