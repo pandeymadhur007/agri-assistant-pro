@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   MessageCircle,
   Sprout,
@@ -210,12 +211,12 @@ const Index = () => {
 
   const quickActions: QuickAction[] = [
     { icon: MessageCircle, title: t('startChat'), description: 'Ask farming questions instantly', to: '/chat', variant: 'neutral' },
-    { icon: Sprout, title: t('cropCenter'), description: 'Crop guides and recommendations', to: '/crop-center', variant: 'primary' },
-    { icon: Beef, title: t('animalHusbandry'), description: 'Livestock care and management', to: '/animal-husbandry', variant: 'neutral' },
-    { icon: Lightbulb, title: t('smartCropPlanner') || 'Smart Crop Planner', description: 'Planning, schedules and reminders', to: '/smart-crop-planner', variant: 'secondary' },
     { icon: TrendingUp, title: t('marketPrices'), description: 'Live mandi price updates', to: '/market-prices', variant: 'secondary' },
     { icon: CloudSun, title: t('weatherForecast'), description: 'Weather forecasts and alerts', to: '/weather', variant: 'weather' },
+    { icon: Beef, title: t('animalHusbandry'), description: 'Livestock care and management', to: '/animal-husbandry', variant: 'neutral' },
     { icon: Landmark, title: t('schemes'), description: 'Farmer benefits and subsidies', to: '/schemes', variant: 'schemes' },
+    { icon: Lightbulb, title: t('smartCropPlanner') || 'Smart Crop Planner', description: 'Planning, schedules and reminders', to: '/smart-crop-planner', variant: 'secondary' },
+    { icon: Sprout, title: t('cropCenter'), description: 'Crop guides and recommendations', to: '/crop-center', variant: 'primary' },
     { icon: Users, title: t('community'), description: 'Connect with fellow farmers', to: '/community', variant: 'community' },
   ];
 

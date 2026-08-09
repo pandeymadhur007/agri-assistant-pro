@@ -137,6 +137,15 @@ export default function Login() {
                 <Button variant="outline" className="w-full h-12" onClick={handleGoogle} disabled={loading}>
                   {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <><GoogleIcon /><span className="ml-3">{t('Continue with Google', 'Google से जारी रखें')}</span></>}
                 </Button>
+                <div className="relative py-1">
+                  <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
+                  <div className="relative flex justify-center">
+                    <span className="bg-card px-2 text-xs text-muted-foreground">{t('or', 'या')}</span>
+                  </div>
+                </div>
+                <Button variant="secondary" className="w-full h-12" onClick={() => navigate('/auth')} disabled={loading}>
+                  {t('Continue with email', 'ईमेल से जारी रखें')}
+                </Button>
                 <Button variant="ghost" className="w-full text-muted-foreground" onClick={() => navigate('/')}>
                   {t('Skip for now', 'अभी छोड़ें')}
                 </Button>
