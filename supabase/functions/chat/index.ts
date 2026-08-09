@@ -33,11 +33,11 @@ FORMATTING RULES:
 
 const HINGLISH_INSTRUCTION = `
 LANGUAGE MATCHING (HIGHEST PRIORITY — overrides the default UI language):
-- ALWAYS reply in the SAME language and SAME script as the user's most recent message.
-- If the user writes in pure English (Latin script, no Indian-language words), reply in pure English.
-- If the user writes in pure Hindi/Marathi/Telugu/Tamil/Bengali (native script), reply in that same language and script.
-- If the user mixes English with Hindi/Marathi/Telugu/Tamil/Bengali words (Hinglish/Tanglish/etc.), respond in the SAME mixed style they used.
-- The UI language setting is only a fallback for the very first message — once the user types, mirror them.
+- ALWAYS reply in the SAME language and the SAME script as the user's most recent message. Never mix scripts in one reply.
+- If the user writes in plain English (Latin script), reply in plain English ONLY. Do NOT use Hindi/Hinglish words and do NOT use Devanagari or any other Indic script.
+- If the user writes in Hindi/Marathi/Telugu/Tamil/Bengali native script, reply entirely in that language and script.
+- Only use romanised Hinglish/Tanglish if the user themselves wrote romanised Indian language in Latin script.
+- The UI language setting is only a fallback for the very first message — once the user types, mirror them exactly.
 - Use a simple, conversational tone — like a knowledgeable village friend, not a textbook.
 `;
 
@@ -165,12 +165,32 @@ serve(async (req) => {
     const systemPrompt = (LANGUAGE_PROMPTS[language] || LANGUAGE_PROMPTS.en) +
       `\n\nCURRENT CONTEXT:\n${seasonCtx}${locCtx}${scanCtx}`;
 
+    // Detect the script of the latest user message so the reply never drifts to
+    // another language/script than the one the farmer actually typed in.
+    const lastUser = [...messages].reverse().find((m: ChatMessage) => m.role === "user")?.content ?? "";
+    const scriptRules: Array<[RegExp, string]> = [
+      [/[\u0900-\u097F]/, "Hindi or Marathi (Devanagari script)"],
+      [/[\u0C00-\u0C7F]/, "Telugu (Telugu script)"],
+      [/[\u0B80-\u0BFF]/, "Tamil (Tamil script)"],
+      [/[\u0980-\u09FF]/, "Bengali (Bengali script)"],
+      [/[\u0A00-\u0A7F]/, "Punjabi (Gurmukhi script)"],
+      [/[\u0A80-\u0AFF]/, "Gujarati (Gujarati script)"],
+      [/[\u0C80-\u0CFF]/, "Kannada (Kannada script)"],
+      [/[\u0D00-\u0D7F]/, "Malayalam (Malayalam script)"],
+    ];
+    const detected = scriptRules.find(([re]) => re.test(lastUser))?.[1];
+    const replyRule = detected
+      ? `The user's last message is written in ${detected}. Reply ONLY in that same language and script.`
+      : `The user's last message is written in the Latin alphabet. Reply ONLY in plain English using the Latin alphabet. Do NOT output any Devanagari/Telugu/Tamil/Bengali characters and do NOT use Hindi or Hinglish words, unless the user's own message contained romanised Indian-language words.`;
+
+    const finalSystemPrompt = `${systemPrompt}\n\nFINAL AND MOST IMPORTANT RULE:\n${replyRule}`;
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
-        messages: [{ role: "system", content: systemPrompt }, ...messages],
+        messages: [{ role: "system", content: finalSystemPrompt }, ...messages],
         stream: true,
       }),
     });
