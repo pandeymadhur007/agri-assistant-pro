@@ -118,7 +118,7 @@ async function fetchRecentScans(sessionId: string): Promise<string> {
       .select("crop_name, disease_name, severity, created_at")
       .eq("session_id", sessionId)
       .order("created_at", { ascending: false })
-      .limit(5);
+      .limit(3);
     if (!data || data.length === 0) return "";
     const summary = data.map((s, i) => 
       `${i + 1}. ${s.crop_name || "unknown crop"} — ${s.disease_name || "unknown"} (${s.severity || "n/a"}) on ${new Date(s.created_at).toLocaleDateString()}`
