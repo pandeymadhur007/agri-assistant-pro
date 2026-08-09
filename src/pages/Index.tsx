@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   MessageCircle,
   Sprout,
@@ -100,46 +101,98 @@ function QuickTile({ action }: { action: QuickAction }) {
 
 function CropGrowthIllustration() {
   return (
-    <svg viewBox="0 0 120 48" className="w-full h-12 text-primary/40" aria-hidden>
+    <svg viewBox="0 0 120 48" className="w-full h-14 text-primary/50" aria-hidden>
       {[0, 1, 2, 3, 4].map((i) => (
-        <g key={i} transform={`translate(${12 + i * 22}, ${40 - i * 6})`}>
-          <line x1="0" y1="0" x2="0" y2={12 + i * 3} stroke="currentColor" strokeWidth="1.5" />
-          <ellipse cx="0" cy={-2 - i} rx="3" ry="6" fill="currentColor" opacity={0.5 + i * 0.1} />
-        </g>
+        <motion.g
+          key={i}
+          transform={`translate(${12 + i * 22}, 44)`}
+          initial={{ opacity: 0, scaleY: 0.2 }}
+          whileInView={{ opacity: 1, scaleY: 1 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.6, delay: i * 0.12, ease: 'easeOut' }}
+          style={{ transformOrigin: 'bottom' }}
+        >
+          <line x1="0" y1="0" x2="0" y2={-(14 + i * 6)} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <ellipse cx="0" cy={-(18 + i * 6)} rx="3.2" ry="6" fill="currentColor" opacity={0.45 + i * 0.11} />
+          <ellipse cx="-4" cy={-(10 + i * 4)} rx="4" ry="2" fill="currentColor" opacity={0.25 + i * 0.08} />
+        </motion.g>
       ))}
     </svg>
   );
 }
 
 function MandiChartIllustration() {
+  const line = 'M0 40 Q20 35 35 28 T60 22 T85 14 T120 8';
+  const points: Array<[number, number]> = [
+    [12, 37], [35, 28], [60, 22], [85, 14], [112, 9],
+  ];
   return (
-    <svg viewBox="0 0 120 48" className="w-full h-12" aria-hidden>
+    <svg viewBox="0 0 120 48" className="w-full h-14" aria-hidden>
       <defs>
         <linearGradient id="mandiFill" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="hsl(199 89% 48% / 0.35)" />
           <stop offset="100%" stopColor="hsl(199 89% 48% / 0.02)" />
         </linearGradient>
       </defs>
-      <path
-        d="M0 40 Q20 35 35 28 T60 22 T85 14 T120 8 V48 H0 Z"
+      <motion.path
+        d={`${line} V48 H0 Z`}
         fill="url(#mandiFill)"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true, amount: 0.4 }}
+        transition={{ duration: 0.8, delay: 0.5 }}
       />
-      <path
-        d="M0 40 Q20 35 35 28 T60 22 T85 14 T120 8"
+      <motion.path
+        d={line}
         fill="none"
         stroke="hsl(199 89% 48%)"
         strokeWidth="2"
         strokeLinecap="round"
+        initial={{ pathLength: 0 }}
+        whileInView={{ pathLength: 1 }}
+        viewport={{ once: true, amount: 0.4 }}
+        transition={{ duration: 1.2, ease: 'easeInOut' }}
       />
+      {points.map(([cx, cy], i) => (
+        <motion.circle
+          key={cx}
+          cx={cx}
+          cy={cy}
+          r="2.2"
+          fill="hsl(199 89% 48%)"
+          initial={{ opacity: 0, scale: 0 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.3, delay: 0.35 + i * 0.18 }}
+        />
+      ))}
     </svg>
   );
 }
 
 function WeatherIllustration() {
+  const bars = [26, 34, 20, 40, 30, 44, 24];
   return (
-    <div className="flex items-center justify-center gap-3 h-12 text-muted-foreground/60" aria-hidden>
-      <CloudSun className="h-7 w-7 text-amber-400/70" strokeWidth={1.5} />
-      <CloudSun className="h-5 w-5 text-sky-400/60 rotate-12" strokeWidth={1.5} />
+    <div className="flex items-end justify-between gap-1.5 h-14" aria-hidden>
+      {bars.map((h, i) => (
+        <motion.div
+          key={i}
+          className="flex-1 rounded-md bg-gradient-to-t from-sky-400/20 to-sky-400/70"
+          initial={{ height: 4, opacity: 0 }}
+          whileInView={{ height: h, opacity: 1 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.55, delay: i * 0.07, ease: 'easeOut' }}
+        />
+      ))}
+      <motion.div
+        initial={{ opacity: 0, rotate: -20 }}
+        whileInView={{ opacity: 1, rotate: 0 }}
+        viewport={{ once: true, amount: 0.4 }}
+        transition={{ duration: 0.6, delay: 0.5 }}
+        className="self-start"
+      >
+        <CloudSun className="h-6 w-6 text-amber-400/80" strokeWidth={1.5} />
+      </motion.div>
     </div>
   );
 }
@@ -158,12 +211,12 @@ const Index = () => {
 
   const quickActions: QuickAction[] = [
     { icon: MessageCircle, title: t('startChat'), description: 'Ask farming questions instantly', to: '/chat', variant: 'neutral' },
-    { icon: Sprout, title: t('cropCenter'), description: 'Crop guides and recommendations', to: '/crop-center', variant: 'primary' },
-    { icon: Beef, title: t('animalHusbandry'), description: 'Livestock care and management', to: '/animal-husbandry', variant: 'neutral' },
-    { icon: Lightbulb, title: t('smartCropPlanner') || 'Smart Crop Planner', description: 'Planning, schedules and reminders', to: '/smart-crop-planner', variant: 'secondary' },
     { icon: TrendingUp, title: t('marketPrices'), description: 'Live mandi price updates', to: '/market-prices', variant: 'secondary' },
     { icon: CloudSun, title: t('weatherForecast'), description: 'Weather forecasts and alerts', to: '/weather', variant: 'weather' },
+    { icon: Beef, title: t('animalHusbandry'), description: 'Livestock care and management', to: '/animal-husbandry', variant: 'neutral' },
     { icon: Landmark, title: t('schemes'), description: 'Farmer benefits and subsidies', to: '/schemes', variant: 'schemes' },
+    { icon: Lightbulb, title: t('smartCropPlanner') || 'Smart Crop Planner', description: 'Planning, schedules and reminders', to: '/smart-crop-planner', variant: 'secondary' },
+    { icon: Sprout, title: t('cropCenter'), description: 'Crop guides and recommendations', to: '/crop-center', variant: 'primary' },
     { icon: Users, title: t('community'), description: 'Connect with fellow farmers', to: '/community', variant: 'community' },
   ];
 

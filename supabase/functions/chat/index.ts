@@ -118,7 +118,7 @@ async function fetchRecentScans(sessionId: string): Promise<string> {
       .select("crop_name, disease_name, severity, created_at")
       .eq("session_id", sessionId)
       .order("created_at", { ascending: false })
-      .limit(5);
+      .limit(3);
     if (!data || data.length === 0) return "";
     const summary = data.map((s, i) => 
       `${i + 1}. ${s.crop_name || "unknown crop"} — ${s.disease_name || "unknown"} (${s.severity || "n/a"}) on ${new Date(s.created_at).toLocaleDateString()}`
@@ -157,9 +157,15 @@ serve(async (req) => {
       });
     }
 
-    // Build dynamic context
+    // Build dynamic context. The scan lookup is capped at 700ms so a slow DB
+    // round-trip can never delay the first token of the reply.
     const seasonCtx = getSeasonContext();
-    const scanCtx = sessionId ? await fetchRecentScans(sessionId) : "";
+    const scanCtx = sessionId
+      ? await Promise.race([
+          fetchRecentScans(sessionId),
+          new Promise<string>((resolve) => setTimeout(() => resolve(""), 700)),
+        ])
+      : "";
     const locCtx = location ? `\nUser approximate location: ${location}` : "";
 
     const systemPrompt = (LANGUAGE_PROMPTS[language] || LANGUAGE_PROMPTS.en) +
@@ -189,9 +195,10 @@ serve(async (req) => {
       method: "POST",
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-flash-lite",
         messages: [{ role: "system", content: finalSystemPrompt }, ...messages],
         stream: true,
+        max_tokens: 500,
       }),
     });
 
@@ -213,7 +220,12 @@ serve(async (req) => {
     }
 
     return new Response(response.body, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache, no-transform",
+        Connection: "keep-alive",
+      },
     });
   } catch (e) {
     console.error("chat error:", e instanceof Error ? e.name : "Unknown");
