@@ -78,6 +78,7 @@ export function useChat() {
 
       if (!resp.ok || !resp.body) {
         if (resp.status === 429) throw new Error('Too many requests. Please wait a moment.');
+        if (resp.status === 402) throw new Error('AI service is temporarily unavailable. Please try again later.');
         throw new Error('Failed to start stream');
       }
 
@@ -116,7 +117,9 @@ export function useChat() {
       console.error('Chat error:', e);
       const msg = e instanceof Error && e.name === 'AbortError'
         ? 'Response timed out. Please try again.'
-        : 'Sorry, I encountered an error. Please try again.';
+        : e instanceof Error && e.message && e.message !== 'Failed to start stream'
+          ? e.message
+          : 'Sorry, I encountered an error. Please try again.';
       setMessages(prev => [
         ...prev,
         { role: 'assistant', content: msg },
