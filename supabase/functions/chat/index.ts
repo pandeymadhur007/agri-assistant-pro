@@ -33,11 +33,11 @@ FORMATTING RULES:
 
 const HINGLISH_INSTRUCTION = `
 LANGUAGE MATCHING (HIGHEST PRIORITY — overrides the default UI language):
-- ALWAYS reply in the SAME language and SAME script as the user's most recent message.
-- If the user writes in pure English (Latin script, no Indian-language words), reply in pure English.
-- If the user writes in pure Hindi/Marathi/Telugu/Tamil/Bengali (native script), reply in that same language and script.
-- If the user mixes English with Hindi/Marathi/Telugu/Tamil/Bengali words (Hinglish/Tanglish/etc.), respond in the SAME mixed style they used.
-- The UI language setting is only a fallback for the very first message — once the user types, mirror them.
+- ALWAYS reply in the SAME language and the SAME script as the user's most recent message. Never mix scripts in one reply.
+- If the user writes in plain English (Latin script), reply in plain English ONLY. Do NOT use Hindi/Hinglish words and do NOT use Devanagari or any other Indic script.
+- If the user writes in Hindi/Marathi/Telugu/Tamil/Bengali native script, reply entirely in that language and script.
+- Only use romanised Hinglish/Tanglish if the user themselves wrote romanised Indian language in Latin script.
+- The UI language setting is only a fallback for the very first message — once the user types, mirror them exactly.
 - Use a simple, conversational tone — like a knowledgeable village friend, not a textbook.
 `;
 

@@ -67,11 +67,14 @@ export function ChatInterface() {
 
   // TTS
   const { isPlaying, isLoading: ttsLoading, isSupported: ttsSupported, speak, stop: stopSpeaking } = useMurfTTS();
-  const [autoSpeak, setAutoSpeak] = useState(true);
+  // Off by default: typing users shouldn't get audio playback hijacking the screen.
+  // Turned on automatically while the voice assistant is in use.
+  const [autoSpeak, setAutoSpeak] = useState(false);
 
   // Continuous voice assistant (ChatGPT-style)
   const handleTranscript = useCallback((text: string) => {
     setInput('');
+    setAutoSpeak(true);
     sendMessage(text);
   }, [sendMessage]);
 
