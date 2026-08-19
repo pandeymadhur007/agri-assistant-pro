@@ -22,78 +22,31 @@ import { ClimateAlertBanner } from '@/components/ClimateAlertBanner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PageTransition, StaggerContainer, StaggerItem, FadeIn } from '@/components/PageTransition';
 import { SEO } from '@/components/SEO';
+import { FurrowDivider } from '@/components/FurrowDivider';
 import { cn } from '@/lib/utils';
 import type { LucideIcon } from 'lucide-react';
-
-type TileVariant = 'primary' | 'secondary' | 'neutral' | 'weather' | 'schemes' | 'community';
 
 type QuickAction = {
   icon: LucideIcon;
   title: string;
   description: string;
   to: string;
-  variant: TileVariant;
-};
-
-const tileVariantClass: Record<TileVariant, string> = {
-  primary: 'tile-primary',
-  secondary: 'tile-secondary',
-  neutral: 'tile-neutral',
-  weather: 'tile-neutral',
-  schemes: 'tile-schemes',
-  community: 'tile-community',
-};
-
-const iconVariantClass: Record<TileVariant, string> = {
-  primary: 'tile-icon-primary',
-  secondary: 'tile-icon-secondary',
-  neutral: 'tile-icon-neutral',
-  weather: 'tile-icon-weather',
-  schemes: 'tile-icon-neutral',
-  community: 'tile-icon-neutral',
 };
 
 function QuickTile({ action }: { action: QuickAction }) {
-  const isPrimary = action.variant === 'primary';
-  const isSecondary = action.variant === 'secondary';
-  const isGradient = isPrimary || isSecondary;
-
-  const titleColor = isPrimary
-    ? 'text-white'
-    : isSecondary
-      ? 'text-white'
-      : 'text-foreground';
-
   return (
     <Link to={action.to} className="block group h-full">
       <div
         className={cn(
-          'h-full rounded-[20px] border card-hover cursor-pointer relative overflow-hidden',
+          'h-full rounded-lg border border-clay/55 bg-card card-hover cursor-pointer relative overflow-hidden',
           'flex flex-col items-center justify-center text-center',
-          'p-5 md:p-6 min-h-[168px] md:min-h-[180px] gap-4',
-          tileVariantClass[action.variant],
+          'p-5 md:p-6 min-h-[160px] md:min-h-[172px] gap-3.5',
         )}
       >
-        <div
-          className={cn(
-            'w-12 h-12 rounded-2xl flex items-center justify-center',
-            'transition-transform duration-300 ease-out',
-            'group-hover:-translate-y-0.5 group-hover:scale-[1.05]',
-            iconVariantClass[action.variant],
-          )}
-        >
-          <action.icon className="h-[22px] w-[22px]" strokeWidth={1.5} />
-        </div>
-        <div className="space-y-1.5">
-          <h3 className={cn('font-sans font-medium text-[15px] leading-tight tracking-tight', titleColor)}>
-            {action.title}
-          </h3>
-        </div>
-        {action.variant === 'schemes' && (
-          <span className="text-[10px] uppercase tracking-[0.18em] font-semibold text-secondary/80 dark:text-primary/80">
-            Explore →
-          </span>
-        )}
+        <action.icon className="h-6 w-6 text-foreground" strokeWidth={1.5} />
+        <h3 className="font-display font-semibold text-[15px] leading-tight text-foreground">
+          {action.title}
+        </h3>
       </div>
     </Link>
   );
@@ -210,14 +163,15 @@ const Index = () => {
   };
 
   const quickActions: QuickAction[] = [
-    { icon: MessageCircle, title: t('startChat'), description: 'Ask farming questions instantly', to: '/chat', variant: 'neutral' },
-    { icon: TrendingUp, title: t('marketPrices'), description: 'Live mandi price updates', to: '/market-prices', variant: 'secondary' },
-    { icon: CloudSun, title: t('weatherForecast'), description: 'Weather forecasts and alerts', to: '/weather', variant: 'weather' },
-    { icon: Beef, title: t('animalHusbandry'), description: 'Livestock care and management', to: '/animal-husbandry', variant: 'neutral' },
-    { icon: Landmark, title: t('schemes'), description: 'Farmer benefits and subsidies', to: '/schemes', variant: 'schemes' },
-    { icon: Lightbulb, title: t('smartCropPlanner') || 'Smart Crop Planner', description: 'Planning, schedules and reminders', to: '/smart-crop-planner', variant: 'secondary' },
-    { icon: Sprout, title: t('cropCenter'), description: 'Crop guides and recommendations', to: '/crop-center', variant: 'primary' },
-    { icon: Users, title: t('community'), description: 'Connect with fellow farmers', to: '/community', variant: 'community' },
+    { icon: MessageCircle, title: t('startChat'), description: 'Ask farming questions instantly', to: '/chat' },
+    { icon: Camera, title: 'AI Crop Doctor', description: 'Scan a crop for instant diagnosis', to: '/scan' },
+    { icon: TrendingUp, title: t('marketPrices'), description: 'Live mandi price updates', to: '/market-prices' },
+    { icon: CloudSun, title: t('weatherForecast'), description: 'Weather forecasts and alerts', to: '/weather' },
+    { icon: Beef, title: t('animalHusbandry'), description: 'Livestock care and management', to: '/animal-husbandry' },
+    { icon: Landmark, title: t('schemes'), description: 'Farmer benefits and subsidies', to: '/schemes' },
+    { icon: Lightbulb, title: t('smartCropPlanner') || 'Smart Crop Planner', description: 'Planning, schedules and reminders', to: '/smart-crop-planner' },
+    { icon: Sprout, title: t('cropCenter'), description: 'Crop guides and recommendations', to: '/crop-center' },
+    { icon: Users, title: t('community'), description: 'Connect with fellow farmers', to: '/community' },
   ];
 
   const howItWorks = [
@@ -267,14 +221,14 @@ const Index = () => {
           <section className="hero-gradient pt-12 pb-10 md:pt-20 md:pb-14 px-4 relative overflow-hidden">
             <div className="container mx-auto max-w-3xl text-center relative z-10">
               <FadeIn delay={0.05}>
-                <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/60 backdrop-blur-sm px-4 py-1.5 text-xs font-normal text-muted-foreground mb-8 shadow-soft tracking-wide">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                <span className="eyebrow inline-flex items-center gap-2 rounded-full border border-clay/50 bg-card px-4 py-1.5 mb-8">
+                  <span className="w-1.5 h-1.5 rounded-full bg-clay" />
                   AI Companion for Every Farmer
                 </span>
               </FadeIn>
 
               <FadeIn delay={0.1}>
-                <h1 className="text-4xl md:text-[3.25rem] font-medium mb-5 text-foreground leading-[1.1]">
+                <h1 className="text-5xl md:text-[4rem] font-bold mb-5 text-foreground leading-[1.05]">
                   {t('appName')}
                 </h1>
               </FadeIn>
@@ -294,13 +248,13 @@ const Index = () => {
               <FadeIn delay={0.26}>
                 <div className="flex flex-wrap items-center justify-center gap-3">
                   <Link to="/chat">
-                    <button className="inline-flex items-center gap-2.5 rounded-2xl btn-hero-primary px-6 py-3.5 text-sm font-medium transition-all duration-200">
+                    <button className="inline-flex items-center gap-2.5 rounded-full btn-hero-primary px-6 py-3.5 text-sm font-semibold transition-colors duration-200">
                       <MessageCircle className="w-4 h-4" />
                       {t('startChat')}
                     </button>
                   </Link>
                   <Link to="/scan">
-                    <button className="inline-flex items-center gap-2.5 rounded-2xl btn-hero-secondary px-6 py-3.5 text-sm font-medium transition-all duration-200">
+                    <button className="inline-flex items-center gap-2.5 rounded-full btn-hero-secondary px-6 py-3.5 text-sm font-semibold transition-colors duration-200">
                       <Camera className="w-4 h-4" />
                       Scan a crop
                     </button>

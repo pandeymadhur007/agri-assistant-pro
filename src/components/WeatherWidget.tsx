@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Cloud, CloudRain, Sun, AlertTriangle, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getCachedPosition } from '@/lib/geolocation';
-import { cn } from '@/lib/utils';
+import { FurrowDivider } from '@/components/FurrowDivider';
 
 interface MiniWeather {
   temp: number;
@@ -72,36 +71,29 @@ export function WeatherWidget() {
   const Icon = weather.description === 'Rainy' ? CloudRain : weather.description === 'Cloudy' ? Cloud : Sun;
 
   return (
-    <Link to="/weather" className="block">
-      <Card
-        className={cn(
-          'overflow-hidden card-hover',
-          weather.alert && 'border-l-4 border-l-accent',
-        )}
-        style={{
-          background: weather.alert
-            ? 'linear-gradient(135deg, hsl(var(--accent) / 0.18) 0%, hsl(var(--secondary) / 0.10) 100%)'
-            : 'linear-gradient(135deg, hsl(var(--secondary) / 0.14) 0%, hsl(var(--primary) / 0.08) 100%)',
-        }}
-      >
-        <CardContent className="p-4 flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 bg-card/70 backdrop-blur border border-border/50 shadow-soft text-primary">
-            {weather.alert ? <AlertTriangle className="w-7 h-7" /> : <Icon className="w-7 h-7" />}
+    <div className="w-full">
+      <FurrowDivider />
+      <Link to="/weather" className="block">
+        <div className="field-advisory card-hover w-full px-4 py-4 sm:px-5 flex items-center gap-4">
+          <div className="shrink-0 text-foreground">
+            {weather.alert ? <AlertTriangle className="w-7 h-7" strokeWidth={1.5} /> : <Icon className="w-7 h-7" strokeWidth={1.5} />}
           </div>
           <div className="flex-1 min-w-0">
+            <div className="eyebrow mb-1">Field Advisory</div>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-semibold tabular-nums text-foreground">{weather.temp}°C</span>
+              <span className="font-mono text-2xl font-medium tabular-nums text-foreground">{weather.temp}°C</span>
               <span className="text-sm text-muted-foreground truncate">{weather.location}</span>
             </div>
             {weather.alert ? (
-              <p className="text-sm text-foreground/85 font-medium truncate">{weather.alert}</p>
+              <p className="text-sm text-foreground font-medium mt-0.5">{weather.alert}</p>
             ) : (
-              <p className="text-sm text-muted-foreground">{t.tap}</p>
+              <p className="text-sm text-muted-foreground mt-0.5">{t.tap}</p>
             )}
           </div>
-          <ArrowRight className="w-5 h-5 text-muted-foreground shrink-0" />
-        </CardContent>
-      </Card>
-    </Link>
+          <ArrowRight className="w-5 h-5 text-muted-foreground shrink-0" strokeWidth={1.5} />
+        </div>
+      </Link>
+      <FurrowDivider />
+    </div>
   );
 }
