@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Cloud, CloudRain, Sun, AlertTriangle, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getCachedPosition } from '@/lib/geolocation';
-import { cn } from '@/lib/utils';
+import { FurrowDivider } from '@/components/FurrowDivider';
 
 interface MiniWeather {
   temp: number;
