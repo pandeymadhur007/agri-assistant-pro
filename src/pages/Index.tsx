@@ -22,78 +22,31 @@ import { ClimateAlertBanner } from '@/components/ClimateAlertBanner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PageTransition, StaggerContainer, StaggerItem, FadeIn } from '@/components/PageTransition';
 import { SEO } from '@/components/SEO';
+import { FurrowDivider } from '@/components/FurrowDivider';
 import { cn } from '@/lib/utils';
 import type { LucideIcon } from 'lucide-react';
-
-type TileVariant = 'primary' | 'secondary' | 'neutral' | 'weather' | 'schemes' | 'community';
 
 type QuickAction = {
   icon: LucideIcon;
   title: string;
   description: string;
   to: string;
-  variant: TileVariant;
-};
-
-const tileVariantClass: Record<TileVariant, string> = {
-  primary: 'tile-primary',
-  secondary: 'tile-secondary',
-  neutral: 'tile-neutral',
-  weather: 'tile-neutral',
-  schemes: 'tile-schemes',
-  community: 'tile-community',
-};
-
-const iconVariantClass: Record<TileVariant, string> = {
-  primary: 'tile-icon-primary',
-  secondary: 'tile-icon-secondary',
-  neutral: 'tile-icon-neutral',
-  weather: 'tile-icon-weather',
-  schemes: 'tile-icon-neutral',
-  community: 'tile-icon-neutral',
 };
 
 function QuickTile({ action }: { action: QuickAction }) {
-  const isPrimary = action.variant === 'primary';
-  const isSecondary = action.variant === 'secondary';
-  const isGradient = isPrimary || isSecondary;
-
-  const titleColor = isPrimary
-    ? 'text-white'
-    : isSecondary
-      ? 'text-white'
-      : 'text-foreground';
-
   return (
     <Link to={action.to} className="block group h-full">
       <div
         className={cn(
-          'h-full rounded-[20px] border card-hover cursor-pointer relative overflow-hidden',
+          'h-full rounded-lg border border-clay/55 bg-card card-hover cursor-pointer relative overflow-hidden',
           'flex flex-col items-center justify-center text-center',
-          'p-5 md:p-6 min-h-[168px] md:min-h-[180px] gap-4',
-          tileVariantClass[action.variant],
+          'p-5 md:p-6 min-h-[160px] md:min-h-[172px] gap-3.5',
         )}
       >
-        <div
-          className={cn(
-            'w-12 h-12 rounded-2xl flex items-center justify-center',
-            'transition-transform duration-300 ease-out',
-            'group-hover:-translate-y-0.5 group-hover:scale-[1.05]',
-            iconVariantClass[action.variant],
-          )}
-        >
-          <action.icon className="h-[22px] w-[22px]" strokeWidth={1.5} />
-        </div>
-        <div className="space-y-1.5">
-          <h3 className={cn('font-sans font-medium text-[15px] leading-tight tracking-tight', titleColor)}>
-            {action.title}
-          </h3>
-        </div>
-        {action.variant === 'schemes' && (
-          <span className="text-[10px] uppercase tracking-[0.18em] font-semibold text-secondary/80 dark:text-primary/80">
-            Explore →
-          </span>
-        )}
+        <action.icon className="h-6 w-6 text-foreground" strokeWidth={1.5} />
+        <h3 className="font-display font-semibold text-[15px] leading-tight text-foreground">
+          {action.title}
+        </h3>
       </div>
     </Link>
   );
