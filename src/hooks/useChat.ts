@@ -45,50 +45,71 @@ export function useChat() {
       });
     };
 
-    try {
-      // Ensure we have a session
-      const currentSessionId = sessionId || await ensureAnonymousSession();
-      if (!currentSessionId) {
-        throw new Error('Failed to create session');
+    // The session is only used to personalise answers with recent scans.
+    // It must never block the chat itself — an auth hiccup used to kill every reply.
+    let currentSessionId = sessionId;
+    if (!currentSessionId) {
+      try {
+        currentSessionId = await ensureAnonymousSession();
+        if (currentSessionId) {
+          setSessionId(currentSessionId);
+          cacheUserId(currentSessionId);
+        }
+      } catch {
+        currentSessionId = null;
       }
-      
-      // Update session ID if it changed
-      if (currentSessionId !== sessionId) {
-        setSessionId(currentSessionId);
-        cacheUserId(currentSessionId);
-      }
+    }
 
-      // 60s timeout — chat streams can be long but should not hang forever
+    // Only send a bounded slice of history — long threads slowed the model down.
+    const history = [...messages, userMsg].slice(-12);
+
+    const callChat = async (): Promise<Response> => {
       const ac = new AbortController();
       const timer = setTimeout(() => ac.abort(), 60_000);
-      const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          'x-session-id': currentSessionId,
-        },
-        body: JSON.stringify({ 
-          messages: [...messages, userMsg],
-          language 
-        }),
-        signal: ac.signal,
-      });
-      clearTimeout(timer);
+      try {
+        return await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            ...(currentSessionId ? { 'x-session-id': currentSessionId } : {}),
+          },
+          body: JSON.stringify({ messages: history, language }),
+          signal: ac.signal,
+        });
+      } finally {
+        clearTimeout(timer);
+      }
+    };
+
+    try {
+      let resp = await callChat();
+
+      // One retry for transient upstream failures (never for 4xx — those are terminal).
+      if (resp.status >= 500) {
+        await new Promise(r => setTimeout(r, 700));
+        resp = await callChat();
+      }
 
       if (!resp.ok || !resp.body) {
-        if (resp.status === 429) throw new Error('Too many requests. Please wait a moment.');
-        if (resp.status === 402) throw new Error('AI service is temporarily unavailable. Please try again later.');
-        throw new Error('Failed to start stream');
+        let serverMsg = '';
+        try {
+          const j = await resp.json();
+          serverMsg = typeof j?.error === 'string' ? j.error : '';
+        } catch { /* non-JSON body */ }
+        if (resp.status === 429) throw new Error(serverMsg || 'Too many requests. Please wait a moment and try again.');
+        if (resp.status === 402) throw new Error(serverMsg || 'AI service is temporarily unavailable. Please try again later.');
+        throw new Error(serverMsg || 'Failed to start stream');
       }
 
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();
       let textBuffer = '';
+      let done = false;
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+      while (!done) {
+        const { done: streamDone, value } = await reader.read();
+        if (streamDone) break;
         textBuffer += decoder.decode(value, { stream: true });
 
         let newlineIndex: number;
@@ -101,17 +122,25 @@ export function useChat() {
           if (!line.startsWith('data: ')) continue;
 
           const jsonStr = line.slice(6).trim();
-          if (jsonStr === '[DONE]') break;
+          if (jsonStr === '[DONE]') { done = true; break; }
 
           try {
             const parsed = JSON.parse(jsonStr);
             const content = parsed.choices?.[0]?.delta?.content as string | undefined;
             if (content) updateAssistant(content);
           } catch {
+            // Partial JSON chunk — put it back and wait for the rest.
             textBuffer = line + '\n' + textBuffer;
             break;
           }
         }
+      }
+
+      if (!assistantSoFar.trim()) {
+        setMessages(prev => [
+          ...prev,
+          { role: 'assistant', content: 'I could not generate a reply just now. Please ask again.' },
+        ]);
       }
     } catch (e) {
       console.error('Chat error:', e);
@@ -120,14 +149,16 @@ export function useChat() {
         : e instanceof Error && e.message && e.message !== 'Failed to start stream'
           ? e.message
           : 'Sorry, I encountered an error. Please try again.';
-      setMessages(prev => [
-        ...prev,
-        { role: 'assistant', content: msg },
-      ]);
+      if (assistantSoFar.trim()) {
+        updateAssistant(`\n\n(${msg})`);
+      } else {
+        setMessages(prev => [...prev, { role: 'assistant', content: msg }]);
+      }
     } finally {
       setIsLoading(false);
     }
   }, [messages, language, sessionId, isLoading]);
+
 
   const clearMessages = useCallback(() => {
     setMessages([]);
