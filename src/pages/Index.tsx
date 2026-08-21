@@ -81,25 +81,11 @@ function MandiChartIllustration() {
   ];
   return (
     <svg viewBox="0 0 120 48" className="w-full h-14" aria-hidden>
-      <defs>
-        <linearGradient id="mandiFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="hsl(199 89% 48% / 0.35)" />
-          <stop offset="100%" stopColor="hsl(199 89% 48% / 0.02)" />
-        </linearGradient>
-      </defs>
-      <motion.path
-        d={`${line} V48 H0 Z`}
-        fill="url(#mandiFill)"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true, amount: 0.4 }}
-        transition={{ duration: 0.8, delay: 0.5 }}
-      />
       <motion.path
         d={line}
         fill="none"
-        stroke="hsl(199 89% 48%)"
-        strokeWidth="2"
+        stroke="hsl(var(--clay))"
+        strokeWidth="1.5"
         strokeLinecap="round"
         initial={{ pathLength: 0 }}
         whileInView={{ pathLength: 1 }}
@@ -111,8 +97,8 @@ function MandiChartIllustration() {
           key={cx}
           cx={cx}
           cy={cy}
-          r="2.2"
-          fill="hsl(199 89% 48%)"
+          r="2"
+          fill="hsl(var(--clay))"
           initial={{ opacity: 0, scale: 0 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true, amount: 0.4 }}
@@ -120,6 +106,7 @@ function MandiChartIllustration() {
         />
       ))}
     </svg>
+
   );
 }
 
