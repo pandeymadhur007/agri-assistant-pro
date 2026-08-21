@@ -117,7 +117,7 @@ function WeatherIllustration() {
       {bars.map((h, i) => (
         <motion.div
           key={i}
-          className="flex-1 rounded-md bg-gradient-to-t from-sky-400/20 to-sky-400/70"
+          className="flex-1 rounded-sm bg-leaf/60"
           initial={{ height: 4, opacity: 0 }}
           whileInView={{ height: h, opacity: 1 }}
           viewport={{ once: true, amount: 0.4 }}
