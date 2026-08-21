@@ -260,3 +260,21 @@
 .pulse-glow { box-shadow: none; }
 .shadow-soft, .shadow-soft-md, .shadow-soft-lg { box-shadow: none; }
 .hairline { border-color: hsl(var(--clay) / 0.35); }
+
+/* ---------- Global flatten pass (applies to every page) ----------
+   Legacy Tailwind shadow/gradient utilities scattered across feature
+   pages are neutralised so the parchment + clay-hairline identity is
+   consistent everywhere. Overlays (dialog/popover/menu) keep depth. */
+main .shadow-sm,
+main .shadow,
+main .shadow-md,
+main .shadow-lg,
+main .shadow-xl,
+main .shadow-2xl {
+  box-shadow: none !important;
+}
+
+main [class*="bg-gradient-to-"] {
+  background-image: none !important;
+}
+
