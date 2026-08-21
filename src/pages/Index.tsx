@@ -277,7 +277,7 @@ const Index = () => {
             <div className="container mx-auto max-w-5xl">
               <FadeIn>
                 <div className="text-center mb-10">
-                  <h2 className="font-display text-3xl md:text-[2rem] font-medium text-foreground tracking-tight">
+                  <h2 className="font-display text-3xl md:text-[2.5rem] font-bold text-foreground">
                     {t('quickActions')}
                   </h2>
                   <p className="text-sm text-muted-foreground mt-2">
@@ -286,7 +286,7 @@ const Index = () => {
                 </div>
               </FadeIn>
 
-              <StaggerContainer className="grid grid-cols-2 md:grid-cols-4 gap-3.5 md:gap-5">
+              <StaggerContainer className="grid grid-cols-2 md:grid-cols-3 gap-3.5 md:gap-5">
                 {quickActions.map((action) => (
                   <StaggerItem key={action.to}>
                     <QuickTile action={action} />
@@ -296,11 +296,13 @@ const Index = () => {
             </div>
           </section>
 
+          <div className="px-4"><div className="container mx-auto max-w-5xl"><FurrowDivider /></div></div>
+
           {/* How It Works + Feature Highlights */}
-          <section className="py-12 md:py-16 px-4 border-t border-border/50">
+          <section className="py-12 md:py-16 px-4">
             <div className="container mx-auto max-w-5xl">
               <FadeIn>
-                <h2 className="font-display text-3xl md:text-[2rem] font-medium text-center mb-12 text-foreground tracking-tight">
+                <h2 className="font-display text-3xl md:text-[2.5rem] font-bold text-center mb-12 text-foreground">
                   {t('howItWorks')}
                 </h2>
               </FadeIn>
@@ -311,15 +313,15 @@ const Index = () => {
                     <div className="flex flex-col h-full">
                       {/* Step header */}
                       <div className="flex items-center gap-3 mb-4">
-                        <div className="shrink-0 w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-medium text-sm tabular-nums border border-primary/15">
+                        <div className="shrink-0 w-9 h-9 rounded-full border border-clay/60 text-clay flex items-center justify-center font-mono text-sm tabular-nums">
                           {step.num}
                         </div>
                         <div className="flex flex-col min-w-0">
-                          <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] text-muted-foreground font-semibold">
-                            <step.stepIcon className="h-3.5 w-3.5" strokeWidth={1.75} />
+                          <div className="eyebrow flex items-center gap-1.5">
+                            <step.stepIcon className="h-3.5 w-3.5" strokeWidth={1.5} />
                             Step
                           </div>
-                          <h3 className="font-medium text-[15px] text-foreground leading-snug truncate mt-0.5">
+                          <h3 className="font-display font-semibold text-[16px] text-foreground leading-snug truncate mt-0.5">
                             {step.stepTitle}
                           </h3>
                         </div>
@@ -327,17 +329,15 @@ const Index = () => {
 
                       {/* Feature card */}
                       <Link to={step.to} className="block group flex-1">
-                        <div className="h-full rounded-[18px] feature-glass card-hover p-6 flex flex-col">
-                          <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 border border-primary/10">
-                            <step.featureIcon className="w-5 h-5" strokeWidth={1.5} />
-                          </div>
-                          <h4 className="font-medium text-[16px] mb-1.5 text-foreground tracking-tight">
+                        <div className="h-full rounded-lg border border-clay/50 bg-card card-hover p-6 flex flex-col">
+                          <step.featureIcon className="w-6 h-6 text-foreground mb-4" strokeWidth={1.5} />
+                          <h4 className="font-display font-semibold text-[18px] mb-1.5 text-foreground">
                             {step.featureTitle}
                           </h4>
                           <p className="text-muted-foreground text-sm leading-relaxed mb-5 flex-1">
                             {step.featureDesc}
                           </p>
-                          <div className="mt-auto opacity-80 group-hover:opacity-100 transition-opacity">
+                          <div className="mt-auto opacity-90 group-hover:opacity-100 transition-opacity">
                             {step.illustration}
                           </div>
                         </div>
@@ -348,6 +348,7 @@ const Index = () => {
               </StaggerContainer>
             </div>
           </section>
+
         </main>
       </PageTransition>
       <Footer />
