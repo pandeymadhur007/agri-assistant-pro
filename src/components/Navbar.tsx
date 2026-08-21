@@ -41,7 +41,7 @@ export function Navbar() {
   const initial = (user?.user_metadata?.display_name || user?.email || 'U').toString().charAt(0).toUpperCase();
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/85 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
+    <nav className="sticky top-0 z-50 w-full border-b border-clay/40 bg-background">
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2 group" aria-label={t('appName')}>
           <Logo compact className="transition-transform duration-300 group-hover:scale-[1.02]" aria-label={t('appName')} />
@@ -83,7 +83,7 @@ export function Navbar() {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="default" size="icon" className="rounded-full font-semibold h-9 w-9 bg-primary/90 hover:bg-primary shadow-soft">
+                <Button variant="default" size="icon" className="rounded-full font-semibold h-9 w-9">
                   {initial}
                 </Button>
               </DropdownMenuTrigger>

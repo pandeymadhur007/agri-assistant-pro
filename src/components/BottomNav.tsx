@@ -45,7 +45,7 @@ export function BottomNav({ noSpacer = false }: BottomNavProps = {}) {
   return (
     <>
       <nav
-        className="md:hidden fixed bottom-3 left-4 right-4 z-50 rounded-2xl border border-border/60 bg-background/70 dark:bg-card/55 backdrop-blur-md shadow-soft"
+        className="md:hidden fixed bottom-3 left-4 right-4 z-50 rounded-lg border border-clay/50 bg-card"
         aria-label="Bottom navigation"
       >
         <ul className="grid grid-cols-4 p-1 gap-0.5">
@@ -90,7 +90,7 @@ export function BottomNav({ noSpacer = false }: BottomNavProps = {}) {
                       key={item.to}
                       to={item.to}
                       onClick={() => setMoreOpen(false)}
-                      className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-border/70 bg-card p-3 text-center hover:bg-muted transition-all duration-200 shadow-soft"
+                      className="flex flex-col items-center justify-center gap-2 rounded-lg border border-clay/50 bg-card p-3 text-center hover:bg-muted transition-colors duration-200"
                     >
                       <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
                         <item.icon className="h-5 w-5" />
