@@ -131,7 +131,7 @@ function WeatherIllustration() {
         transition={{ duration: 0.6, delay: 0.5 }}
         className="self-start"
       >
-        <CloudSun className="h-6 w-6 text-amber-400/80" strokeWidth={1.5} />
+        <CloudSun className="h-6 w-6 text-turmeric" strokeWidth={1.5} />
       </motion.div>
     </div>
   );
