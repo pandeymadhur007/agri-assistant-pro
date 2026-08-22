@@ -20,9 +20,11 @@ export default {
         bold: '700',
       },
       fontFamily: {
-        sans: ['"Inter Tight"', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
-        display: ['Fraunces', '"Inter Tight"', 'ui-serif', 'Georgia', 'serif'],
+        sans: ['"IBM Plex Sans"', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        display: ['Fraunces', '"IBM Plex Sans"', 'ui-serif', 'Georgia', 'serif'],
+        mono: ['"IBM Plex Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
+
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
