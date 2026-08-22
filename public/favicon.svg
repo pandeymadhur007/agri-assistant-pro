@@ -1,4 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="12" fill="#0f3d2e" />
-  <text x="32" y="42" text-anchor="middle" font-size="34"><></text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Gram AI">
+  <rect width="64" height="64" rx="14" fill="#0F3D2E" />
+  <g stroke="#4ADE80" stroke-width="3.2" stroke-linecap="round" fill="none">
+    <path d="M32 50V26" />
+    <path d="M32 32C25 25 19 27 16 33c6 3 12 2 16-1Z" fill="#4ADE80" fill-opacity="0.22" stroke-linejoin="round" />
+    <path d="M32 32c7-7 13-5 16 1-6 3-12 2-16-1Z" fill="#4ADE80" fill-opacity="0.22" stroke-linejoin="round" />
+    <path d="M20 52c6-4 18-4 24 0" />
+  </g>
 </svg>
