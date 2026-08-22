@@ -17,6 +17,8 @@ import { useNavigate } from 'react-router-dom';
 import { NotificationBell } from '@/components/NotificationBell';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Logo } from '@/components/Logo';
+import { MobileMenu } from '@/components/MobileMenu';
+
 
 export function Navbar() {
   const { language, setLanguage, t } = useLanguage();
@@ -98,11 +100,13 @@ export function Navbar() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button variant="ghost" size="icon" className="rounded-full text-muted-foreground hover:text-foreground" onClick={() => navigate('/login')} aria-label="Login">
+            <Button variant="ghost" size="icon" className="rounded-full min-h-11 min-w-11 text-muted-foreground hover:text-foreground" onClick={() => navigate('/login')} aria-label="Login">
               <LogIn className="h-5 w-5" />
             </Button>
           )}
+          <MobileMenu />
         </div>
+
       </div>
     </nav>
   );
