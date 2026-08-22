@@ -22,31 +22,78 @@ import { ClimateAlertBanner } from '@/components/ClimateAlertBanner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PageTransition, StaggerContainer, StaggerItem, FadeIn } from '@/components/PageTransition';
 import { SEO } from '@/components/SEO';
-import { FurrowDivider } from '@/components/FurrowDivider';
 import { cn } from '@/lib/utils';
 import type { LucideIcon } from 'lucide-react';
+
+type TileVariant = 'primary' | 'secondary' | 'neutral' | 'weather' | 'schemes' | 'community';
 
 type QuickAction = {
   icon: LucideIcon;
   title: string;
   description: string;
   to: string;
+  variant: TileVariant;
+};
+
+const tileVariantClass: Record<TileVariant, string> = {
+  primary: 'tile-primary',
+  secondary: 'tile-secondary',
+  neutral: 'tile-neutral',
+  weather: 'tile-neutral',
+  schemes: 'tile-schemes',
+  community: 'tile-community',
+};
+
+const iconVariantClass: Record<TileVariant, string> = {
+  primary: 'tile-icon-primary',
+  secondary: 'tile-icon-secondary',
+  neutral: 'tile-icon-neutral',
+  weather: 'tile-icon-weather',
+  schemes: 'tile-icon-neutral',
+  community: 'tile-icon-neutral',
 };
 
 function QuickTile({ action }: { action: QuickAction }) {
+  const isPrimary = action.variant === 'primary';
+  const isSecondary = action.variant === 'secondary';
+  const isGradient = isPrimary || isSecondary;
+
+  const titleColor = isPrimary
+    ? 'text-white'
+    : isSecondary
+      ? 'text-white'
+      : 'text-foreground';
+
   return (
     <Link to={action.to} className="block group h-full">
       <div
         className={cn(
-          'h-full rounded-lg border border-clay/55 bg-card card-hover cursor-pointer relative overflow-hidden',
+          'h-full rounded-[20px] border card-hover cursor-pointer relative overflow-hidden',
           'flex flex-col items-center justify-center text-center',
-          'p-5 md:p-6 min-h-[160px] md:min-h-[172px] gap-3.5',
+          'p-5 md:p-6 min-h-[168px] md:min-h-[180px] gap-4',
+          tileVariantClass[action.variant],
         )}
       >
-        <action.icon className="h-6 w-6 text-foreground" strokeWidth={1.5} />
-        <h3 className="font-display font-semibold text-[15px] leading-tight text-foreground">
-          {action.title}
-        </h3>
+        <div
+          className={cn(
+            'w-12 h-12 rounded-2xl flex items-center justify-center',
+            'transition-transform duration-300 ease-out',
+            'group-hover:-translate-y-0.5 group-hover:scale-[1.05]',
+            iconVariantClass[action.variant],
+          )}
+        >
+          <action.icon className="h-[22px] w-[22px]" strokeWidth={1.5} />
+        </div>
+        <div className="space-y-1.5">
+          <h3 className={cn('font-sans font-medium text-[15px] leading-tight tracking-tight', titleColor)}>
+            {action.title}
+          </h3>
+        </div>
+        {action.variant === 'schemes' && (
+          <span className="text-[10px] uppercase tracking-[0.18em] font-semibold text-secondary/80 dark:text-primary/80">
+            Explore →
+          </span>
+        )}
       </div>
     </Link>
   );
@@ -81,11 +128,25 @@ function MandiChartIllustration() {
   ];
   return (
     <svg viewBox="0 0 120 48" className="w-full h-14" aria-hidden>
+      <defs>
+        <linearGradient id="mandiFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="hsl(199 89% 48% / 0.35)" />
+          <stop offset="100%" stopColor="hsl(199 89% 48% / 0.02)" />
+        </linearGradient>
+      </defs>
+      <motion.path
+        d={`${line} V48 H0 Z`}
+        fill="url(#mandiFill)"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true, amount: 0.4 }}
+        transition={{ duration: 0.8, delay: 0.5 }}
+      />
       <motion.path
         d={line}
         fill="none"
-        stroke="hsl(var(--clay))"
-        strokeWidth="1.5"
+        stroke="hsl(199 89% 48%)"
+        strokeWidth="2"
         strokeLinecap="round"
         initial={{ pathLength: 0 }}
         whileInView={{ pathLength: 1 }}
@@ -97,8 +158,8 @@ function MandiChartIllustration() {
           key={cx}
           cx={cx}
           cy={cy}
-          r="2"
-          fill="hsl(var(--clay))"
+          r="2.2"
+          fill="hsl(199 89% 48%)"
           initial={{ opacity: 0, scale: 0 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true, amount: 0.4 }}
@@ -106,7 +167,6 @@ function MandiChartIllustration() {
         />
       ))}
     </svg>
-
   );
 }
 
@@ -117,7 +177,7 @@ function WeatherIllustration() {
       {bars.map((h, i) => (
         <motion.div
           key={i}
-          className="flex-1 rounded-sm bg-leaf/60"
+          className="flex-1 rounded-md bg-gradient-to-t from-sky-400/20 to-sky-400/70"
           initial={{ height: 4, opacity: 0 }}
           whileInView={{ height: h, opacity: 1 }}
           viewport={{ once: true, amount: 0.4 }}
@@ -131,7 +191,7 @@ function WeatherIllustration() {
         transition={{ duration: 0.6, delay: 0.5 }}
         className="self-start"
       >
-        <CloudSun className="h-6 w-6 text-turmeric" strokeWidth={1.5} />
+        <CloudSun className="h-6 w-6 text-amber-400/80" strokeWidth={1.5} />
       </motion.div>
     </div>
   );
@@ -150,15 +210,14 @@ const Index = () => {
   };
 
   const quickActions: QuickAction[] = [
-    { icon: MessageCircle, title: t('startChat'), description: 'Ask farming questions instantly', to: '/chat' },
-    { icon: Camera, title: 'AI Crop Doctor', description: 'Scan a crop for instant diagnosis', to: '/scan' },
-    { icon: TrendingUp, title: t('marketPrices'), description: 'Live mandi price updates', to: '/market-prices' },
-    { icon: CloudSun, title: t('weatherForecast'), description: 'Weather forecasts and alerts', to: '/weather' },
-    { icon: Beef, title: t('animalHusbandry'), description: 'Livestock care and management', to: '/animal-husbandry' },
-    { icon: Landmark, title: t('schemes'), description: 'Farmer benefits and subsidies', to: '/schemes' },
-    { icon: Lightbulb, title: t('smartCropPlanner') || 'Smart Crop Planner', description: 'Planning, schedules and reminders', to: '/smart-crop-planner' },
-    { icon: Sprout, title: t('cropCenter'), description: 'Crop guides and recommendations', to: '/crop-center' },
-    { icon: Users, title: t('community'), description: 'Connect with fellow farmers', to: '/community' },
+    { icon: MessageCircle, title: t('startChat'), description: 'Ask farming questions instantly', to: '/chat', variant: 'neutral' },
+    { icon: TrendingUp, title: t('marketPrices'), description: 'Live mandi price updates', to: '/market-prices', variant: 'secondary' },
+    { icon: CloudSun, title: t('weatherForecast'), description: 'Weather forecasts and alerts', to: '/weather', variant: 'weather' },
+    { icon: Beef, title: t('animalHusbandry'), description: 'Livestock care and management', to: '/animal-husbandry', variant: 'neutral' },
+    { icon: Landmark, title: t('schemes'), description: 'Farmer benefits and subsidies', to: '/schemes', variant: 'schemes' },
+    { icon: Lightbulb, title: t('smartCropPlanner') || 'Smart Crop Planner', description: 'Planning, schedules and reminders', to: '/smart-crop-planner', variant: 'secondary' },
+    { icon: Sprout, title: t('cropCenter'), description: 'Crop guides and recommendations', to: '/crop-center', variant: 'primary' },
+    { icon: Users, title: t('community'), description: 'Connect with fellow farmers', to: '/community', variant: 'community' },
   ];
 
   const howItWorks = [
@@ -208,14 +267,14 @@ const Index = () => {
           <section className="hero-gradient pt-12 pb-10 md:pt-20 md:pb-14 px-4 relative overflow-hidden">
             <div className="container mx-auto max-w-3xl text-center relative z-10">
               <FadeIn delay={0.05}>
-                <span className="eyebrow inline-flex items-center gap-2 rounded-full border border-clay/50 bg-card px-4 py-1.5 mb-8">
-                  <span className="w-1.5 h-1.5 rounded-full bg-clay" />
+                <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/60 backdrop-blur-sm px-4 py-1.5 text-xs font-normal text-muted-foreground mb-8 shadow-soft tracking-wide">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                   AI Companion for Every Farmer
                 </span>
               </FadeIn>
 
               <FadeIn delay={0.1}>
-                <h1 className="text-5xl md:text-[4rem] font-bold mb-5 text-foreground leading-[1.05]">
+                <h1 className="text-4xl md:text-[3.25rem] font-medium mb-5 text-foreground leading-[1.1]">
                   {t('appName')}
                 </h1>
               </FadeIn>
@@ -235,13 +294,13 @@ const Index = () => {
               <FadeIn delay={0.26}>
                 <div className="flex flex-wrap items-center justify-center gap-3">
                   <Link to="/chat">
-                    <button className="inline-flex items-center gap-2.5 rounded-full btn-hero-primary px-6 py-3.5 text-sm font-semibold transition-colors duration-200">
+                    <button className="inline-flex items-center gap-2.5 rounded-2xl btn-hero-primary px-6 py-3.5 text-sm font-medium transition-all duration-200">
                       <MessageCircle className="w-4 h-4" />
                       {t('startChat')}
                     </button>
                   </Link>
                   <Link to="/scan">
-                    <button className="inline-flex items-center gap-2.5 rounded-full btn-hero-secondary px-6 py-3.5 text-sm font-semibold transition-colors duration-200">
+                    <button className="inline-flex items-center gap-2.5 rounded-2xl btn-hero-secondary px-6 py-3.5 text-sm font-medium transition-all duration-200">
                       <Camera className="w-4 h-4" />
                       Scan a crop
                     </button>
@@ -264,7 +323,7 @@ const Index = () => {
             <div className="container mx-auto max-w-5xl">
               <FadeIn>
                 <div className="text-center mb-10">
-                  <h2 className="font-display text-3xl md:text-[2.5rem] font-bold text-foreground">
+                  <h2 className="font-display text-3xl md:text-[2rem] font-medium text-foreground tracking-tight">
                     {t('quickActions')}
                   </h2>
                   <p className="text-sm text-muted-foreground mt-2">
@@ -273,7 +332,7 @@ const Index = () => {
                 </div>
               </FadeIn>
 
-              <StaggerContainer className="grid grid-cols-2 md:grid-cols-3 gap-3.5 md:gap-5">
+              <StaggerContainer className="grid grid-cols-2 md:grid-cols-4 gap-3.5 md:gap-5">
                 {quickActions.map((action) => (
                   <StaggerItem key={action.to}>
                     <QuickTile action={action} />
@@ -283,13 +342,11 @@ const Index = () => {
             </div>
           </section>
 
-          <div className="px-4"><div className="container mx-auto max-w-5xl"><FurrowDivider /></div></div>
-
           {/* How It Works + Feature Highlights */}
-          <section className="py-12 md:py-16 px-4">
+          <section className="py-12 md:py-16 px-4 border-t border-border/50">
             <div className="container mx-auto max-w-5xl">
               <FadeIn>
-                <h2 className="font-display text-3xl md:text-[2.5rem] font-bold text-center mb-12 text-foreground">
+                <h2 className="font-display text-3xl md:text-[2rem] font-medium text-center mb-12 text-foreground tracking-tight">
                   {t('howItWorks')}
                 </h2>
               </FadeIn>
@@ -300,15 +357,15 @@ const Index = () => {
                     <div className="flex flex-col h-full">
                       {/* Step header */}
                       <div className="flex items-center gap-3 mb-4">
-                        <div className="shrink-0 w-9 h-9 rounded-full border border-clay/60 text-clay flex items-center justify-center font-mono text-sm tabular-nums">
+                        <div className="shrink-0 w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-medium text-sm tabular-nums border border-primary/15">
                           {step.num}
                         </div>
                         <div className="flex flex-col min-w-0">
-                          <div className="eyebrow flex items-center gap-1.5">
-                            <step.stepIcon className="h-3.5 w-3.5" strokeWidth={1.5} />
+                          <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] text-muted-foreground font-semibold">
+                            <step.stepIcon className="h-3.5 w-3.5" strokeWidth={1.75} />
                             Step
                           </div>
-                          <h3 className="font-display font-semibold text-[16px] text-foreground leading-snug truncate mt-0.5">
+                          <h3 className="font-medium text-[15px] text-foreground leading-snug truncate mt-0.5">
                             {step.stepTitle}
                           </h3>
                         </div>
@@ -316,15 +373,17 @@ const Index = () => {
 
                       {/* Feature card */}
                       <Link to={step.to} className="block group flex-1">
-                        <div className="h-full rounded-lg border border-clay/50 bg-card card-hover p-6 flex flex-col">
-                          <step.featureIcon className="w-6 h-6 text-foreground mb-4" strokeWidth={1.5} />
-                          <h4 className="font-display font-semibold text-[18px] mb-1.5 text-foreground">
+                        <div className="h-full rounded-[18px] feature-glass card-hover p-6 flex flex-col">
+                          <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 border border-primary/10">
+                            <step.featureIcon className="w-5 h-5" strokeWidth={1.5} />
+                          </div>
+                          <h4 className="font-medium text-[16px] mb-1.5 text-foreground tracking-tight">
                             {step.featureTitle}
                           </h4>
                           <p className="text-muted-foreground text-sm leading-relaxed mb-5 flex-1">
                             {step.featureDesc}
                           </p>
-                          <div className="mt-auto opacity-90 group-hover:opacity-100 transition-opacity">
+                          <div className="mt-auto opacity-80 group-hover:opacity-100 transition-opacity">
                             {step.illustration}
                           </div>
                         </div>
@@ -335,7 +394,6 @@ const Index = () => {
               </StaggerContainer>
             </div>
           </section>
-
         </main>
       </PageTransition>
       <Footer />

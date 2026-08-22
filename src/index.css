@@ -1,110 +1,140 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500&display=swap");
+
+/*
+ * "Basic" by Magnus Gaarde — self-hosted.
+ * Drop the .woff2 files into public/fonts/basic/ and these declarations pick them up.
+ * Until then the stack falls back gracefully to Manrope (very close in feel).
+ */
+@font-face {
+  font-family: "Basic";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/basic/Basic-Regular.woff2") format("woff2"),
+       url("/fonts/basic/Basic-Regular.woff") format("woff");
+}
+@font-face {
+  font-family: "Basic";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/basic/Basic-Medium.woff2") format("woff2"),
+       url("/fonts/basic/Basic-Medium.woff") format("woff");
+}
+@font-face {
+  font-family: "Basic";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/basic/Basic-SemiBold.woff2") format("woff2"),
+       url("/fonts/basic/Basic-SemiBold.woff") format("woff");
+}
+@font-face {
+  font-family: "Basic";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/basic/Basic-Bold.woff2") format("woff2"),
+       url("/fonts/basic/Basic-Bold.woff") format("woff");
+}
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ============================================================
-   Gram AI — "Field & Parchment" identity
-   Ploughed furrows, terracotta tiles, mandi noticeboards.
-   All colors HSL. No gradients, no glow shadows.
-   ============================================================ */
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
 
 @layer base {
   :root {
-    /* Raw brand tokens (kept in sync light + dark) */
-    --clay: 11 53% 49%;         /* #C1543B terracotta */
-    --turmeric: 38 79% 57%;     /* #E8A93C mustard */
-    --leaf: 138 25% 39%;        /* #4A7C59 */
-    --parchment: 43 50% 93%;    /* #F6F1E4 */
-    --field: 161 26% 14%;       /* #1B2E28 */
+    /* Light — soft sage-white wash (from reference) */
+    --background: 140 20% 98%;         /* #F7FAF7 */
+    --foreground: 200 40% 12%;         /* deep navy-ink */
 
-    --background: 43 50% 93%;
-    --foreground: 161 26% 14%;
+    --card: 0 0% 100%;
+    --card-foreground: 200 40% 12%;
 
-    --card: 43 55% 96%;
-    --card-foreground: 161 26% 14%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 200 40% 12%;
 
-    --popover: 43 55% 96%;
-    --popover-foreground: 161 26% 14%;
+    --primary: 155 25% 35%;            /* sage green */
+    --primary-foreground: 0 0% 100%;
 
-    --primary: 11 53% 49%;              /* clay is the primary accent */
-    --primary-foreground: 43 50% 95%;
+    --secondary: 205 45% 25%;          /* deep teal-navy */
+    --secondary-foreground: 0 0% 100%;
 
-    --secondary: 138 25% 39%;           /* leaf */
-    --secondary-foreground: 43 50% 95%;
+    --muted: 140 15% 95%;
+    --muted-foreground: 200 12% 42%;
 
-    --muted: 43 30% 89%;
-    --muted-foreground: 37 9% 38%;      /* #6B6459 */
+    --accent: 150 30% 90%;
+    --accent-foreground: 155 30% 25%;
 
-    --accent: 38 79% 57%;               /* turmeric — alerts/highlights only */
-    --accent-foreground: 161 26% 14%;
+    --destructive: 8 60% 50%;
+    --destructive-foreground: 0 0% 100%;
 
-    --destructive: 11 60% 44%;
-    --destructive-foreground: 43 50% 95%;
+    --border: 150 15% 90%;             /* #E6ECE7 hairline */
+    --input: 150 15% 90%;
+    --ring: 155 25% 35%;
 
-    --border: 11 40% 72%;
-    --input: 11 30% 78%;
-    --ring: 11 53% 49%;
+    --radius: 1.25rem;                 /* 20px */
 
-    --radius: 0.5rem;                   /* 8px */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 15% 18%;
+    --sidebar-primary: 174 62% 32%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 60% 97%;
+    --sidebar-accent-foreground: 220 15% 18%;
+    --sidebar-border: 210 30% 91%;
+    --sidebar-ring: 205 85% 48%;
 
-    --sidebar-background: 43 55% 96%;
-    --sidebar-foreground: 161 26% 14%;
-    --sidebar-primary: 11 53% 49%;
-    --sidebar-primary-foreground: 43 50% 95%;
-    --sidebar-accent: 43 30% 89%;
-    --sidebar-accent-foreground: 161 26% 14%;
-    --sidebar-border: 11 40% 78%;
-    --sidebar-ring: 11 53% 49%;
-
-    /* Flat elevation — hairlines only, no glow */
-    --shadow-sm: none;
-    --shadow-md: none;
-    --shadow-lg: none;
+    --shadow-sm: 0 1px 2px 0 hsl(200 30% 15% / 0.04), 0 1px 3px 0 hsl(200 30% 15% / 0.03);
+    --shadow-md: 0 6px 20px -8px hsl(200 30% 15% / 0.10), 0 2px 6px -2px hsl(200 30% 15% / 0.05);
+    --shadow-lg: 0 20px 40px -16px hsl(200 30% 15% / 0.14), 0 6px 14px -6px hsl(200 30% 15% / 0.06);
   }
 
   .dark {
-    --background: 161 26% 14%;   /* #1B2E28 */
-    --foreground: 43 50% 93%;    /* parchment */
+    /* Dark — near-black sage (from reference) */
+    --background: 150 15% 4%;          /* #0B0F0D */
+    --foreground: 140 10% 92%;         /* #E8EFEA */
 
-    --card: 161 24% 17%;
-    --card-foreground: 43 50% 93%;
+    --card: 150 12% 8%;                /* #131A17 */
+    --card-foreground: 140 10% 92%;
 
-    --popover: 161 24% 17%;
-    --popover-foreground: 43 50% 93%;
+    --popover: 150 12% 8%;
+    --popover-foreground: 140 10% 92%;
 
-    --primary: 11 53% 49%;
-    --primary-foreground: 43 50% 95%;
+    --primary: 150 40% 55%;
+    --primary-foreground: 150 15% 4%;
 
-    --secondary: 138 25% 39%;
-    --secondary-foreground: 43 50% 95%;
+    --secondary: 200 55% 55%;
+    --secondary-foreground: 150 15% 4%;
 
-    --muted: 161 20% 20%;
-    --muted-foreground: 43 18% 72%;
+    --muted: 150 10% 10%;
+    --muted-foreground: 145 6% 60%;
 
-    --accent: 38 79% 57%;
-    --accent-foreground: 161 26% 14%;
+    --accent: 150 25% 18%;
+    --accent-foreground: 150 40% 65%;
 
-    --destructive: 11 60% 48%;
-    --destructive-foreground: 43 50% 95%;
+    --destructive: 8 60% 50%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 11 35% 38%;
-    --input: 161 18% 26%;
-    --ring: 11 53% 49%;
+    --border: 150 10% 14%;             /* #1F2A24 hairline */
+    --input: 150 10% 14%;
+    --ring: 150 40% 55%;
 
-    --sidebar-background: 161 26% 12%;
-    --sidebar-foreground: 43 50% 93%;
-    --sidebar-primary: 11 53% 49%;
-    --sidebar-primary-foreground: 43 50% 95%;
-    --sidebar-accent: 161 20% 20%;
-    --sidebar-accent-foreground: 43 50% 93%;
-    --sidebar-border: 11 35% 34%;
-    --sidebar-ring: 11 53% 49%;
+    --sidebar-background: 0 0% 0%;
+    --sidebar-foreground: 0 0% 92%;
+    --sidebar-primary: 160 55% 45%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 9%;
+    --sidebar-accent-foreground: 0 0% 96%;
+    --sidebar-border: 0 0% 14%;
+    --sidebar-ring: 160 55% 45%;
 
-    --shadow-sm: none;
-    --shadow-md: none;
-    --shadow-lg: none;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.5);
+    --shadow-md: 0 6px 20px -8px rgb(0 0 0 / 0.65);
+    --shadow-lg: 0 16px 40px -16px rgb(0 0 0 / 0.75);
   }
 }
 
@@ -118,22 +148,23 @@
     font-weight: 400;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    transition: background-color 200ms ease, color 200ms ease;
+    transition: background-color 250ms ease, color 250ms ease;
+  }
+  
+  nav, section, article, main, aside, header, footer, div {
+    transition: background-color 250ms ease, color 250ms ease, border-color 250ms ease;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display;
-    font-weight: 700;
-    letter-spacing: -0.015em;
+    @apply font-display font-medium tracking-tight;
+    letter-spacing: -0.01em;
   }
 
-  h1 { @apply text-4xl md:text-5xl; line-height: 1.08; }
-  h2 { @apply text-3xl md:text-4xl; line-height: 1.14; }
-  h3 { @apply text-xl md:text-2xl; font-weight: 600; }
+  h1 { letter-spacing: -0.02em; }
+  h2 { letter-spacing: -0.015em; }
 
-  /* Numeric data — prices, temperatures, percentages */
-  .tabular-nums, .value-highlight, .num {
-    @apply font-mono;
+  /* Tabular numerals for prices, temps, stats */
+  .tabular-nums, .value-highlight {
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum";
   }
@@ -141,140 +172,229 @@
   .value-highlight {
     @apply font-medium text-foreground;
   }
-
-  .eyebrow {
-    @apply font-sans text-[11px] uppercase font-semibold text-muted-foreground;
-    letter-spacing: 0.05em;
-  }
 }
 
-/* ---------- Furrow motif ---------- */
-.furrow-line {
-  color: hsl(var(--clay));
-  opacity: 0.4;
+/* Hero — light blue wash / dark minimal glow */
+.hero-gradient {
+  background:
+    radial-gradient(ellipse 80% 55% at 50% -5%, hsl(155 30% 55% / 0.10) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 45% at 100% 30%, hsl(200 40% 88% / 0.55) 0%, transparent 55%),
+    hsl(var(--background));
 }
 
-/* ---------- Surfaces ---------- */
-.hero-gradient,
-.hero-pattern,
-.section-pattern,
-.card-gradient,
-.dark .hero-gradient,
+.dark .hero-gradient {
+  background:
+    radial-gradient(ellipse 70% 45% at 50% -5%, hsl(150 45% 40% / 0.10) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 100% 20%, hsl(200 55% 35% / 0.08) 0%, transparent 55%),
+    hsl(var(--background));
+}
+
+.card-gradient {
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+}
+
 .dark .card-gradient {
-  background: hsl(var(--background));
+  background: hsl(var(--card));
+}
+
+/* Soft hero pattern — barely-there */
+.hero-pattern {
+  background-image:
+    radial-gradient(circle at 50% 0%, hsl(var(--primary) / 0.05) 0%, transparent 60%);
+}
+
+.section-pattern {
   background-image: none;
 }
 
-.card-premium,
-.dark .card-premium {
-  background: hsl(var(--card));
-  box-shadow: none;
-}
-
+/* Premium card hover — subtle lift */
 .card-hover {
-  @apply transition-colors duration-200 ease-out;
+  @apply transition-all duration-300 ease-out hover:-translate-y-1;
 }
 .card-hover:hover {
-  background-color: hsl(var(--muted) / 0.55);
-  box-shadow: none;
+  box-shadow: var(--shadow-lg);
 }
 
-/* Quick-action tiles — all visually equal parchment + clay hairline */
-.tile-primary,
-.tile-secondary,
-.tile-neutral,
-.tile-glass,
-.tile-schemes,
-.tile-community,
-.feature-glass {
-  background: hsl(var(--card));
-  background-image: none;
-  border: 1px solid hsl(var(--clay) / 0.55);
-  color: hsl(var(--card-foreground));
-  box-shadow: none;
-  border-radius: var(--radius);
+/* Dashboard quick-action tile variants */
+.tile-primary {
+  /* Crop Center — deep navy → teal (from reference) */
+  background: linear-gradient(135deg, hsl(205 55% 22%) 0%, hsl(190 40% 32%) 100%);
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 10px 28px -12px hsl(205 55% 22% / 0.45);
 }
-.dark .tile-primary,
-.dark .tile-secondary,
-.dark .tile-neutral,
-.dark .tile-glass,
-.dark .tile-schemes,
-.dark .tile-community,
+.dark .tile-primary {
+  background: linear-gradient(135deg, hsl(200 50% 18%) 0%, hsl(160 40% 24%) 100%);
+  box-shadow: 0 0 32px -4px hsl(150 60% 45% / 0.15), 0 10px 28px -12px hsl(200 50% 18% / 0.5);
+}
+
+.tile-secondary {
+  /* Smart Crop Planner — teal → sage (from reference) */
+  background: linear-gradient(135deg, hsl(200 55% 28%) 0%, hsl(155 30% 55%) 100%);
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 10px 28px -12px hsl(200 55% 28% / 0.4);
+}
+.dark .tile-secondary {
+  background: linear-gradient(135deg, hsl(200 55% 22%) 0%, hsl(155 35% 30%) 100%);
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 0 32px -4px hsl(150 60% 45% / 0.15), 0 10px 28px -12px hsl(200 55% 22% / 0.5);
+}
+
+.tile-neutral {
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
+  box-shadow: var(--shadow-sm);
+}
+.dark .tile-neutral {
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
+}
+
+.tile-glass {
+  background: hsl(var(--card) / 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-color: hsl(var(--border));
+  box-shadow: var(--shadow-sm);
+}
+.dark .tile-glass {
+  background: hsl(0 0% 7% / 0.9);
+  border-color: hsl(0 0% 16%);
+}
+
+.tile-schemes {
+  /* Government Schemes — soft mint→sky wash card (from reference) */
+  background: linear-gradient(135deg, hsl(150 40% 88%) 0%, hsl(200 55% 90%) 100%);
+  border-color: hsl(150 25% 78%);
+  box-shadow: var(--shadow-md);
+}
+.dark .tile-schemes {
+  background: linear-gradient(135deg, hsl(150 20% 10%) 0%, hsl(200 25% 12%) 100%);
+  border-color: hsl(150 15% 18%);
+}
+
+.tile-community {
+  background:
+    linear-gradient(135deg, hsl(150 45% 90%) 0%, hsl(200 55% 92%) 100%);
+  border-color: hsl(150 25% 80%);
+  box-shadow: var(--shadow-md);
+}
+.dark .tile-community {
+  background:
+    linear-gradient(135deg, hsl(150 20% 10%) 0%, hsl(200 25% 12%) 100%);
+  border-color: hsl(var(--border));
+}
+
+.tile-icon-primary {
+  background: hsl(0 0% 100% / 0.18);
+  border: 1px solid hsl(0 0% 100% / 0.22);
+  color: white;
+}
+
+.tile-icon-secondary {
+  background: hsl(0 0% 100% / 0.18);
+  border: 1px solid hsl(0 0% 100% / 0.22);
+  color: white;
+}
+.dark .tile-icon-secondary {
+  background: hsl(0 0% 100% / 0.18);
+  border: 1px solid hsl(0 0% 100% / 0.22);
+  color: white;
+}
+
+.tile-icon-neutral {
+  background: hsl(150 25% 94%);
+  border: 1px solid hsl(150 20% 88%);
+  color: hsl(200 40% 20%);
+}
+.dark .tile-icon-neutral {
+  background: hsl(150 12% 12%);
+  border-color: hsl(150 10% 18%);
+  color: hsl(140 15% 88%);
+}
+
+.tile-icon-weather {
+  background: hsl(150 30% 92%);
+  border: 1px solid hsl(150 25% 84%);
+  color: hsl(155 35% 30%);
+}
+.dark .tile-icon-weather {
+  background: hsl(150 20% 12%);
+  border-color: hsl(150 15% 18%);
+  color: hsl(150 40% 65%);
+}
+
+/* Feature cards — glass panel */
+.feature-glass {
+  background: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(150 25% 97%) 100%);
+  border: 1px solid hsl(var(--border));
+  box-shadow: var(--shadow-sm);
+}
 .dark .feature-glass {
   background: hsl(var(--card));
-  background-image: none;
-  border-color: hsl(var(--clay) / 0.6);
-  color: hsl(var(--card-foreground));
+  border-color: hsl(var(--border));
 }
 
-/* Tile icons — single-color line icons, no fills */
-.tile-icon-primary,
-.tile-icon-secondary,
-.tile-icon-neutral,
-.tile-icon-weather {
-  background: transparent;
-  border: none;
-  color: hsl(var(--foreground));
-}
-
-/* ---------- Buttons — pill shaped, flat ---------- */
 .btn-hero-primary {
-  background: hsl(var(--clay));
-  color: hsl(var(--primary-foreground));
-  border: 1px solid hsl(var(--clay));
-  box-shadow: none;
+  background: linear-gradient(135deg, hsl(200 55% 25%) 0%, hsl(155 35% 40%) 100%);
+  color: white;
+  box-shadow: 0 6px 18px -6px hsl(200 55% 25% / 0.4);
 }
 .btn-hero-primary:hover {
-  background: hsl(var(--clay) / 0.88);
-  box-shadow: none;
+  box-shadow: 0 10px 24px -6px hsl(200 55% 25% / 0.55);
+  transform: translateY(-1px);
 }
 
 .btn-hero-secondary {
-  background: transparent;
-  border: 1px solid hsl(var(--clay) / 0.6);
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
   color: hsl(var(--foreground));
-  box-shadow: none;
 }
 .btn-hero-secondary:hover {
-  background: hsl(var(--muted) / 0.6);
+  background: hsl(var(--muted));
+  transform: translateY(-1px);
 }
 .dark .btn-hero-secondary {
-  background: transparent;
-  border-color: hsl(var(--clay) / 0.6);
+  background: hsl(0 0% 7%);
+  border-color: hsl(0 0% 16%);
 }
 .dark .btn-hero-secondary:hover {
-  background: hsl(var(--muted) / 0.6);
+  background: hsl(0 0% 12%);
 }
 
-/* ---------- Field advisory (noticeboard entry) ---------- */
-.field-advisory {
-  background: hsl(var(--card));
-  border: 1px solid hsl(var(--clay) / 0.45);
-  border-left: 4px solid hsl(var(--turmeric));
-  border-radius: var(--radius);
-  box-shadow: none;
+/* Premium layered card with subtle inner highlight */
+.card-premium {
+  background:
+    linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.96) 100%);
+  box-shadow:
+    var(--shadow-sm),
+    inset 0 1px 0 0 hsl(0 0% 100% / 0.6);
+}
+.dark .card-premium {
+  box-shadow:
+    var(--shadow-sm),
+    inset 0 1px 0 0 hsl(0 0% 100% / 0.04);
 }
 
-/* ---------- Misc legacy hooks, flattened ---------- */
-.gradient-text { color: hsl(var(--foreground)); }
-.pulse-glow { box-shadow: none; }
-.shadow-soft, .shadow-soft-md, .shadow-soft-lg { box-shadow: none; }
-.hairline { border-color: hsl(var(--clay) / 0.35); }
-
-/* ---------- Global flatten pass (applies to every page) ----------
-   Legacy Tailwind shadow/gradient utilities scattered across feature
-   pages are neutralised so the parchment + clay-hairline identity is
-   consistent everywhere. Overlays (dialog/popover/menu) keep depth. */
-main .shadow-sm,
-main .shadow,
-main .shadow-md,
-main .shadow-lg,
-main .shadow-xl,
-main .shadow-2xl {
-  box-shadow: none !important;
+/* Gradient text kept for backwards compat — now solid */
+.gradient-text {
+  color: hsl(var(--foreground));
 }
 
-main [class*="bg-gradient-to-"] {
-  background-image: none !important;
+/* Reserved — no longer used; kept as no-op to avoid broken classes */
+.pulse-glow {
+  box-shadow: var(--shadow-md);
 }
 
+/* Soft elevation utilities */
+.shadow-soft { box-shadow: var(--shadow-sm); }
+.shadow-soft-md { box-shadow: var(--shadow-md); }
+.shadow-soft-lg { box-shadow: var(--shadow-lg); }
+
+/* Hairline divider */
+.hairline {
+  border-color: hsl(var(--border));
+}
