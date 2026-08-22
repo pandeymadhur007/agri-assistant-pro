@@ -9,6 +9,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useCropScan, ScanResult } from '@/hooks/useCropScan';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { SEO } from '@/components/SEO';
 
 const translations = {
   en: {
@@ -154,6 +155,7 @@ const ScanHistory = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white flex flex-col">
+      <SEO title="Crop Scan History" description="Review your past crop disease scans, diagnoses and treatment recommendations on Gram AI." />
       <Navbar />
       
       <main className="flex-1 container mx-auto px-4 py-8">

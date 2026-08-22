@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, Mail, Lock, User, Phone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { SEO } from '@/components/SEO';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -181,6 +182,7 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-muted/30">
+      <SEO title="Create Account" description="Create your free Gram AI account for personalised farming guidance." />
       <Navbar />
       
       <main className="flex-1 container mx-auto px-4 py-8 flex items-center justify-center">
