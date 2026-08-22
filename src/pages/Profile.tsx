@@ -10,6 +10,7 @@ import { Loader2, LogOut, User as UserIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { SEO } from '@/components/SEO';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -73,6 +74,7 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-muted/30 pb-24 md:pb-0">
+      <SEO title="Farmer Profile" description="Manage your Gram AI farmer profile, location, crops and language preferences." />
       <Navbar />
       <main className="flex-1 container mx-auto px-4 py-6 max-w-2xl">
         <Card>

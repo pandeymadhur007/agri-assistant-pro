@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, ExternalLink, FileText, CheckCircle2, Calendar, TrendingUp, Loader2 } from 'lucide-react';
+import { SEO } from '@/components/SEO';
 
 interface EligibilityItem {
   id: string;
@@ -91,7 +92,8 @@ const SchemeDetail = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col">
-        <Navbar />
+        <SEO title="Government Scheme Details" description="Eligibility, benefits and how to apply for this Indian government farming scheme." />
+      <Navbar />
         <main className="flex-1 flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </main>

@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Send, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { SEO } from '@/components/SEO';
 
 // Validation constants
 const TITLE_MIN_LENGTH = 10;
@@ -195,6 +196,7 @@ const CommunityNewPost = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-muted/30">
+      <SEO title="Ask the Farming Community" description="Post a question or share farming advice with the Gram AI farmer community." />
       <Navbar />
       
       <main className="flex-1 container mx-auto px-4 py-6 max-w-2xl">

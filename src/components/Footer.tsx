@@ -2,8 +2,11 @@ import { Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Logo } from '@/components/Logo';
 
+const SUPPORT_EMAIL = 'gramaiofficial@gmail.com';
+
 export function Footer() {
   const { t } = useLanguage();
+  const year = new Date().getFullYear();
 
   return (
     <footer className="border-t border-border/60 bg-muted/40 text-foreground">
@@ -16,32 +19,38 @@ export function Footer() {
 
           <div>
             <h3 className="text-sm font-semibold mb-3 text-foreground/90">{t('quickActions')}</h3>
-            <div className="flex flex-col gap-2">
+            <nav className="flex flex-col gap-2" aria-label={t('quickActions')}>
               <Link to="/chat" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 {t('startChat')}
               </Link>
               <Link to="/schemes" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 {t('schemes')}
               </Link>
-              <Link to="/crop-guidance" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <Link to="/crop-center" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 {t('cropGuidance')}
               </Link>
-            </div>
+              <Link to="/market-prices" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                {t('marketPrices')}
+              </Link>
+            </nav>
           </div>
 
           <div>
             <h3 className="text-sm font-semibold mb-3 text-foreground/90">{t('about')}</h3>
-            <div className="flex flex-col gap-2">
+            <nav className="flex flex-col gap-2" aria-label={t('about')}>
               <Link to="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 {t('about')}
               </Link>
-              <Link to="/contact" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                {t('contact')}
-              </Link>
+              <a
+                href={`mailto:${SUPPORT_EMAIL}`}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors break-all"
+              >
+                {t('contact')}: {SUPPORT_EMAIL}
+              </a>
               <Link to="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 {t('privacyPolicy')}
               </Link>
-            </div>
+            </nav>
           </div>
         </div>
 
@@ -50,7 +59,7 @@ export function Footer() {
         </div>
 
         <div className="mt-6 border-t border-border/60 pt-4 text-center text-xs text-muted-foreground">
-          © 2026 {t('appName')}. Made for Indian Farmers.
+          © {year} {t('appName')}. Made for Indian Farmers.
         </div>
       </div>
     </footer>

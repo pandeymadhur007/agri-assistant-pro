@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, TrendingUp, TrendingDown, Minus, MapPin, IndianRupee, Star, Wheat, Sparkles, Loader2 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { SEO } from '@/components/SEO';
 
 interface MarketPrice {
   id: string;
@@ -130,6 +131,7 @@ const MarketPriceCrop = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-muted/30">
+      <SEO title="Crop Mandi Price Trends" description="Track mandi price trends and MSP for this crop across Indian markets." />
       <Navbar />
       
       <main className="flex-1 container mx-auto px-4 py-6">

@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, ThumbsUp, MessageSquare, Send, Loader2, Clock, BadgeCheck, CheckCircle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import { SEO } from '@/components/SEO';
 
 // Validation constants for replies
 const REPLY_MIN_LENGTH = 10;
@@ -276,7 +277,8 @@ const CommunityPostDetail = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col">
-        <Navbar />
+        <SEO title="Community Discussion" description="Read answers and farming advice shared by farmers on Gram AI community." />
+      <Navbar />
         <main className="flex-1 flex items-center justify-center">
           <p className="text-muted-foreground">{l.loading}</p>
         </main>

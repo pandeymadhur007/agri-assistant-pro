@@ -8,6 +8,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { CropDiagnosis, ScanResult as ScanRecord, useCropScan } from '@/hooks/useCropScan';
+import { SEO } from '@/components/SEO';
 
 const translations = {
   en: {
@@ -188,6 +189,7 @@ const ScanResult = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex flex-col">
+      <SEO title="Crop Scan Result" description="AI crop disease diagnosis with treatment and pesticide recommendations from Gram AI." />
       <Navbar />
       
       <main className="flex-1 container mx-auto px-4 py-8">
