@@ -5,7 +5,27 @@ import { ensureAnonymousSession, cacheUserId } from '@/lib/sessionSupabase';
 export interface Message {
   role: 'user' | 'assistant';
   content: string;
+  /** Data URLs of attached images (user messages only) */
+  images?: string[];
 }
+
+type ApiBlock =
+  | { type: 'text'; text: string }
+  | { type: 'image_url'; image_url: { url: string } };
+
+function toApiMessage(m: Message): { role: string; content: string | ApiBlock[] } {
+  if (m.role === 'user' && m.images?.length) {
+    return {
+      role: m.role,
+      content: [
+        { type: 'text', text: m.content || 'Please look at this crop photo and help me.' },
+        ...m.images.map((url) => ({ type: 'image_url' as const, image_url: { url } })),
+      ],
+    };
+  }
+  return { role: m.role, content: m.content };
+}
+
 
 export function useChat() {
   const { language } = useLanguage();
