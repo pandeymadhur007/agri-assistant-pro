@@ -131,18 +131,44 @@ export function ChatInterface() {
     }
   }, [messages, isLoading, autoSpeak, speak, language]);
 
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const room = MAX_ATTACHMENTS - attachments.length;
+    if (room <= 0) {
+      toast({ title: `You can attach up to ${MAX_ATTACHMENTS} photos.`, variant: 'destructive' });
+      return;
+    }
+    setAttaching(true);
+    try {
+      const picked = Array.from(files).slice(0, room).filter((f) => f.type.startsWith('image/'));
+      const encoded = await Promise.all(picked.map((f) => compressToDataUrl(f)));
+      setAttachments((prev) => [...prev, ...encoded]);
+    } catch {
+      toast({ title: 'Could not read that photo. Please try another one.', variant: 'destructive' });
+    } finally {
+      setAttaching(false);
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if (isLoading || attaching) return;
+    if (!input.trim() && attachments.length === 0) return;
     stopListening();
-    sendMessage(input.trim());
+    sendMessage(input.trim(), attachments);
     setInput('');
+    setAttachments([]);
   };
 
   const handleSuggestedQuestion = (question: string) => {
     if (isLoading) return;
     sendMessage(question);
   };
+
 
   const toggleAutoSpeak = () => {
     if (isPlaying) {
