@@ -273,10 +273,14 @@ export function useVoiceAssistant({
       void transcribe(wavBlob);
     } else {
       setInterim('');
-      if (enabledRef.current && !transcribingRef.current && !isThinkingRef.current && !isSpeakingRef.current) {
+      if (pushToTalkRef.current) {
+        enabledRef.current = false;
+        setEnabled(false);
+      } else if (enabledRef.current && !transcribingRef.current && !isThinkingRef.current && !isSpeakingRef.current) {
         window.setTimeout(() => { void startRecordingRef.current?.(); }, 150);
       }
     }
+
   }, [cleanupStream, transcribe]);
 
   const startRecordingRef = useRef<(() => Promise<void>) | null>(null);
