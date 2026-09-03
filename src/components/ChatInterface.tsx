@@ -61,9 +61,14 @@ export function ChatInterface() {
   const location = useLocation();
   const { messages, isLoading, sendMessage } = useChat();
   const [input, setInput] = useState('');
+  const [attachments, setAttachments] = useState<string[]>([]);
+  const [attaching, setAttaching] = useState(false);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<string>('');
   const prefillSentRef = useRef(false);
+
 
   // Auto-send prefill from scan result page
   useEffect(() => {
