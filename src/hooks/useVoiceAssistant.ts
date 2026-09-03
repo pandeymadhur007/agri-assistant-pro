@@ -9,7 +9,12 @@ interface Opts {
   isSpeaking: boolean;
   stopSpeaking: () => void;
   onTranscript: (text: string) => void;
+  /** Push-to-talk: one utterance per press, no auto-resume loop. */
+  pushToTalk?: boolean;
 }
+
+export type MicPermission = 'unknown' | 'granted' | 'denied' | 'prompt';
+
 
 // Silence detection tuning for farm/noisy mobile environments.
 const SILENCE_RMS = 0.004;
@@ -115,6 +120,7 @@ export function useVoiceAssistant({
   isSpeaking,
   stopSpeaking,
   onTranscript,
+  pushToTalk = false,
 }: Opts) {
   const isSupported =
     typeof navigator !== 'undefined' &&
@@ -127,7 +133,33 @@ export function useVoiceAssistant({
   const [interim, setInterim] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [enabled, setEnabled] = useState(false);
+  const [permission, setPermission] = useState<MicPermission>('unknown');
   const enabledRef = useRef(false);
+  const pushToTalkRef = useRef(pushToTalk);
+  pushToTalkRef.current = pushToTalk;
+
+  // Track the browser-level mic permission so the UI can explain a hard denial.
+  useEffect(() => {
+    let cancelled = false;
+    const perms = (navigator as any)?.permissions;
+    if (!perms?.query) return;
+    let status: any;
+    perms
+      .query({ name: 'microphone' as PermissionName })
+      .then((s: any) => {
+        if (cancelled) return;
+        status = s;
+        setPermission(s.state as MicPermission);
+        s.onchange = () => setPermission(s.state as MicPermission);
+      })
+      .catch(() => {/* Safari/Firefox may not expose the microphone permission */});
+    return () => {
+      cancelled = true;
+      if (status) status.onchange = null;
+    };
+  }, []);
+
+
 
   const streamRef = useRef<MediaStream | null>(null);
   const processorRef = useRef<ScriptProcessorNode | null>(null);
@@ -241,10 +273,14 @@ export function useVoiceAssistant({
       void transcribe(wavBlob);
     } else {
       setInterim('');
-      if (enabledRef.current && !transcribingRef.current && !isThinkingRef.current && !isSpeakingRef.current) {
+      if (pushToTalkRef.current) {
+        enabledRef.current = false;
+        setEnabled(false);
+      } else if (enabledRef.current && !transcribingRef.current && !isThinkingRef.current && !isSpeakingRef.current) {
         window.setTimeout(() => { void startRecordingRef.current?.(); }, 150);
       }
     }
+
   }, [cleanupStream, transcribe]);
 
   const startRecordingRef = useRef<(() => Promise<void>) | null>(null);
