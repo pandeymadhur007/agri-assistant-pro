@@ -1,14 +1,23 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Send, Loader2, Volume2, VolumeX } from 'lucide-react';
+import { Send, Loader2, Volume2, VolumeX, Plus, Camera, ImageIcon, X, Mic, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useChat, Message } from '@/hooks/useChat';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useMurfTTS } from '@/hooks/useMurfTTS';
 import { useVoiceAssistant } from '@/hooks/useVoiceAssistant';
-import { VoiceOrb } from '@/components/VoiceOrb';
 import { cn } from '@/lib/utils';
+import { compressToDataUrl } from '@/lib/imageCompress';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { toast } from '@/hooks/use-toast';
+
+const MAX_ATTACHMENTS = 4;
 
 // Clean AI response by removing any markdown formatting
 function cleanAIResponse(text: string): string {
