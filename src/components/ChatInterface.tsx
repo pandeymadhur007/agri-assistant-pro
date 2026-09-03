@@ -1,14 +1,23 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Send, Loader2, Volume2, VolumeX } from 'lucide-react';
+import { Send, Loader2, Volume2, VolumeX, Plus, Camera, ImageIcon, X, Mic, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useChat, Message } from '@/hooks/useChat';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useMurfTTS } from '@/hooks/useMurfTTS';
 import { useVoiceAssistant } from '@/hooks/useVoiceAssistant';
-import { VoiceOrb } from '@/components/VoiceOrb';
 import { cn } from '@/lib/utils';
+import { compressToDataUrl } from '@/lib/imageCompress';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { toast } from '@/hooks/use-toast';
+
+const MAX_ATTACHMENTS = 4;
 
 // Clean AI response by removing any markdown formatting
 function cleanAIResponse(text: string): string {
@@ -52,9 +61,14 @@ export function ChatInterface() {
   const location = useLocation();
   const { messages, isLoading, sendMessage } = useChat();
   const [input, setInput] = useState('');
+  const [attachments, setAttachments] = useState<string[]>([]);
+  const [attaching, setAttaching] = useState(false);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<string>('');
   const prefillSentRef = useRef(false);
+
 
   // Auto-send prefill from scan result page
   useEffect(() => {
@@ -117,18 +131,44 @@ export function ChatInterface() {
     }
   }, [messages, isLoading, autoSpeak, speak, language]);
 
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const room = MAX_ATTACHMENTS - attachments.length;
+    if (room <= 0) {
+      toast({ title: `You can attach up to ${MAX_ATTACHMENTS} photos.`, variant: 'destructive' });
+      return;
+    }
+    setAttaching(true);
+    try {
+      const picked = Array.from(files).slice(0, room).filter((f) => f.type.startsWith('image/'));
+      const encoded = await Promise.all(picked.map((f) => compressToDataUrl(f)));
+      setAttachments((prev) => [...prev, ...encoded]);
+    } catch {
+      toast({ title: 'Could not read that photo. Please try another one.', variant: 'destructive' });
+    } finally {
+      setAttaching(false);
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if (isLoading || attaching) return;
+    if (!input.trim() && attachments.length === 0) return;
     stopListening();
-    sendMessage(input.trim());
+    sendMessage(input.trim(), attachments);
     setInput('');
+    setAttachments([]);
   };
 
   const handleSuggestedQuestion = (question: string) => {
     if (isLoading) return;
     sendMessage(question);
   };
+
 
   const toggleAutoSpeak = () => {
     if (isPlaying) {
@@ -184,17 +224,25 @@ export function ChatInterface() {
         <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={handleSubmit} className="border-t bg-background p-4 pb-[88px] md:pb-4">
-        {/* Continuous voice assistant orb */}
-        {voiceSupported && (
-          <div className="flex justify-center mb-3">
-            <VoiceOrb
-              state={voiceState}
-              onClick={toggleVoice}
-              label={interim || undefined}
-            />
-          </div>
-        )}
+      <form onSubmit={handleSubmit} className="border-t bg-background p-3 pb-[88px] md:pb-4">
+        {/* hidden pickers */}
+        <input
+          ref={cameraInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="hidden"
+          onChange={(e) => { handleFiles(e.target.files); e.target.value = ''; }}
+        />
+        <input
+          ref={galleryInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={(e) => { handleFiles(e.target.files); e.target.value = ''; }}
+        />
+
         {voiceError && (
           <p className="text-xs text-destructive text-center mb-2">
             {voiceError === 'permission-denied'
@@ -204,59 +252,151 @@ export function ChatInterface() {
                 : 'Voice could not convert clearly. Please speak closer and try again.'}
           </p>
         )}
+
+        <div
+          className={cn(
+            'rounded-3xl border bg-card/80 backdrop-blur px-2 py-2 shadow-sm transition-colors',
+            voiceState === 'listening' && 'border-primary ring-1 ring-primary/30',
+          )}
+        >
+          {/* Attachment previews */}
+          {(attachments.length > 0 || attaching) && (
+            <div className="flex flex-wrap gap-2 px-1.5 pb-2">
+              {attachments.map((src, i) => (
+                <div key={i} className="relative h-16 w-16 overflow-hidden rounded-xl border">
+                  <img src={src} alt={`Attached crop photo ${i + 1}`} className="h-full w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removeAttachment(i)}
+                    aria-label="Remove photo"
+                    className="absolute right-0.5 top-0.5 rounded-full bg-background/90 p-0.5 text-foreground shadow"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+              {attaching && (
+                <div className="flex h-16 w-16 items-center justify-center rounded-xl border bg-muted">
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex items-end gap-1.5">
+            {/* Attach: camera / gallery */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="h-10 w-10 shrink-0 rounded-full"
+                  aria-label="Add a photo"
+                  disabled={isLoading}
+                >
+                  <Plus className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" side="top" className="w-52">
+                <DropdownMenuItem onSelect={() => cameraInputRef.current?.click()}>
+                  <Camera className="mr-2 h-4 w-4" /> Take a photo
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => galleryInputRef.current?.click()}>
+                  <ImageIcon className="mr-2 h-4 w-4" /> Upload from gallery
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={
+                voiceState === 'listening' ? (interim || 'Listening…') :
+                voiceState === 'thinking' ? 'Thinking…' :
+                voiceState === 'speaking' ? 'Speaking…' :
+                attachments.length > 0 ? 'Ask about this photo…' :
+                t('chatPlaceholder')
+              }
+              rows={1}
+              className="min-h-[40px] max-h-[160px] flex-1 resize-none border-0 bg-transparent px-1 py-2 shadow-none focus-visible:ring-0"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }
+              }}
+            />
+
+            {/* TTS toggle */}
+            {ttsSupported && (
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="h-10 w-10 shrink-0 rounded-full"
+                onClick={toggleAutoSpeak}
+                title={autoSpeak ? 'Voice replies on' : 'Voice replies off'}
+                aria-label={autoSpeak ? 'Turn voice replies off' : 'Turn voice replies on'}
+                disabled={ttsLoading}
+              >
+                {ttsLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : autoSpeak ? (
+                  <Volume2 className="h-4 w-4 text-primary" />
+                ) : (
+                  <VolumeX className="h-4 w-4 text-muted-foreground" />
+                )}
+              </Button>
+            )}
+
+            {/* Mic (ChatGPT-style) — becomes Send once there is something to send */}
+            {input.trim() || attachments.length > 0 || !voiceSupported ? (
+              <Button
+                type="submit"
+                size="icon"
+                className="h-10 w-10 shrink-0 rounded-full"
+                disabled={isLoading || attaching || (!input.trim() && attachments.length === 0)}
+                aria-label="Send message"
+              >
+                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                size="icon"
+                onClick={toggleVoice}
+                disabled={voiceState === 'thinking'}
+                aria-label={voiceState === 'listening' ? 'Stop listening' : 'Start voice input'}
+                className={cn(
+                  'relative h-10 w-10 shrink-0 rounded-full',
+                  voiceState === 'listening' && 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+                )}
+              >
+                {voiceState === 'listening' && (
+                  <span className="pointer-events-none absolute inset-0 rounded-full bg-destructive/40 animate-ping" />
+                )}
+                {voiceState === 'thinking' ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : voiceState === 'listening' ? (
+                  <Square className="relative h-4 w-4" />
+                ) : voiceState === 'speaking' ? (
+                  <Volume2 className="h-4 w-4" />
+                ) : (
+                  <Mic className="h-4 w-4" />
+                )}
+              </Button>
+            )}
+          </div>
+        </div>
+
         {!voiceSupported && (
-          <p className="text-xs text-muted-foreground text-center mb-2">
-            Voice input needs microphone access in this browser — please type below.
+          <p className="mt-2 text-center text-xs text-muted-foreground">
+            Voice input needs microphone access in this browser — please type instead.
           </p>
         )}
-        <div className="flex gap-2">
-          <Textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={
-              voiceState === 'listening' ? 'Listening…' :
-              voiceState === 'thinking' ? 'Thinking…' :
-              voiceState === 'speaking' ? 'Speaking…' :
-              t('chatPlaceholder')
-            }
-            className="min-h-[50px] max-h-[200px] resize-none"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSubmit(e);
-              }
-            }}
-          />
-          
-          <Button type="submit" size="icon" disabled={!input.trim() || isLoading}>
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
-          </Button>
-          
-          {/* TTS toggle button */}
-          {ttsSupported && (
-            <Button
-              type="button"
-              size="icon"
-              variant={autoSpeak ? "default" : "outline"}
-              onClick={toggleAutoSpeak}
-              title={autoSpeak ? "Voice on" : "Voice off"}
-              disabled={ttsLoading}
-            >
-              {ttsLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : autoSpeak ? (
-                <Volume2 className="h-4 w-4" />
-              ) : (
-                <VolumeX className="h-4 w-4" />
-              )}
-            </Button>
-          )}
-        </div>
       </form>
+
     </div>
   );
 }
@@ -283,7 +423,20 @@ function ChatMessage({ message }: { message: Message }) {
           isUser ? 'bg-primary text-primary-foreground' : 'bg-muted'
         )}
       >
-        <p className="whitespace-pre-wrap leading-relaxed">{displayContent}</p>
+        {message.images && message.images.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-2">
+            {message.images.map((src, i) => (
+              <img
+                key={i}
+                src={src}
+                alt={`Attached crop photo ${i + 1}`}
+                loading="lazy"
+                className="h-24 w-24 rounded-lg object-cover"
+              />
+            ))}
+          </div>
+        )}
+        {displayContent && <p className="whitespace-pre-wrap leading-relaxed">{displayContent}</p>}
       </div>
     </div>
   );

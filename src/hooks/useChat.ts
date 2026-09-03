@@ -45,11 +45,12 @@ export function useChat() {
     initSession();
   }, []);
 
-  const sendMessage = useCallback(async (input: string) => {
+  const sendMessage = useCallback(async (input: string, images?: string[]) => {
     // Prevent duplicate sends from rapid double-clicks / Enter mashing
     if (isLoading) return;
-    const userMsg: Message = { role: 'user', content: input };
+    const userMsg: Message = { role: 'user', content: input, images: images?.length ? images : undefined };
     setMessages(prev => [...prev, userMsg]);
+
     setIsLoading(true);
 
     let assistantSoFar = '';
@@ -89,9 +90,10 @@ export function useChat() {
           'x-session-id': currentSessionId,
         },
         body: JSON.stringify({ 
-          messages: [...messages, userMsg],
+          messages: [...messages, userMsg].map(toApiMessage),
           language 
         }),
+
         signal: ac.signal,
       });
       clearTimeout(timer);
