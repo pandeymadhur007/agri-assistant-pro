@@ -90,9 +90,10 @@ export function useChat() {
           'x-session-id': currentSessionId,
         },
         body: JSON.stringify({ 
-          messages: [...messages, userMsg],
+          messages: [...messages, userMsg].map(toApiMessage),
           language 
         }),
+
         signal: ac.signal,
       });
       clearTimeout(timer);
