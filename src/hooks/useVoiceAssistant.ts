@@ -9,7 +9,12 @@ interface Opts {
   isSpeaking: boolean;
   stopSpeaking: () => void;
   onTranscript: (text: string) => void;
+  /** Push-to-talk: one utterance per press, no auto-resume loop. */
+  pushToTalk?: boolean;
 }
+
+export type MicPermission = 'unknown' | 'granted' | 'denied' | 'prompt';
+
 
 // Silence detection tuning for farm/noisy mobile environments.
 const SILENCE_RMS = 0.004;
