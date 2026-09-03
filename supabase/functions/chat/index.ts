@@ -83,7 +83,23 @@ const VALID_LANGUAGES = ["en", "hi", "mr", "te", "ta", "bn"];
 const MAX_MESSAGES = 50;
 const MAX_MESSAGE_LENGTH = 5000;
 
-interface ChatMessage { role: string; content: string; }
+type ContentBlock =
+  | { type: "text"; text: string }
+  | { type: "image_url"; image_url: { url: string } };
+
+interface ChatMessage { role: string; content: string | ContentBlock[]; }
+
+const MAX_IMAGES_PER_MESSAGE = 4;
+const MAX_IMAGE_DATA_URL_LENGTH = 4_000_000; // ~3MB binary
+
+function messageText(content: string | ContentBlock[]): string {
+  if (typeof content === "string") return content;
+  return content.filter((b) => b?.type === "text").map((b) => (b as { text: string }).text).join(" ");
+}
+
+function hasImages(messages: ChatMessage[]): boolean {
+  return messages.some((m) => Array.isArray(m.content) && m.content.some((b) => b?.type === "image_url"));
+}
 
 function validateMessages(messages: unknown): { valid: boolean; error?: string } {
   if (!Array.isArray(messages)) return { valid: false, error: "Invalid messages format" };
@@ -91,10 +107,31 @@ function validateMessages(messages: unknown): { valid: boolean; error?: string }
   for (const msg of messages) {
     if (!msg || typeof msg !== "object") return { valid: false, error: "Invalid message" };
     const m = msg as ChatMessage;
-    if (!m.role || !m.content) return { valid: false, error: "Invalid message" };
+    if (!m.role || m.content === undefined || m.content === null) return { valid: false, error: "Invalid message" };
     if (m.role !== "user" && m.role !== "assistant") return { valid: false, error: "Invalid role" };
-    if (typeof m.content !== "string" || m.content.length > MAX_MESSAGE_LENGTH) {
-      return { valid: false, error: "Message too long" };
+    if (typeof m.content === "string") {
+      if (m.content.length > MAX_MESSAGE_LENGTH) return { valid: false, error: "Message too long" };
+    } else if (Array.isArray(m.content)) {
+      const images = m.content.filter((b) => b?.type === "image_url");
+      if (images.length > MAX_IMAGES_PER_MESSAGE) return { valid: false, error: "Too many images" };
+      for (const b of m.content) {
+        if (!b || typeof b !== "object") return { valid: false, error: "Invalid message" };
+        if (b.type === "text") {
+          if (typeof b.text !== "string" || b.text.length > MAX_MESSAGE_LENGTH) {
+            return { valid: false, error: "Message too long" };
+          }
+        } else if (b.type === "image_url") {
+          const url = b.image_url?.url;
+          if (typeof url !== "string" || !url.startsWith("data:image/")) {
+            return { valid: false, error: "Invalid image" };
+          }
+          if (url.length > MAX_IMAGE_DATA_URL_LENGTH) return { valid: false, error: "Image too large" };
+        } else {
+          return { valid: false, error: "Invalid message" };
+        }
+      }
+    } else {
+      return { valid: false, error: "Invalid message" };
     }
   }
   return { valid: true };
@@ -173,7 +210,7 @@ serve(async (req) => {
 
     // Detect the script of the latest user message so the reply never drifts to
     // another language/script than the one the farmer actually typed in.
-    const lastUser = [...messages].reverse().find((m: ChatMessage) => m.role === "user")?.content ?? "";
+    const lastUser = messageText([...messages].reverse().find((m: ChatMessage) => m.role === "user")?.content ?? "");
     const scriptRules: Array<[RegExp, string]> = [
       [/[\u0900-\u097F]/, "Hindi or Marathi (Devanagari script)"],
       [/[\u0C00-\u0C7F]/, "Telugu (Telugu script)"],
@@ -189,13 +226,16 @@ serve(async (req) => {
       ? `The user's last message is written in ${detected}. Reply ONLY in that same language and script.`
       : `The user's last message is written in the Latin alphabet. Reply ONLY in plain English using the Latin alphabet. Do NOT output any Devanagari/Telugu/Tamil/Bengali characters and do NOT use Hindi or Hinglish words, unless the user's own message contained romanised Indian-language words.`;
 
-    const finalSystemPrompt = `${systemPrompt}\n\nFINAL AND MOST IMPORTANT RULE:\n${replyRule}`;
+    const imageRule = hasImages(messages)
+      ? "\n\nThe user attached one or more photos. Look at them carefully and identify the crop, any disease/pest, severity, and give practical treatment steps with Indian product names."
+      : "";
+    const finalSystemPrompt = `${systemPrompt}${imageRule}\n\nFINAL AND MOST IMPORTANT RULE:\n${replyRule}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: hasImages(messages) ? "google/gemini-2.5-flash" : "google/gemini-2.5-flash-lite",
         messages: [{ role: "system", content: finalSystemPrompt }, ...messages],
         stream: true,
         max_tokens: 500,
