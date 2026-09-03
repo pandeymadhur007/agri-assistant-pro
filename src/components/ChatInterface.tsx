@@ -423,7 +423,20 @@ function ChatMessage({ message }: { message: Message }) {
           isUser ? 'bg-primary text-primary-foreground' : 'bg-muted'
         )}
       >
-        <p className="whitespace-pre-wrap leading-relaxed">{displayContent}</p>
+        {message.images && message.images.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-2">
+            {message.images.map((src, i) => (
+              <img
+                key={i}
+                src={src}
+                alt={`Attached crop photo ${i + 1}`}
+                loading="lazy"
+                className="h-24 w-24 rounded-lg object-cover"
+              />
+            ))}
+          </div>
+        )}
+        {displayContent && <p className="whitespace-pre-wrap leading-relaxed">{displayContent}</p>}
       </div>
     </div>
   );
