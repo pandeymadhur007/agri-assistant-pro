@@ -541,7 +541,26 @@ function ChatMessage({ message }: { message: Message }) {
             ))}
           </div>
         )}
+        {vision && (
+          <div className="mb-3 rounded-xl border border-border/60 bg-background/70 p-3">
+            <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <Eye className="h-3.5 w-3.5" /> From your photo
+            </div>
+            <p className="mt-1 text-sm leading-snug">{vision.reading}</p>
+            <span
+              className={cn(
+                'mt-2 inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium',
+                vision.confidence === 'high' && 'bg-primary/15 text-primary',
+                vision.confidence === 'medium' && 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
+                vision.confidence === 'low' && 'bg-destructive/15 text-destructive',
+              )}
+            >
+              {vision.confidence === 'high' ? 'High confidence' : vision.confidence === 'medium' ? 'Medium confidence — please confirm' : 'Low confidence — please confirm'}
+            </span>
+          </div>
+        )}
         {displayContent && <p className="whitespace-pre-wrap leading-relaxed">{displayContent}</p>}
+
       </div>
     </div>
   );
