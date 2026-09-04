@@ -253,8 +253,13 @@ export function useVoiceAssistant({
     } finally {
       transcribingRef.current = false;
       setTranscribing(false);
+      if (pushToTalkRef.current) {
+        enabledRef.current = false;
+        setEnabled(false);
+      }
     }
   }, [language, onTranscript]);
+
 
   const stopRecorderAndSend = useCallback(() => {
     if (stoppingRef.current) return;
