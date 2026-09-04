@@ -488,9 +488,27 @@ export function ChatInterface() {
   );
 }
 
+/**
+ * The vision prompt makes the model open an image answer with
+ * "Photo reading: <what it sees> | Confidence: high|medium|low".
+ * We lift that line out into a source/confidence banner.
+ */
+function extractVisionHeader(text: string) {
+  const match = text.match(/^\s*Photo reading:\s*([^\n|]+)\|\s*Confidence:\s*(high|medium|low)\s*/i);
+  if (!match) return null;
+  return {
+    reading: match[1].trim(),
+    confidence: match[2].toLowerCase() as 'high' | 'medium' | 'low',
+    rest: text.slice(match[0].length).trim(),
+  };
+}
+
 function ChatMessage({ message }: { message: Message }) {
   const isUser = message.role === 'user';
-  const displayContent = isUser ? message.content : cleanAIResponse(message.content);
+  const cleaned = isUser ? message.content : cleanAIResponse(message.content);
+  const vision = isUser ? null : extractVisionHeader(cleaned);
+  const displayContent = vision ? vision.rest : cleaned;
+
 
   return (
     <div className={cn('flex gap-3', isUser && 'flex-row-reverse')}>
