@@ -227,8 +227,16 @@ serve(async (req) => {
       : `The user's last message is written in the Latin alphabet. Reply ONLY in plain English using the Latin alphabet. Do NOT output any Devanagari/Telugu/Tamil/Bengali characters and do NOT use Hindi or Hinglish words, unless the user's own message contained romanised Indian-language words.`;
 
     const imageRule = hasImages(messages)
-      ? "\n\nThe user attached one or more photos. Look at them carefully and identify the crop, any disease/pest, severity, and give practical treatment steps with Indian product names."
+      ? `\n\nPHOTO ANSWER FORMAT (MANDATORY when the user attached photos):
+Line 1 must be exactly this shape, on its own line:
+Photo reading: <crop and the visible problem you can actually see in the photo> | Confidence: high
+(use high, medium or low for confidence — judge honestly from image clarity)
+Then:
+- If confidence is high: give the diagnosis, severity and practical treatment steps with Indian product names and dosage.
+- If confidence is medium or low: do NOT give treatment yet. Ask 1-2 short clarifying questions (crop name, which part is affected, how many days old, a closer photo) and say you will recommend treatment once confirmed.
+Never invent details that are not visible in the photo.`
       : "";
+
     const finalSystemPrompt = `${systemPrompt}${imageRule}\n\nFINAL AND MOST IMPORTANT RULE:\n${replyRule}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
