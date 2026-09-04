@@ -278,15 +278,46 @@ export function ChatInterface() {
           onChange={(e) => { handleFiles(e.target.files); e.target.value = ''; }}
         />
 
-        {voiceError && (
-          <p className="text-xs text-destructive text-center mb-2">
-            {voiceError === 'permission-denied'
-              ? 'Allow microphone access, then tap the mic again.'
-              : voiceError === 'no-microphone'
-                ? 'No microphone was found on this device.'
-                : 'Voice could not convert clearly. Please speak closer and try again.'}
-          </p>
+        {(voiceError || micPermission === 'denied') && (
+          <div
+            role="alert"
+            className="mb-2 rounded-2xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive"
+          >
+            <p className="font-medium">
+              {voiceError === 'permission-denied' || micPermission === 'denied'
+                ? 'Microphone access is blocked'
+                : voiceError === 'no-microphone'
+                  ? 'No microphone found'
+                  : voiceError === 'unsupported'
+                    ? 'Voice input is not supported in this browser'
+                    : voiceError === 'rate-limited'
+                      ? 'Voice service is busy'
+                      : 'Could not understand that clip'}
+            </p>
+            <p className="mt-0.5 text-destructive/85">
+              {voiceError === 'permission-denied' || micPermission === 'denied'
+                ? 'Tap the lock icon in your browser address bar (or Settings → Site permissions), allow the microphone, then tap Retry.'
+                : voiceError === 'no-microphone'
+                  ? 'Connect a microphone or use the keyboard to type your question.'
+                  : voiceError === 'unsupported'
+                    ? 'Please type your question instead, or open Gram AI in Chrome.'
+                    : 'Hold the mic, speak close to the phone, and release when done.'}
+            </p>
+            {voiceError !== 'unsupported' && voiceError !== 'no-microphone' && (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="mt-2 h-8 rounded-full border-destructive/40 text-destructive hover:bg-destructive/10"
+                onClick={() => void retryMic()}
+                disabled={voiceBusy}
+              >
+                <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Retry microphone
+              </Button>
+            )}
+          </div>
         )}
+
 
         <div
           className={cn(
