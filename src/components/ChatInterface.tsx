@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Send, Loader2, Volume2, VolumeX, Plus, Camera, ImageIcon, X, Mic, Square } from 'lucide-react';
+import { Send, Loader2, Volume2, VolumeX, Plus, Camera, ImageIcon, X, Mic, Square, RefreshCw, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useChat, Message } from '@/hooks/useChat';
