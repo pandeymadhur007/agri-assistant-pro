@@ -416,6 +416,19 @@ export function useVoiceAssistant({
     setListening(false);
   }, [cleanupStream, stopRecorderAndSend]);
 
+  /** Abort the current utterance and throw the audio away (hold-to-cancel). */
+  const cancel = useCallback(() => {
+    enabledRef.current = false;
+    setEnabled(false);
+    stoppingRef.current = true;
+    speechDetectedRef.current = false;
+    pcmChunksRef.current = [];
+    cleanupStream();
+    stoppingRef.current = false;
+    setListening(false);
+    setInterim('');
+  }, [cleanupStream]);
+
   const start = useCallback(async () => {
     if (!isSupported) { setError('unsupported'); return; }
     setError(null);
@@ -429,15 +442,24 @@ export function useVoiceAssistant({
     else void start();
   }, [start, stop]);
 
+  /** Explicit user retry after a permission / start failure. */
+  const retry = useCallback(async () => {
+    setError(null);
+    setInterim('');
+    await start();
+  }, [start]);
+
   // Auto-resume listening after the assistant finishes thinking + speaking
   useEffect(() => {
+    if (pushToTalk) return;
     if (!enabled) return;
     if (transcribing || isThinking || isSpeaking) return;
     if (audioCtxRef.current || processorRef.current) return;
     const wait = Math.max(250, cooldownUntilRef.current - Date.now());
     const id = window.setTimeout(() => { void startRecording(); }, wait);
     return () => window.clearTimeout(id);
-  }, [enabled, transcribing, isThinking, isSpeaking, startRecording]);
+  }, [pushToTalk, enabled, transcribing, isThinking, isSpeaking, startRecording]);
+
 
   // Cleanup on unmount
   useEffect(() => {
