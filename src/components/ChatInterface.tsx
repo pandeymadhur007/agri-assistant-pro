@@ -416,7 +416,7 @@ export function ChatInterface() {
               </Button>
             )}
 
-            {/* Mic (ChatGPT-style) — becomes Send once there is something to send */}
+            {/* Mic — press and hold to talk; becomes Send once there is something to send */}
             {input.trim() || attachments.length > 0 || !voiceSupported ? (
               <Button
                 type="submit"
@@ -431,19 +431,33 @@ export function ChatInterface() {
               <Button
                 type="button"
                 size="icon"
-                onClick={toggleVoice}
-                disabled={voiceState === 'thinking'}
-                aria-label={voiceState === 'listening' ? 'Stop listening' : 'Start voice input'}
+                onPointerDown={handleHoldStart}
+                onPointerMove={handleHoldMove}
+                onPointerUp={handleHoldEnd}
+                onPointerCancel={handleHoldEnd}
+                onContextMenu={(e) => e.preventDefault()}
+                disabled={voiceBusy}
+                aria-label={
+                  voiceBusy
+                    ? 'Voice unavailable while sending'
+                    : voiceState === 'listening'
+                      ? cancelArmed ? 'Release to cancel recording' : 'Release to send recording'
+                      : 'Press and hold to talk'
+                }
+                title="Press and hold to talk. Slide away to cancel."
                 className={cn(
-                  'relative h-10 w-10 shrink-0 rounded-full',
-                  voiceState === 'listening' && 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+                  'relative h-10 w-10 shrink-0 touch-none select-none rounded-full transition-colors',
+                  voiceState === 'listening' && !cancelArmed && 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+                  cancelArmed && 'bg-muted text-muted-foreground hover:bg-muted',
                 )}
               >
-                {voiceState === 'listening' && (
+                {voiceState === 'listening' && !cancelArmed && (
                   <span className="pointer-events-none absolute inset-0 rounded-full bg-destructive/40 animate-ping" />
                 )}
-                {voiceState === 'thinking' ? (
+                {voiceBusy ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
+                ) : cancelArmed ? (
+                  <X className="relative h-4 w-4" />
                 ) : voiceState === 'listening' ? (
                   <Square className="relative h-4 w-4" />
                 ) : voiceState === 'speaking' ? (
@@ -454,7 +468,14 @@ export function ChatInterface() {
               </Button>
             )}
           </div>
+
+          {voiceState === 'listening' && (
+            <p className="mt-1.5 px-2 text-center text-[11px] text-muted-foreground">
+              {cancelArmed ? 'Release to cancel' : 'Release to send · slide away to cancel'}
+            </p>
+          )}
         </div>
+
 
         {!voiceSupported && (
           <p className="mt-2 text-center text-xs text-muted-foreground">
