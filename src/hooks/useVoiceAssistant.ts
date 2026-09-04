@@ -253,8 +253,13 @@ export function useVoiceAssistant({
     } finally {
       transcribingRef.current = false;
       setTranscribing(false);
+      if (pushToTalkRef.current) {
+        enabledRef.current = false;
+        setEnabled(false);
+      }
     }
   }, [language, onTranscript]);
+
 
   const stopRecorderAndSend = useCallback(() => {
     if (stoppingRef.current) return;
@@ -376,16 +381,20 @@ export function useVoiceAssistant({
       const name = e?.name || '';
       if (name === 'NotAllowedError' || name === 'SecurityError') {
         setError('permission-denied');
+        setPermission('denied');
+        setInterim('Microphone access is blocked. Allow it, then tap Retry.');
       } else if (name === 'NotFoundError') {
         setError('no-microphone');
+        setInterim('No microphone was found on this device.');
       } else {
         setError('start-failed');
+        setInterim('Microphone could not start. Please try again.');
       }
-      setInterim('Microphone could not start. Check permission and try again.');
       enabledRef.current = false;
       setEnabled(false);
       cleanupStream();
       setListening(false);
+
     }
   }, [isSupported, stopSpeaking, cleanupStream, stopRecorderAndSend]);
 
@@ -407,6 +416,19 @@ export function useVoiceAssistant({
     setListening(false);
   }, [cleanupStream, stopRecorderAndSend]);
 
+  /** Abort the current utterance and throw the audio away (hold-to-cancel). */
+  const cancel = useCallback(() => {
+    enabledRef.current = false;
+    setEnabled(false);
+    stoppingRef.current = true;
+    speechDetectedRef.current = false;
+    pcmChunksRef.current = [];
+    cleanupStream();
+    stoppingRef.current = false;
+    setListening(false);
+    setInterim('');
+  }, [cleanupStream]);
+
   const start = useCallback(async () => {
     if (!isSupported) { setError('unsupported'); return; }
     setError(null);
@@ -420,15 +442,24 @@ export function useVoiceAssistant({
     else void start();
   }, [start, stop]);
 
+  /** Explicit user retry after a permission / start failure. */
+  const retry = useCallback(async () => {
+    setError(null);
+    setInterim('');
+    await start();
+  }, [start]);
+
   // Auto-resume listening after the assistant finishes thinking + speaking
   useEffect(() => {
+    if (pushToTalk) return;
     if (!enabled) return;
     if (transcribing || isThinking || isSpeaking) return;
     if (audioCtxRef.current || processorRef.current) return;
     const wait = Math.max(250, cooldownUntilRef.current - Date.now());
     const id = window.setTimeout(() => { void startRecording(); }, wait);
     return () => window.clearTimeout(id);
-  }, [enabled, transcribing, isThinking, isSpeaking, startRecording]);
+  }, [pushToTalk, enabled, transcribing, isThinking, isSpeaking, startRecording]);
+
 
   // Cleanup on unmount
   useEffect(() => {
@@ -445,5 +476,5 @@ export function useVoiceAssistant({
     (listening || enabled) ? 'listening' :
     'idle';
 
-  return { state, listening, enabled, interim, error, isSupported, start, stop, toggle };
+  return { state, listening, enabled, transcribing, interim, error, permission, isSupported, start, stop, cancel, toggle, retry };
 }

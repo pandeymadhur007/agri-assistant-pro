@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Send, Loader2, Volume2, VolumeX, Plus, Camera, ImageIcon, X, Mic, Square } from 'lucide-react';
+import { Send, Loader2, Volume2, VolumeX, Plus, Camera, ImageIcon, X, Mic, Square, RefreshCw, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useChat, Message } from '@/hooks/useChat';
@@ -96,16 +96,51 @@ export function ChatInterface() {
     state: voiceState,
     interim,
     error: voiceError,
+    permission: micPermission,
     isSupported: voiceSupported,
-    toggle: toggleVoice,
+    start: startListening,
     stop: stopListening,
+    cancel: cancelListening,
+    retry: retryMic,
   } = useVoiceAssistant({
     language,
     isThinking: isLoading,
     isSpeaking: isPlaying,
     stopSpeaking,
     onTranscript: handleTranscript,
+    pushToTalk: true,
   });
+
+  // Press-and-hold voice control (ChatGPT / Claude style).
+  const holdRef = useRef<{ x: number; y: number } | null>(null);
+  const [cancelArmed, setCancelArmed] = useState(false);
+  const CANCEL_DISTANCE = 70;
+
+  const voiceBusy = isLoading || attaching || voiceState === 'thinking';
+
+  const handleHoldStart = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (voiceBusy || !voiceSupported) return;
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    holdRef.current = { x: e.clientX, y: e.clientY };
+    setCancelArmed(false);
+    void startListening();
+  };
+
+  const handleHoldMove = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (!holdRef.current) return;
+    const dx = e.clientX - holdRef.current.x;
+    const dy = e.clientY - holdRef.current.y;
+    setCancelArmed(Math.hypot(dx, dy) > CANCEL_DISTANCE);
+  };
+
+  const handleHoldEnd = () => {
+    if (!holdRef.current) return;
+    holdRef.current = null;
+    if (cancelArmed) cancelListening();
+    else stopListening();
+    setCancelArmed(false);
+  };
+
 
   // Suggested questions based on current language
   const suggestedQuestions = [
@@ -243,15 +278,46 @@ export function ChatInterface() {
           onChange={(e) => { handleFiles(e.target.files); e.target.value = ''; }}
         />
 
-        {voiceError && (
-          <p className="text-xs text-destructive text-center mb-2">
-            {voiceError === 'permission-denied'
-              ? 'Allow microphone access, then tap the mic again.'
-              : voiceError === 'no-microphone'
-                ? 'No microphone was found on this device.'
-                : 'Voice could not convert clearly. Please speak closer and try again.'}
-          </p>
+        {(voiceError || micPermission === 'denied') && (
+          <div
+            role="alert"
+            className="mb-2 rounded-2xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive"
+          >
+            <p className="font-medium">
+              {voiceError === 'permission-denied' || micPermission === 'denied'
+                ? 'Microphone access is blocked'
+                : voiceError === 'no-microphone'
+                  ? 'No microphone found'
+                  : voiceError === 'unsupported'
+                    ? 'Voice input is not supported in this browser'
+                    : voiceError === 'rate-limited'
+                      ? 'Voice service is busy'
+                      : 'Could not understand that clip'}
+            </p>
+            <p className="mt-0.5 text-destructive/85">
+              {voiceError === 'permission-denied' || micPermission === 'denied'
+                ? 'Tap the lock icon in your browser address bar (or Settings → Site permissions), allow the microphone, then tap Retry.'
+                : voiceError === 'no-microphone'
+                  ? 'Connect a microphone or use the keyboard to type your question.'
+                  : voiceError === 'unsupported'
+                    ? 'Please type your question instead, or open Gram AI in Chrome.'
+                    : 'Hold the mic, speak close to the phone, and release when done.'}
+            </p>
+            {voiceError !== 'unsupported' && voiceError !== 'no-microphone' && (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="mt-2 h-8 rounded-full border-destructive/40 text-destructive hover:bg-destructive/10"
+                onClick={() => void retryMic()}
+                disabled={voiceBusy}
+              >
+                <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Retry microphone
+              </Button>
+            )}
+          </div>
         )}
+
 
         <div
           className={cn(
@@ -350,7 +416,7 @@ export function ChatInterface() {
               </Button>
             )}
 
-            {/* Mic (ChatGPT-style) — becomes Send once there is something to send */}
+            {/* Mic — press and hold to talk; becomes Send once there is something to send */}
             {input.trim() || attachments.length > 0 || !voiceSupported ? (
               <Button
                 type="submit"
@@ -365,19 +431,33 @@ export function ChatInterface() {
               <Button
                 type="button"
                 size="icon"
-                onClick={toggleVoice}
-                disabled={voiceState === 'thinking'}
-                aria-label={voiceState === 'listening' ? 'Stop listening' : 'Start voice input'}
+                onPointerDown={handleHoldStart}
+                onPointerMove={handleHoldMove}
+                onPointerUp={handleHoldEnd}
+                onPointerCancel={handleHoldEnd}
+                onContextMenu={(e) => e.preventDefault()}
+                disabled={voiceBusy}
+                aria-label={
+                  voiceBusy
+                    ? 'Voice unavailable while sending'
+                    : voiceState === 'listening'
+                      ? cancelArmed ? 'Release to cancel recording' : 'Release to send recording'
+                      : 'Press and hold to talk'
+                }
+                title="Press and hold to talk. Slide away to cancel."
                 className={cn(
-                  'relative h-10 w-10 shrink-0 rounded-full',
-                  voiceState === 'listening' && 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+                  'relative h-10 w-10 shrink-0 touch-none select-none rounded-full transition-colors',
+                  voiceState === 'listening' && !cancelArmed && 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+                  cancelArmed && 'bg-muted text-muted-foreground hover:bg-muted',
                 )}
               >
-                {voiceState === 'listening' && (
+                {voiceState === 'listening' && !cancelArmed && (
                   <span className="pointer-events-none absolute inset-0 rounded-full bg-destructive/40 animate-ping" />
                 )}
-                {voiceState === 'thinking' ? (
+                {voiceBusy ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
+                ) : cancelArmed ? (
+                  <X className="relative h-4 w-4" />
                 ) : voiceState === 'listening' ? (
                   <Square className="relative h-4 w-4" />
                 ) : voiceState === 'speaking' ? (
@@ -388,7 +468,14 @@ export function ChatInterface() {
               </Button>
             )}
           </div>
+
+          {voiceState === 'listening' && (
+            <p className="mt-1.5 px-2 text-center text-[11px] text-muted-foreground">
+              {cancelArmed ? 'Release to cancel' : 'Release to send · slide away to cancel'}
+            </p>
+          )}
         </div>
+
 
         {!voiceSupported && (
           <p className="mt-2 text-center text-xs text-muted-foreground">
@@ -401,9 +488,27 @@ export function ChatInterface() {
   );
 }
 
+/**
+ * The vision prompt makes the model open an image answer with
+ * "Photo reading: <what it sees> | Confidence: high|medium|low".
+ * We lift that line out into a source/confidence banner.
+ */
+function extractVisionHeader(text: string) {
+  const match = text.match(/^\s*Photo reading:\s*([^\n|]+)\|\s*Confidence:\s*(high|medium|low)\s*/i);
+  if (!match) return null;
+  return {
+    reading: match[1].trim(),
+    confidence: match[2].toLowerCase() as 'high' | 'medium' | 'low',
+    rest: text.slice(match[0].length).trim(),
+  };
+}
+
 function ChatMessage({ message }: { message: Message }) {
   const isUser = message.role === 'user';
-  const displayContent = isUser ? message.content : cleanAIResponse(message.content);
+  const cleaned = isUser ? message.content : cleanAIResponse(message.content);
+  const vision = isUser ? null : extractVisionHeader(cleaned);
+  const displayContent = vision ? vision.rest : cleaned;
+
 
   return (
     <div className={cn('flex gap-3', isUser && 'flex-row-reverse')}>
@@ -436,7 +541,26 @@ function ChatMessage({ message }: { message: Message }) {
             ))}
           </div>
         )}
+        {vision && (
+          <div className="mb-3 rounded-xl border border-border/60 bg-background/70 p-3">
+            <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <Eye className="h-3.5 w-3.5" /> From your photo
+            </div>
+            <p className="mt-1 text-sm leading-snug">{vision.reading}</p>
+            <span
+              className={cn(
+                'mt-2 inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium',
+                vision.confidence === 'high' && 'bg-primary/15 text-primary',
+                vision.confidence === 'medium' && 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
+                vision.confidence === 'low' && 'bg-destructive/15 text-destructive',
+              )}
+            >
+              {vision.confidence === 'high' ? 'High confidence' : vision.confidence === 'medium' ? 'Medium confidence — please confirm' : 'Low confidence — please confirm'}
+            </span>
+          </div>
+        )}
         {displayContent && <p className="whitespace-pre-wrap leading-relaxed">{displayContent}</p>}
+
       </div>
     </div>
   );
