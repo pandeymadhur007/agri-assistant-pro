@@ -96,16 +96,51 @@ export function ChatInterface() {
     state: voiceState,
     interim,
     error: voiceError,
+    permission: micPermission,
     isSupported: voiceSupported,
-    toggle: toggleVoice,
+    start: startListening,
     stop: stopListening,
+    cancel: cancelListening,
+    retry: retryMic,
   } = useVoiceAssistant({
     language,
     isThinking: isLoading,
     isSpeaking: isPlaying,
     stopSpeaking,
     onTranscript: handleTranscript,
+    pushToTalk: true,
   });
+
+  // Press-and-hold voice control (ChatGPT / Claude style).
+  const holdRef = useRef<{ x: number; y: number } | null>(null);
+  const [cancelArmed, setCancelArmed] = useState(false);
+  const CANCEL_DISTANCE = 70;
+
+  const voiceBusy = isLoading || attaching || voiceState === 'thinking';
+
+  const handleHoldStart = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (voiceBusy || !voiceSupported) return;
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    holdRef.current = { x: e.clientX, y: e.clientY };
+    setCancelArmed(false);
+    void startListening();
+  };
+
+  const handleHoldMove = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (!holdRef.current) return;
+    const dx = e.clientX - holdRef.current.x;
+    const dy = e.clientY - holdRef.current.y;
+    setCancelArmed(Math.hypot(dx, dy) > CANCEL_DISTANCE);
+  };
+
+  const handleHoldEnd = () => {
+    if (!holdRef.current) return;
+    holdRef.current = null;
+    if (cancelArmed) cancelListening();
+    else stopListening();
+    setCancelArmed(false);
+  };
+
 
   // Suggested questions based on current language
   const suggestedQuestions = [
