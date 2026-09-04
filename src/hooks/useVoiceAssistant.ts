@@ -381,16 +381,20 @@ export function useVoiceAssistant({
       const name = e?.name || '';
       if (name === 'NotAllowedError' || name === 'SecurityError') {
         setError('permission-denied');
+        setPermission('denied');
+        setInterim('Microphone access is blocked. Allow it, then tap Retry.');
       } else if (name === 'NotFoundError') {
         setError('no-microphone');
+        setInterim('No microphone was found on this device.');
       } else {
         setError('start-failed');
+        setInterim('Microphone could not start. Please try again.');
       }
-      setInterim('Microphone could not start. Check permission and try again.');
       enabledRef.current = false;
       setEnabled(false);
       cleanupStream();
       setListening(false);
+
     }
   }, [isSupported, stopSpeaking, cleanupStream, stopRecorderAndSend]);
 
