@@ -476,5 +476,5 @@ export function useVoiceAssistant({
     (listening || enabled) ? 'listening' :
     'idle';
 
-  return { state, listening, enabled, interim, error, isSupported, start, stop, toggle };
+  return { state, listening, enabled, transcribing, interim, error, permission, isSupported, start, stop, cancel, toggle, retry };
 }
