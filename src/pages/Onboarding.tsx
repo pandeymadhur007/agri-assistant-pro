@@ -57,7 +57,7 @@ type Choice = { v: string; en?: string; hi?: string; label?: string };
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const { language, setLanguage } = useLanguage() as { language: string; setLanguage?: (l: string) => void };
+  const { language, setLanguage } = useLanguage();
   const { toast } = useToast();
   const isHi = language === 'hi' || language === 'mr';
   const t = (en: string, hi: string) => (isHi ? hi : en);
@@ -77,7 +77,7 @@ export default function Onboarding() {
   const [crop, setCrop] = useState('');
   const [sownDate, setSownDate] = useState('');
   const [goal, setGoal] = useState('');
-  const [lang, setLang] = useState(language);
+  const [lang, setLang] = useState<string>(language);
 
   useEffect(() => {
     (async () => {
@@ -207,7 +207,7 @@ export default function Onboarding() {
       toast({ title: t('Could not save your farm profile', 'फार्म प्रोफ़ाइल सेव नहीं हुई'), description: error.message, variant: 'destructive' });
       return;
     }
-    setLanguage?.(lang);
+    setLanguage(lang as typeof language);
     setDone(true);
     setTimeout(() => navigate('/my-farm'), 1400);
   };
