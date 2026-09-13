@@ -531,12 +531,20 @@ export type Database = {
           account_type_other: string | null
           avatar_url: string | null
           created_at: string
+          crop_sown_date: string | null
+          current_crop: string | null
           display_name: string | null
           district: string | null
+          farming_goal: string | null
           id: string
+          irrigation: string | null
+          land_size: string | null
           language: string | null
+          location: string | null
           notifications_enabled: boolean | null
+          onboarding_completed: boolean
           phone: string | null
+          soil_type: string | null
           state: string | null
           updated_at: string
           user_id: string
@@ -545,12 +553,20 @@ export type Database = {
           account_type_other?: string | null
           avatar_url?: string | null
           created_at?: string
+          crop_sown_date?: string | null
+          current_crop?: string | null
           display_name?: string | null
           district?: string | null
+          farming_goal?: string | null
           id?: string
+          irrigation?: string | null
+          land_size?: string | null
           language?: string | null
+          location?: string | null
           notifications_enabled?: boolean | null
+          onboarding_completed?: boolean
           phone?: string | null
+          soil_type?: string | null
           state?: string | null
           updated_at?: string
           user_id: string
@@ -559,12 +575,20 @@ export type Database = {
           account_type_other?: string | null
           avatar_url?: string | null
           created_at?: string
+          crop_sown_date?: string | null
+          current_crop?: string | null
           display_name?: string | null
           district?: string | null
+          farming_goal?: string | null
           id?: string
+          irrigation?: string | null
+          land_size?: string | null
           language?: string | null
+          location?: string | null
           notifications_enabled?: boolean | null
+          onboarding_completed?: boolean
           phone?: string | null
+          soil_type?: string | null
           state?: string | null
           updated_at?: string
           user_id?: string
