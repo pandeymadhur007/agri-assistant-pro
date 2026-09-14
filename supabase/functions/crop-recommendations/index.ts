@@ -25,7 +25,9 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { state, soil = "unknown", landSize = "medium", budget = "medium", language = "en" } = body;
+    const { state, soil = "unknown", landSize = "medium", budget = "medium", language = "en",
+      irrigation = "", currentCrop = "", location = "", goal = "" } = body;
+    const clean = (v: unknown) => (typeof v === "string" ? v.slice(0, 80) : "");
 
     if (!state || typeof state !== "string" || state.length > 100) {
       return new Response(JSON.stringify({ error: "Valid state required" }), {
@@ -69,6 +71,9 @@ Return ONLY a valid JSON object (no markdown) with this exact structure:
       "expected_profit_per_acre": "string (e.g. '₹40,000-60,000')",
       "duration_days": number,
       "water_requirement": "low" | "medium" | "high",
+      "risk_level": "low" | "medium" | "high",
+      "risk_note": "string (1 short sentence naming the main risk: pest, price crash, water, weather)",
+      "why_gram_ai": "string (1-2 sentences: why Gram AI recommends this for THIS farmer's soil, water, land size, budget and goal)",
       "key_tips": "string (1-2 short practical tips)"
     }
   ],
@@ -82,6 +87,11 @@ Return ONLY a valid JSON object (no markdown) with this exact structure:
 - Soil type: ${soil}
 - Land size: ${landSize} (small=<2 acres, medium=2-10, large=>10)
 - Budget per acre: ${budget} (low=<₹20k, medium=₹20k-1L, high=>₹1L)
+- Village/district: ${clean(location) || "not given"}
+- Irrigation available: ${clean(irrigation) || "not given"}
+- Crop currently growing: ${clean(currentCrop) || "not given"}
+- Farmer's goal this season: ${clean(goal) || "not given"}
+Respect the irrigation type strictly: do not recommend high-water crops for rain-fed land. Consider rotation away from the current crop where it helps soil health.
 
 Suggest 5 highly suitable crops ranked by suitability_score.`;
 

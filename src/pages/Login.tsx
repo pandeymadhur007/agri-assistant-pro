@@ -53,9 +53,13 @@ export default function Login() {
   }, []);
 
   const checkProfile = async (uid: string) => {
-    const { data } = await supabase.from('profiles').select('display_name, state, phone').eq('user_id', uid).maybeSingle();
+    const { data } = await supabase
+      .from('profiles')
+      .select('display_name, state, phone, onboarding_completed')
+      .eq('user_id', uid)
+      .maybeSingle();
     if (data?.display_name && data?.state) {
-      navigate('/');
+      navigate(data?.onboarding_completed ? '/my-farm' : '/onboarding');
     } else {
       // pre-fill what we already have
       if (data?.display_name) setName(data.display_name);
@@ -107,7 +111,7 @@ export default function Login() {
       return;
     }
     toast({ title: language === 'hi' ? 'स्वागत है!' : 'Welcome!' });
-    navigate('/');
+    navigate('/onboarding');
   };
 
   const t = (en: string, hi: string) => (language === 'hi' ? hi : en);

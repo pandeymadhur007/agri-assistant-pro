@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Sprout, Loader2, TrendingUp, Droplets, Calendar, IndianRupee, Award } from 'lucide-react';
+import { ArrowLeft, Sprout, Loader2, TrendingUp, Droplets, Calendar, IndianRupee, Award, ShieldAlert, Mic, Camera, MessageCircle, Pencil, MapPin } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { SEO } from '@/components/SEO';
 import { Footer } from '@/components/Footer';
@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
+import { useFarmProfile, cropAgeDays } from '@/hooks/useFarmProfile';
 
 interface Recommendation {
   crop_name: string;
@@ -23,6 +24,9 @@ interface Recommendation {
   expected_profit_per_acre: string;
   duration_days: number;
   water_requirement: 'low' | 'medium' | 'high';
+  risk_level?: 'low' | 'medium' | 'high';
+  risk_note?: string;
+  why_gram_ai?: string;
   key_tips: string;
 }
 
@@ -63,6 +67,7 @@ const SmartRecommendations = () => {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const { toast } = useToast();
+  const { profile } = useFarmProfile();
   const t = labels[language] || labels.en;
   const isHi = language === 'hi' || language === 'mr';
 
@@ -74,6 +79,14 @@ const SmartRecommendations = () => {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [summary, setSummary] = useState('');
   const [season, setSeason] = useState('');
+
+  // Prefill from the saved farm profile so the farmer never re-enters what we know.
+  useEffect(() => {
+    if (!profile) return;
+    if (profile.state) setState(profile.state);
+    if (profile.soil_type) setSoil(profile.soil_type);
+    if (profile.land_size) setLandSize(profile.land_size);
+  }, [profile]);
 
   const fetchRecommendations = async () => {
     if (!state) {
@@ -88,7 +101,13 @@ const SmartRecommendations = () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ state, soil, landSize, budget, language }),
+        body: JSON.stringify({
+          state, soil, landSize, budget, language,
+          irrigation: profile?.irrigation ?? '',
+          currentCrop: profile?.current_crop ?? '',
+          location: profile?.location ?? '',
+          goal: profile?.farming_goal ?? '',
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed');
@@ -146,6 +165,41 @@ const SmartRecommendations = () => {
             <Badge key={f} variant="secondary" className="font-normal">{f}</Badge>
           ))}
         </div>
+
+        {/* Saved farm profile */}
+        {profile?.onboarding_completed ? (
+          <Card className="mb-6 border-primary/30">
+            <CardContent className="p-4 flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-xs uppercase tracking-wide text-muted-foreground mb-1">
+                  {isHi ? 'मेरा खेत' : 'My Farm'}
+                </div>
+                <p className="text-sm font-semibold flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4 text-primary shrink-0" />
+                  {[profile.location, profile.state].filter(Boolean).join(', ') || '—'}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {[profile.current_crop, profile.soil_type, profile.irrigation].filter(Boolean).join(' · ')}
+                  {cropAgeDays(profile) !== null && ` · ${cropAgeDays(profile)} ${isHi ? 'दिन' : 'days'}`}
+                </p>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => navigate('/my-farm')} className="shrink-0">
+                <Pencil className="w-4 h-4 mr-1" />{isHi ? 'बदलें' : 'Edit'}
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="mb-6 border-dashed">
+            <CardContent className="p-4 flex items-center justify-between gap-3">
+              <p className="text-sm text-muted-foreground">
+                {isHi ? 'अपना खेत सेट करें ताकि सलाह आपकी जमीन के अनुसार मिले।' : 'Set up your farm so advice matches your land.'}
+              </p>
+              <Button size="sm" onClick={() => navigate('/onboarding')} className="shrink-0">
+                {isHi ? 'सेट करें' : 'Set up'}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Input Form */}
         <Card className="mb-6 border-primary/30 bg-card/95">
@@ -237,6 +291,23 @@ const SmartRecommendations = () => {
                       <Droplets className="w-3 h-3 mr-1" />{rec.water_requirement}
                     </Badge>
                   </div>
+                  {rec.why_gram_ai && (
+                    <div className="col-span-2 md:col-span-4 bg-primary/10 border-l-4 border-primary/70 rounded-r-lg p-3">
+                      <div className="text-xs text-primary mb-1">{isHi ? 'ग्राम AI यह क्यों सुझा रहा है' : 'Why Gram AI recommends this'}</div>
+                      <div className="text-sm text-foreground">{rec.why_gram_ai}</div>
+                    </div>
+                  )}
+                  {rec.risk_level && (
+                    <div className="col-span-2 md:col-span-4 flex items-start gap-2 rounded-lg border border-border p-3">
+                      <ShieldAlert className="w-4 h-4 mt-0.5 text-muted-foreground shrink-0" />
+                      <div>
+                        <Badge variant="outline" className={waterColor(rec.risk_level)}>
+                          {isHi ? 'जोखिम' : 'Risk'}: {rec.risk_level}
+                        </Badge>
+                        {rec.risk_note && <p className="text-sm text-foreground mt-1.5">{rec.risk_note}</p>}
+                      </div>
+                    </div>
+                  )}
                   <div className="col-span-2 md:col-span-4 bg-yellow-500/10 border-l-4 border-yellow-500/70 rounded-r-lg p-3">
                     <div className="text-xs text-yellow-700 dark:text-yellow-300 mb-1">💡 {t.tips}</div>
                     <div className="text-sm text-foreground">{rec.key_tips}</div>
@@ -245,6 +316,19 @@ const SmartRecommendations = () => {
               </Card>
             </motion.div>
           ))}
+        </div>
+
+        {/* Unified next steps — same farm context powers all three */}
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Button variant="outline" className="h-12 justify-start" onClick={() => navigate('/chat', { state: { voice: true } })}>
+            <Mic className="w-4 h-4 mr-2 text-primary" />{isHi ? 'ग्राम AI से बात करें' : 'Talk to Gram AI'}
+          </Button>
+          <Button variant="outline" className="h-12 justify-start" onClick={() => navigate('/scan')}>
+            <Camera className="w-4 h-4 mr-2 text-primary" />{isHi ? 'फसल स्कैन करें' : 'Scan Crop'}
+          </Button>
+          <Button variant="outline" className="h-12 justify-start" onClick={() => navigate('/chat')}>
+            <MessageCircle className="w-4 h-4 mr-2 text-primary" />{isHi ? 'ग्राम AI से पूछें' : 'Ask Gram AI'}
+          </Button>
         </div>
       </main>
       <Footer />

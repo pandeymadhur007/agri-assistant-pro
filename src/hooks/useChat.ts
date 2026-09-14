@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ensureAnonymousSession, cacheUserId } from '@/lib/sessionSupabase';
+import { farmContext, useFarmProfile } from '@/hooks/useFarmProfile';
 
 export interface Message {
   role: 'user' | 'assistant';
@@ -29,6 +30,7 @@ function toApiMessage(m: Message): { role: string; content: string | ApiBlock[] 
 
 export function useChat() {
   const { language } = useLanguage();
+  const { profile } = useFarmProfile();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -91,7 +93,8 @@ export function useChat() {
         },
         body: JSON.stringify({ 
           messages: [...messages, userMsg].map(toApiMessage),
-          language 
+          language,
+          farmContext: farmContext(profile),
         }),
 
         signal: ac.signal,
@@ -149,7 +152,7 @@ export function useChat() {
     } finally {
       setIsLoading(false);
     }
-  }, [messages, language, sessionId, isLoading]);
+  }, [messages, language, sessionId, isLoading, profile]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);
