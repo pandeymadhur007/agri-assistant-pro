@@ -360,12 +360,9 @@ const Index = () => {
                         <div className="shrink-0 w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-medium text-sm tabular-nums border border-primary/15">
                           {step.num}
                         </div>
-                        <div className="flex flex-col min-w-0">
-                          <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] text-muted-foreground font-semibold">
-                            <step.stepIcon className="h-3.5 w-3.5" strokeWidth={1.75} />
-                            Step
-                          </div>
-                          <h3 className="font-medium text-[15px] text-foreground leading-snug truncate mt-0.5">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <step.stepIcon className="h-4 w-4 shrink-0 text-muted-foreground" strokeWidth={1.75} />
+                          <h3 className="font-medium text-[15px] text-foreground leading-snug truncate">
                             {step.stepTitle}
                           </h3>
                         </div>
