@@ -27,6 +27,8 @@ const CommunityPostDetail = lazy(() => import("./pages/CommunityPostDetail"));
 const SmartCropPlanner = lazy(() => import("./pages/SmartRecommendations"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Login = lazy(() => import("./pages/Login"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const MyFarm = lazy(() => import("./pages/MyFarm"));
 const Profile = lazy(() => import("./pages/Profile"));
 const AnimalHusbandry = lazy(() => import("./pages/AnimalHusbandry"));
 const About = lazy(() => import("./pages/About"));
@@ -65,6 +67,8 @@ function AnimatedRoutes() {
         <Route path="/community/post/:id" element={<CommunityPostDetail />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/my-farm" element={<MyFarm />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/recommendations" element={<Navigate to="/smart-crop-planner" replace />} />
         <Route path="/smart-crop-planner" element={<SmartCropPlanner />} />
