@@ -172,7 +172,7 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { messages, language = "en", location } = body;
+    const { messages, language = "en", location, farmContext } = body;
     const sessionId = req.headers.get("x-session-id") || "";
 
     const v = validateMessages(messages);
@@ -204,9 +204,13 @@ serve(async (req) => {
         ])
       : "";
     const locCtx = location ? `\nUser approximate location: ${location}` : "";
+    // Farm profile from onboarding — shared by chat, voice and scan follow-ups.
+    const farmCtx = typeof farmContext === "string" && farmContext.trim()
+      ? `\n\nTHIS FARMER'S FARM PROFILE (use it — never ask for details already listed here):\n${farmContext.slice(0, 800)}\nTailor every answer to this land, soil, irrigation, crop stage and goal.`
+      : "";
 
     const systemPrompt = (LANGUAGE_PROMPTS[language] || LANGUAGE_PROMPTS.en) +
-      `\n\nCURRENT CONTEXT:\n${seasonCtx}${locCtx}${scanCtx}`;
+      `\n\nCURRENT CONTEXT:\n${seasonCtx}${locCtx}${scanCtx}${farmCtx}`;
 
     // Detect the script of the latest user message so the reply never drifts to
     // another language/script than the one the farmer actually typed in.
