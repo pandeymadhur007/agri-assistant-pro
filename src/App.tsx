@@ -60,8 +60,8 @@ function AnimatedRoutes() {
         <Route path="/scan/history" element={<ScanHistory />} />
         <Route path="/market-prices" element={<MarketPrices />} />
         <Route path="/market-prices/crop/:name" element={<MarketPriceCrop />} />
-        <Route path="/calendar" element={<Navigate to="/smart-crop-planner" replace />} />
-        <Route path="/calendar/*" element={<Navigate to="/smart-crop-planner" replace />} />
+        <Route path="/calendar" element={<Navigate to="/my-farm" replace />} />
+        <Route path="/calendar/*" element={<Navigate to="/my-farm" replace />} />
         <Route path="/community" element={<Community />} />
         <Route path="/community/post" element={<CommunityPost />} />
         <Route path="/community/post/:id" element={<CommunityPostDetail />} />
@@ -70,8 +70,8 @@ function AnimatedRoutes() {
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/my-farm" element={<MyFarm />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/recommendations" element={<Navigate to="/smart-crop-planner" replace />} />
-        <Route path="/smart-crop-planner" element={<SmartCropPlanner />} />
+        <Route path="/recommendations" element={<Navigate to="/my-farm" replace />} />
+        <Route path="/smart-crop-planner" element={<Navigate to="/my-farm" replace />} />
         <Route path="/animal-husbandry" element={<AnimalHusbandry />} />
         <Route path="/about" element={<About />} />
         <Route path="/voice-test" element={<VoiceTest />} />

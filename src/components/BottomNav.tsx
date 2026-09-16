@@ -10,7 +10,7 @@ import {
   Users,
   FileText,
   Sprout,
-  Lightbulb,
+  Tractor,
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -33,7 +33,7 @@ export function BottomNav({ noSpacer = false }: BottomNavProps = {}) {
 
   const moreItems = [
     { to: '/crop-center', label: t('cropCenter'), icon: Sprout },
-    { to: '/smart-crop-planner', label: t('smartCropPlanner') || 'Smart Crop Planner', icon: Lightbulb },
+    { to: '/my-farm', label: t('smartCropPlanner') || 'My Farm', icon: Tractor },
     { to: '/weather', label: t('weatherForecast'), icon: CloudSun },
     { to: '/community', label: t('community'), icon: Users },
     { to: '/schemes', label: t('schemes'), icon: FileText },

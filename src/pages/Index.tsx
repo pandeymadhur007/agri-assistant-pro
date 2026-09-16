@@ -7,12 +7,12 @@ import {
   Camera,
   TrendingUp,
   Users,
-  Lightbulb,
-  HelpCircle,
-  Brain,
-  CheckCircle2,
   Beef,
   Landmark,
+  Tractor,
+  ClipboardCheck,
+  ListChecks,
+  ScanLine,
 } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { BottomNav } from '@/components/BottomNav';
@@ -99,104 +99,6 @@ function QuickTile({ action }: { action: QuickAction }) {
   );
 }
 
-function CropGrowthIllustration() {
-  return (
-    <svg viewBox="0 0 120 48" className="w-full h-14 text-primary/50" aria-hidden>
-      {[0, 1, 2, 3, 4].map((i) => (
-        <motion.g
-          key={i}
-          transform={`translate(${12 + i * 22}, 44)`}
-          initial={{ opacity: 0, scaleY: 0.2 }}
-          whileInView={{ opacity: 1, scaleY: 1 }}
-          viewport={{ once: true, amount: 0.4 }}
-          transition={{ duration: 0.6, delay: i * 0.12, ease: 'easeOut' }}
-          style={{ transformOrigin: 'bottom' }}
-        >
-          <line x1="0" y1="0" x2="0" y2={-(14 + i * 6)} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          <ellipse cx="0" cy={-(18 + i * 6)} rx="3.2" ry="6" fill="currentColor" opacity={0.45 + i * 0.11} />
-          <ellipse cx="-4" cy={-(10 + i * 4)} rx="4" ry="2" fill="currentColor" opacity={0.25 + i * 0.08} />
-        </motion.g>
-      ))}
-    </svg>
-  );
-}
-
-function MandiChartIllustration() {
-  const line = 'M0 40 Q20 35 35 28 T60 22 T85 14 T120 8';
-  const points: Array<[number, number]> = [
-    [12, 37], [35, 28], [60, 22], [85, 14], [112, 9],
-  ];
-  return (
-    <svg viewBox="0 0 120 48" className="w-full h-14" aria-hidden>
-      <defs>
-        <linearGradient id="mandiFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="hsl(199 89% 48% / 0.35)" />
-          <stop offset="100%" stopColor="hsl(199 89% 48% / 0.02)" />
-        </linearGradient>
-      </defs>
-      <motion.path
-        d={`${line} V48 H0 Z`}
-        fill="url(#mandiFill)"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true, amount: 0.4 }}
-        transition={{ duration: 0.8, delay: 0.5 }}
-      />
-      <motion.path
-        d={line}
-        fill="none"
-        stroke="hsl(199 89% 48%)"
-        strokeWidth="2"
-        strokeLinecap="round"
-        initial={{ pathLength: 0 }}
-        whileInView={{ pathLength: 1 }}
-        viewport={{ once: true, amount: 0.4 }}
-        transition={{ duration: 1.2, ease: 'easeInOut' }}
-      />
-      {points.map(([cx, cy], i) => (
-        <motion.circle
-          key={cx}
-          cx={cx}
-          cy={cy}
-          r="2.2"
-          fill="hsl(199 89% 48%)"
-          initial={{ opacity: 0, scale: 0 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, amount: 0.4 }}
-          transition={{ duration: 0.3, delay: 0.35 + i * 0.18 }}
-        />
-      ))}
-    </svg>
-  );
-}
-
-function WeatherIllustration() {
-  const bars = [26, 34, 20, 40, 30, 44, 24];
-  return (
-    <div className="flex items-end justify-between gap-1.5 h-14" aria-hidden>
-      {bars.map((h, i) => (
-        <motion.div
-          key={i}
-          className="flex-1 rounded-md bg-gradient-to-t from-sky-400/20 to-sky-400/70"
-          initial={{ height: 4, opacity: 0 }}
-          whileInView={{ height: h, opacity: 1 }}
-          viewport={{ once: true, amount: 0.4 }}
-          transition={{ duration: 0.55, delay: i * 0.07, ease: 'easeOut' }}
-        />
-      ))}
-      <motion.div
-        initial={{ opacity: 0, rotate: -20 }}
-        whileInView={{ opacity: 1, rotate: 0 }}
-        viewport={{ once: true, amount: 0.4 }}
-        transition={{ duration: 0.6, delay: 0.5 }}
-        className="self-start"
-      >
-        <CloudSun className="h-6 w-6 text-amber-400/80" strokeWidth={1.5} />
-      </motion.div>
-    </div>
-  );
-}
-
 const Index = () => {
   const { t, language } = useLanguage();
 
@@ -215,42 +117,18 @@ const Index = () => {
     { icon: CloudSun, title: t('weatherForecast'), description: 'Weather forecasts and alerts', to: '/weather', variant: 'weather' },
     { icon: Beef, title: t('animalHusbandry'), description: 'Livestock care and management', to: '/animal-husbandry', variant: 'neutral' },
     { icon: Landmark, title: t('schemes'), description: 'Farmer benefits and subsidies', to: '/schemes', variant: 'schemes' },
-    { icon: Lightbulb, title: t('smartCropPlanner') || 'Smart Crop Planner', description: 'Planning, schedules and reminders', to: '/smart-crop-planner', variant: 'secondary' },
+    { icon: Tractor, title: t('smartCropPlanner') || 'My Farm', description: 'Your personalized daily farming plan', to: '/my-farm', variant: 'secondary' },
     { icon: Sprout, title: t('cropCenter'), description: 'Crop guides and recommendations', to: '/crop-center', variant: 'primary' },
     { icon: Users, title: t('community'), description: 'Connect with fellow farmers', to: '/community', variant: 'community' },
   ];
 
-  const howItWorks = [
-    {
-      stepIcon: HelpCircle,
-      stepTitle: t('howStep1'),
-      num: 1,
-      featureIcon: Camera,
-      featureTitle: 'AI Crop Doctor',
-      featureDesc: 'Instant disease detection with treatment recommendations',
-      illustration: <CropGrowthIllustration />,
-      to: '/scan',
-    },
-    {
-      stepIcon: Brain,
-      stepTitle: t('howStep2'),
-      num: 2,
-      featureIcon: TrendingUp,
-      featureTitle: 'Live Mandi Prices',
-      featureDesc: 'Real-time market prices from mandis across India',
-      illustration: <MandiChartIllustration />,
-      to: '/market-prices',
-    },
-    {
-      stepIcon: CheckCircle2,
-      stepTitle: t('howStep3'),
-      num: 3,
-      featureIcon: CloudSun,
-      featureTitle: 'Smart Weather',
-      featureDesc: 'Farm-focused forecasts with crop advisory',
-      illustration: <WeatherIllustration />,
-      to: '/weather',
-    },
+  const howToUse = [
+    { icon: Tractor, label: 'Set up My Farm' },
+    { icon: ClipboardCheck, label: 'Get personalized plan' },
+    { icon: ListChecks, label: "Follow Today’s Priorities" },
+    { icon: MessageCircle, label: 'Ask Gram AI' },
+    { icon: ScanLine, label: 'Scan crops' },
+    { icon: Sprout, label: 'Track your farm' },
   ];
 
   return (
@@ -342,49 +220,26 @@ const Index = () => {
             </div>
           </section>
 
-          {/* How It Works + Feature Highlights */}
+          {/* How to use */}
           <section className="py-12 md:py-16 px-4 border-t border-border/50">
-            <div className="container mx-auto max-w-5xl">
+            <div className="container mx-auto max-w-4xl">
               <FadeIn>
                 <h2 className="font-display text-3xl md:text-[2rem] font-medium text-center mb-12 text-foreground tracking-tight">
-                  {t('howItWorks')}
+                  How to Use Gram AI
                 </h2>
               </FadeIn>
 
-              <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-                {howItWorks.map((step) => (
-                  <StaggerItem key={step.num}>
-                    <div className="flex flex-col h-full">
-                      {/* Step header */}
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="shrink-0 w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-medium text-sm tabular-nums border border-primary/15">
-                          {step.num}
-                        </div>
-                        <div className="flex items-center gap-2 min-w-0">
-                          <step.stepIcon className="h-4 w-4 shrink-0 text-muted-foreground" strokeWidth={1.75} />
-                          <h3 className="font-medium text-[15px] text-foreground leading-snug truncate">
-                            {step.stepTitle}
-                          </h3>
-                        </div>
+              <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-7">
+                {howToUse.map((step, index) => (
+                  <StaggerItem key={step.label}>
+                    <div className="flex items-center gap-4">
+                      <div className="w-11 h-11 shrink-0 rounded-full border border-primary/20 bg-primary/10 text-primary flex items-center justify-center">
+                        <step.icon className="w-5 h-5" strokeWidth={1.6} />
                       </div>
-
-                      {/* Feature card */}
-                      <Link to={step.to} className="block group flex-1">
-                        <div className="h-full rounded-[18px] feature-glass card-hover p-6 flex flex-col">
-                          <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 border border-primary/10">
-                            <step.featureIcon className="w-5 h-5" strokeWidth={1.5} />
-                          </div>
-                          <h4 className="font-medium text-[16px] mb-1.5 text-foreground tracking-tight">
-                            {step.featureTitle}
-                          </h4>
-                          <p className="text-muted-foreground text-sm leading-relaxed mb-5 flex-1">
-                            {step.featureDesc}
-                          </p>
-                          <div className="mt-auto opacity-80 group-hover:opacity-100 transition-opacity">
-                            {step.illustration}
-                          </div>
-                        </div>
-                      </Link>
+                      <div className="min-w-0">
+                        <span className="text-xs text-muted-foreground tabular-nums">0{index + 1}</span>
+                        <p className="font-medium text-foreground leading-snug">{step.label}</p>
+                      </div>
                     </div>
                   </StaggerItem>
                 ))}
