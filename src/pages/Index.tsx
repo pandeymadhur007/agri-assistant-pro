@@ -112,12 +112,12 @@ const Index = () => {
   };
 
   const quickActions: QuickAction[] = [
+    { icon: Tractor, title: t('smartCropPlanner') || 'My Farm', description: 'Your personalized daily farming plan', to: '/my-farm', variant: 'secondary' },
     { icon: MessageCircle, title: t('startChat'), description: 'Ask farming questions instantly', to: '/chat', variant: 'neutral' },
     { icon: TrendingUp, title: t('marketPrices'), description: 'Live mandi price updates', to: '/market-prices', variant: 'secondary' },
     { icon: CloudSun, title: t('weatherForecast'), description: 'Weather forecasts and alerts', to: '/weather', variant: 'weather' },
     { icon: Beef, title: t('animalHusbandry'), description: 'Livestock care and management', to: '/animal-husbandry', variant: 'neutral' },
     { icon: Landmark, title: t('schemes'), description: 'Farmer benefits and subsidies', to: '/schemes', variant: 'schemes' },
-    { icon: Tractor, title: t('smartCropPlanner') || 'My Farm', description: 'Your personalized daily farming plan', to: '/my-farm', variant: 'secondary' },
     { icon: Sprout, title: t('cropCenter'), description: 'Crop guides and recommendations', to: '/crop-center', variant: 'primary' },
     { icon: Users, title: t('community'), description: 'Connect with fellow farmers', to: '/community', variant: 'community' },
   ];
