@@ -24,7 +24,6 @@ const MarketPriceCrop = lazy(() => import("./pages/MarketPriceCrop"));
 const Community = lazy(() => import("./pages/Community"));
 const CommunityPost = lazy(() => import("./pages/CommunityPost"));
 const CommunityPostDetail = lazy(() => import("./pages/CommunityPostDetail"));
-const SmartCropPlanner = lazy(() => import("./pages/SmartRecommendations"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Login = lazy(() => import("./pages/Login"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
