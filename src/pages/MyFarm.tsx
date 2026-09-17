@@ -29,6 +29,7 @@ const GOALS = [['higher_yield', 'Higher yield'], ['lower_cost', 'Lower input cos
 
 const pretty = (list: string[][], value?: string | null) => list.find(([key]) => key === value)?.[1] ?? value ?? '—';
 const guideIcons = { crop: Sprout, water: Droplets, nutrient: FlaskConical, pest: ScanLine, weather: CloudSun };
+type FarmForm = { location: string; state: string; land_size: string; soil_type: string; irrigation: string; current_crop: string; crop_sown_date: string; farming_goal: string };
 
 export default function MyFarm() {
   const navigate = useNavigate();
@@ -151,7 +152,7 @@ export default function MyFarm() {
   );
 }
 
-function EditFarm({ form, setForm, saving, submit, cancel, t }: { form: Record<string, string>; setForm: (value: Record<string, string>) => void; saving: boolean; submit: () => void; cancel: () => void; t: (en: string, hi: string) => string }) {
+function EditFarm({ form, setForm, saving, submit, cancel, t }: { form: FarmForm; setForm: React.Dispatch<React.SetStateAction<FarmForm>>; saving: boolean; submit: () => void; cancel: () => void; t: (en: string, hi: string) => string }) {
   return <Card><CardContent className="p-5 md:p-7 grid md:grid-cols-2 gap-4"><Field label={t('Village / district', 'गाँव / जिला')}><Input value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} maxLength={80} /></Field><Field label={t('State', 'राज्य')}><Input value={form.state} onChange={e => setForm({ ...form, state: e.target.value })} maxLength={60} /></Field><Field label={t('Land size', 'जमीन')}><Picker value={form.land_size} onChange={value => setForm({ ...form, land_size: value })} options={LAND} /></Field><Field label={t('Soil', 'मिट्टी')}><Picker value={form.soil_type} onChange={value => setForm({ ...form, soil_type: value })} options={SOIL} /></Field><Field label={t('Irrigation', 'सिंचाई')}><Picker value={form.irrigation} onChange={value => setForm({ ...form, irrigation: value })} options={IRRIGATION} /></Field><Field label={t('Current crop', 'वर्तमान फसल')}><Input value={form.current_crop} onChange={e => setForm({ ...form, current_crop: e.target.value })} maxLength={40} /></Field><Field label={t('Sowing date', 'बुवाई की तारीख')}><Input type="date" max={new Date().toISOString().slice(0, 10)} value={form.crop_sown_date} onChange={e => setForm({ ...form, crop_sown_date: e.target.value })} /></Field><Field label={t('Goal', 'लक्ष्य')}><Picker value={form.farming_goal} onChange={value => setForm({ ...form, farming_goal: value })} options={GOALS} /></Field><div className="md:col-span-2 flex gap-3 pt-2"><Button onClick={submit} disabled={saving} className="flex-1 h-12">{saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}{t('Save & update plan', 'सेव करें और योजना अपडेट करें')}</Button><Button variant="outline" className="h-12" onClick={cancel} disabled={saving}><X className="h-4 w-4 mr-1" />{t('Cancel', 'रद्द')}</Button></div></CardContent></Card>;
 }
 
