@@ -1,73 +1,148 @@
-# Welcome to your Lovable project
+# Agri Assistant Pro
 
-## Project info
+🟢 SECTION 1: Gram AI – Smart Farming Assistant
+Purpose:
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+A single unified section that covers all agriculture and farming assistance.
 
-## How can I edit this code?
+Features:
 
-There are several ways of editing your application.
+AI Chatbot for farmers
 
-**Use Lovable**
+Chatbot helps with:
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+Crop selection based on season & region
 
-Changes made via Lovable will be committed automatically to this repo.
+Fertilizer and pesticide recommendations
 
-**Use your preferred IDE**
+Pest & disease identification
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Crop yield improvement tips
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+Modern farming techniques
 
-Follow these steps:
+Soil health & irrigation guidance
+
+Simple text + voice input support (future ready)
+
+Language Support:
+
+Language selector dropdown:
+
+Hindi
+
+Marathi
+
+Telugu
+
+Tamil
+
+Bengali
+
+English
+
+UI text + chatbot responses must change according to selected language
+
+UI Style:
+
+Extremely simple & clean
+
+Large buttons and icons
+
+Farmer-friendly illustrations
+
+Mobile-first & low-bandwidth optimized
+
+Minimal text, more visuals
+
+Pages (Clickable):
+
+/assistant
+
+/chat
+
+/crop-guidance
+
+/pest-disease
+
+/soil-irrigation
+
+🔵 SECTION 2: Government Schemes & Rural Welfare
+Purpose:
+
+Provide clear, structured information about government schemes.
+
+Features:
+
+Scheme categories:
+
+Farmers
+
+Women
+
+Students
+
+Rural workers
+
+Each scheme page should show:
+
+Scheme name
+
+Benefits
+
+Eligibility
+
+Required documents
+
+How to apply
+
+Official government link
+
+Filters:
+
+Filter by:
+
+State
+
+Category (Farmer / Education / Health / Employment)
+
+Language:
+
+Same language selector applies here
+
+Content should change based on selected language
+
+Pages (Clickable):
+
+/schemes
+
+/schemes/farmers
+
+/schemes/women
+
+/schemes/students
+
+/scheme/:id
+
+This project was built with [Lovable](https://lovable.dev).
+
+**Live app**: https://gramaiofficial.lovable.app
+
+## Build with Lovable
+
+Continue developing this project in the [Lovable editor](https://lovable.dev/projects/1a17b818-95d4-42d9-b380-51b7ecf9f82e).
+
+- **Ship faster**: describe what you want to build and Lovable handles the code.
+- **Stay in sync**: every change made in Lovable is committed straight to this repository.
+- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+
+## Development
+
+Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
+git clone <this-repository-url>
+cd <repository-name>
 npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
