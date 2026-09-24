@@ -168,13 +168,11 @@ SECURITY DEFINER
 SET search_path = pg_catalog, public
 AS $$
 BEGIN
-  IF TG_OP = 'INSERT' THEN
-    NEW.upvotes := 0;
-    NEW.reply_count := 0;
-  ELSIF NOT public.has_role(auth.uid(), 'admin'::public.app_role) THEN
-    NEW.upvotes := OLD.upvotes;
-    NEW.reply_count := OLD.reply_count;
-  END IF;
+  -- Derive counters from source rows instead of trusting client-supplied values.
+  SELECT count(*)::integer INTO NEW.upvotes
+  FROM public.upvotes WHERE post_id = NEW.id;
+  SELECT count(*)::integer INTO NEW.reply_count
+  FROM public.community_replies WHERE post_id = NEW.id;
   RETURN NEW;
 END;
 $$;
@@ -190,12 +188,12 @@ SECURITY DEFINER
 SET search_path = pg_catalog, public
 AS $$
 BEGIN
+  SELECT count(*)::integer INTO NEW.upvotes
+  FROM public.upvotes WHERE reply_id = NEW.id;
   IF TG_OP = 'INSERT' THEN
-    NEW.upvotes := 0;
     NEW.is_accepted := false;
     NEW.is_expert_answer := public.has_role(auth.uid(), 'expert'::public.app_role);
   ELSIF NOT public.has_role(auth.uid(), 'admin'::public.app_role) THEN
-    NEW.upvotes := OLD.upvotes;
     NEW.is_accepted := OLD.is_accepted;
     NEW.is_expert_answer := OLD.is_expert_answer;
   END IF;
@@ -206,3 +204,25 @@ DROP TRIGGER IF EXISTS guard_community_reply_fields ON public.community_replies;
 CREATE TRIGGER guard_community_reply_fields
 BEFORE INSERT OR UPDATE ON public.community_replies
 FOR EACH ROW EXECUTE FUNCTION public.guard_community_reply_fields();
+
+
+-- Reply deletion also keeps the denormalized count aligned with its source rows.
+CREATE OR REPLACE FUNCTION public.sync_post_reply_count()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $$
+BEGIN
+  UPDATE public.community_posts
+  SET reply_count = (
+    SELECT count(*)::integer FROM public.community_replies WHERE post_id = OLD.post_id
+  )
+  WHERE id = OLD.post_id;
+  RETURN OLD;
+END;
+$$;
+DROP TRIGGER IF EXISTS sync_post_reply_count_after_delete ON public.community_replies;
+CREATE TRIGGER sync_post_reply_count_after_delete
+AFTER DELETE ON public.community_replies
+FOR EACH ROW EXECUTE FUNCTION public.sync_post_reply_count();
