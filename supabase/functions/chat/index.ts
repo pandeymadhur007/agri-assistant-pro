@@ -171,9 +171,32 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    // Never trust a client-supplied session ID for privileged scan lookups.
+    const authorization = req.headers.get("Authorization") || "";
+    const accessToken = authorization.match(/^Bearer\s+(.+)$/i)?.[1];
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    if (!accessToken) {
+      return new Response(JSON.stringify({ error: "Authentication required" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!supabaseUrl || !anonKey) {
+      return new Response(JSON.stringify({ error: "Service config error" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const authClient = createClient(supabaseUrl, anonKey);
+    const { data: { user }, error: authError } = await authClient.auth.getUser(accessToken);
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "Authentication required" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const body = await req.json();
     const { messages, language = "en", location, farmContext } = body;
-    const sessionId = req.headers.get("x-session-id") || "";
+    const sessionId = user.id;
 
     const v = validateMessages(messages);
     if (!v.valid) {
