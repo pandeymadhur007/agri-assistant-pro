@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { ensureAnonymousSession } from '@/lib/sessionSupabase';
 
 export type VoiceState = 'idle' | 'listening' | 'thinking' | 'speaking';
 
@@ -215,6 +216,8 @@ export function useVoiceAssistant({
         return;
       }
       const base64 = await blobToBase64(blob);
+      const authenticatedUserId = await ensureAnonymousSession();
+      if (!authenticatedUserId) throw new Error('Sign in to use voice input.');
       const invokePromise = supabase.functions.invoke('speech-to-text', {
         body: { audio: base64, language, mimeType: 'audio/wav' },
       });
