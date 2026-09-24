@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { requireUserAndLimit } from "../_shared/security.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,6 +8,7 @@ const corsHeaders = {
 };
 
 const VALID_LANGUAGES = ["en", "hi", "mr", "te", "ta", "bn"];
+const VALID_STATES = new Set(["Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh","Goa","Gujarat","Haryana","Himachal Pradesh","Jharkhand","Karnataka","Kerala","Madhya Pradesh","Maharashtra","Manipur","Meghalaya","Mizoram","Nagaland","Odisha","Punjab","Rajasthan","Sikkim","Tamil Nadu","Telangana","Tripura","Uttar Pradesh","Uttarakhand","West Bengal","Delhi","Jammu and Kashmir","Ladakh"]);
 const VALID_SOIL = ["loamy", "clay", "sandy", "black", "red", "alluvial", "unknown"];
 const VALID_LAND = ["small", "medium", "large"]; // <2, 2-10, >10 acres
 const VALID_BUDGET = ["low", "medium", "high"]; // <20k, 20k-1L, >1L per acre
@@ -22,14 +24,18 @@ const LANG_INSTRUCTION: Record<string, string> = {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method !== "POST") return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   try {
+    const guard = await requireUserAndLimit(req, "crop-recommendations", corsHeaders);
+    if (guard instanceof Response) return guard;
     const body = await req.json();
+    if (!body || typeof body !== "object" || Array.isArray(body)) return new Response(JSON.stringify({ error: "Invalid request" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     const { state, soil = "unknown", landSize = "medium", budget = "medium", language = "en",
       irrigation = "", currentCrop = "", location = "", goal = "" } = body;
-    const clean = (v: unknown) => (typeof v === "string" ? v.slice(0, 80) : "");
+    const clean = (v: unknown) => (typeof v === "string" ? v.replace(/[\\r\\n]/g, " ").slice(0, 80) : "");
 
-    if (!state || typeof state !== "string" || state.length > 100) {
+    if (typeof state !== "string" || !VALID_STATES.has(state.trim())) {
       return new Response(JSON.stringify({ error: "Valid state required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -100,6 +106,7 @@ Suggest 5 highly suitable crops ranked by suitability_score.`;
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
+        max_tokens: 1800,
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: systemPrompt },
