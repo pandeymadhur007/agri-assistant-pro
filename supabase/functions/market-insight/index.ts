@@ -1,5 +1,5 @@
 import { corsHeaders } from "https://esm.sh/@supabase/supabase-js@2.95.0/cors";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
+import { requireUserAndLimit } from "../_shared/security.ts";
 
 interface InsightRequest {
   crop_name: string;
@@ -8,30 +8,37 @@ interface InsightRequest {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (req.method !== "POST") return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   try {
+    const guard = await requireUserAndLimit(req, "market-insight", corsHeaders);
+    if (guard instanceof Response) return guard;
+    const { client } = guard;
     const { crop_name, language = "en" } = (await req.json()) as InsightRequest;
-    if (!crop_name || typeof crop_name !== "string") {
+    if (!crop_name || typeof crop_name !== "string" || crop_name.trim().length > 80) {
       return new Response(JSON.stringify({ error: "crop_name required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    );
+    const supabase = client;
 
+    if (typeof language !== "string" || !["en", "hi", "mr", "te", "ta", "bn"].includes(language)) {
+      return new Response(JSON.stringify({ error: "Invalid language" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
     // Pull last 30 days of prices for this crop
     const since = new Date();
     since.setDate(since.getDate() - 30);
-    const { data: prices } = await supabase
+    const { data: prices, error: pricesError } = await supabase
       .from("market_prices")
       .select("price, price_date, mandi")
-      .eq("crop_name", crop_name)
+      .eq("crop_name", crop_name.trim())
       .gte("price_date", since.toISOString().slice(0, 10))
-      .order("price_date", { ascending: true });
+      .order("price_date", { ascending: true })
+      .limit(5000);
+
+    if (pricesError) throw new Error("price query failed");
 
     // Pull MSP for context
     const { data: msp } = await supabase
@@ -177,8 +184,8 @@ Give a concrete sell-now-or-wait call. Mention MSP comparison if relevant. Keep 
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (e) {
-    console.error("market-insight error:", e);
-    return new Response(JSON.stringify({ error: (e as Error).message }), {
+    console.error("market-insight error:", e instanceof Error ? e.name : "Unknown");
+    return new Response(JSON.stringify({ error: "Unable to generate market insight" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
