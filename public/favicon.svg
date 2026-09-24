@@ -1,9 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Gram AI">
-  <rect width="64" height="64" rx="14" fill="#0F3D2E" />
-  <g stroke="#4ADE80" stroke-width="3.2" stroke-linecap="round" fill="none">
-    <path d="M32 50V26" />
-    <path d="M32 32C25 25 19 27 16 33c6 3 12 2 16-1Z" fill="#4ADE80" fill-opacity="0.22" stroke-linejoin="round" />
-    <path d="M32 32c7-7 13-5 16 1-6 3-12 2-16-1Z" fill="#4ADE80" fill-opacity="0.22" stroke-linejoin="round" />
-    <path d="M20 52c6-4 18-4 24 0" />
-  </g>
+  <rect width="64" height="64" rx="14" fill="#102A1C"/>
+  <path d="M11 53.5C18.5 46.8 45.5 46.8 53 53.5" stroke="#9A704B" stroke-width="4" stroke-linecap="round"/>
+  <path d="M32 50V22" stroke="#45D483" stroke-width="4" stroke-linecap="round"/>
+  <path d="M31.5 30.5C17.5 30.5 9.5 21.5 11.5 9.5C24 8.5 33.5 16 34.5 27.5L31.5 30.5Z" fill="#45D483"/>
+  <path d="M32.5 30.5C46.5 30.5 54.5 21.5 52.5 9.5C40 8.5 30.5 16 29.5 27.5L32.5 30.5Z" fill="#45D483"/>
+  <path d="M17.5 14.5L29.5 26.5M46.5 14.5L34.5 26.5" stroke="#102A1C" stroke-width="1.8" stroke-linecap="round" opacity=".8"/>
 </svg>
