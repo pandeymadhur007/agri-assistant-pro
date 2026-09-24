@@ -11,6 +11,8 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   try {
+    const contentLength = Number(req.headers.get("content-length") ?? "0");
+    if (contentLength > 8192) return new Response(JSON.stringify({ error: "Request too large" }), { status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     const guard = await requireUserAndLimit(req, "market-insight", corsHeaders);
     if (guard instanceof Response) return guard;
     const { client } = guard;
@@ -44,7 +46,7 @@ Deno.serve(async (req) => {
     const { data: msp } = await supabase
       .from("msp_rates")
       .select("msp_price, season, year")
-      .eq("crop_name", crop_name)
+      .eq("crop_name", crop_name.trim())
       .maybeSingle();
 
     if (!prices || prices.length === 0) {
@@ -136,8 +138,10 @@ Give a concrete sell-now-or-wait call. Mention MSP comparison if relevant. Keep 
         const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+          signal: AbortSignal.timeout(15000),
           body: JSON.stringify({
             model: "google/gemini-2.5-flash",
+            max_tokens: 180,
             messages: [
               { role: "system", content: sysPrompt },
               { role: "user", content: userPrompt },
