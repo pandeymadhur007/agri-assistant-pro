@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ensureAnonymousSession, cacheUserId } from '@/lib/sessionSupabase';
 import { farmContext, useFarmProfile } from '@/hooks/useFarmProfile';
@@ -34,6 +35,7 @@ export function useChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const sendLockRef = useRef(false);
 
   // Initialize session on mount
   useEffect(() => {
@@ -48,14 +50,16 @@ export function useChat() {
   }, []);
 
   const sendMessage = useCallback(async (input: string, images?: string[]) => {
-    // Prevent duplicate sends from rapid double-clicks / Enter mashing
-    if (isLoading) return;
+    // State updates are asynchronous; a ref closes the rapid double-submit window.
+    if (sendLockRef.current) return;
+    sendLockRef.current = true;
     const userMsg: Message = { role: 'user', content: input, images: images?.length ? images : undefined };
     setMessages(prev => [...prev, userMsg]);
 
     setIsLoading(true);
 
     let assistantSoFar = '';
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
     const updateAssistant = (nextChunk: string) => {
       assistantSoFar += nextChunk;
@@ -74,6 +78,10 @@ export function useChat() {
       if (!currentSessionId) {
         throw new Error('Failed to create session');
       }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('Your session expired. Please refresh and try again.');
+      }
       
       // Update session ID if it changed
       if (currentSessionId !== sessionId) {
@@ -83,13 +91,13 @@ export function useChat() {
 
       // 60s timeout — chat streams can be long but should not hang forever
       const ac = new AbortController();
-      const timer = setTimeout(() => ac.abort(), 60_000);
+      timeoutId = setTimeout(() => ac.abort(), 60_000);
       const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          'x-session-id': currentSessionId,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({ 
           messages: [...messages, userMsg].map(toApiMessage),
@@ -99,8 +107,6 @@ export function useChat() {
 
         signal: ac.signal,
       });
-      clearTimeout(timer);
-
       if (!resp.ok || !resp.body) {
         if (resp.status === 429) throw new Error('Too many requests. Please wait a moment.');
         if (resp.status === 402) throw new Error('AI service is temporarily unavailable. Please try again later.');
@@ -126,7 +132,10 @@ export function useChat() {
           if (!line.startsWith('data: ')) continue;
 
           const jsonStr = line.slice(6).trim();
-          if (jsonStr === '[DONE]') break;
+          if (jsonStr === '[DONE]') {
+            await reader.cancel();
+            break;
+          }
 
           try {
             const parsed = JSON.parse(jsonStr);
@@ -136,6 +145,18 @@ export function useChat() {
             textBuffer = line + '\n' + textBuffer;
             break;
           }
+        }
+      }
+      // Some servers flush the final SSE event without a trailing newline.
+      const finalLine = textBuffer.trim();
+      if (finalLine.startsWith('data: ')) {
+        const jsonStr = finalLine.slice(6).trim();
+        if (jsonStr && jsonStr !== '[DONE]') {
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) updateAssistant(content);
+          } catch { /* Ignore an incomplete final event. */ }
         }
       }
     } catch (e) {
@@ -150,6 +171,8 @@ export function useChat() {
         { role: 'assistant', content: msg },
       ]);
     } finally {
+      if (timeoutId !== undefined) clearTimeout(timeoutId);
+      sendLockRef.current = false;
       setIsLoading(false);
     }
   }, [messages, language, sessionId, isLoading, profile]);

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface FarmProfile {
@@ -20,9 +20,11 @@ const FIELDS =
   'display_name, phone, state, location, land_size, soil_type, irrigation, current_crop, crop_sown_date, farming_goal, language, onboarding_completed';
 
 const CACHE_KEY = 'gramai_farm_profile';
+const CACHE_USER_KEY = 'gramai_farm_profile_user';
 
-export function readCachedFarmProfile(): FarmProfile | null {
+export function readCachedFarmProfile(userId?: string): FarmProfile | null {
   try {
+    if (!userId || localStorage.getItem(CACHE_USER_KEY) !== userId) return null;
     const raw = localStorage.getItem(CACHE_KEY);
     return raw ? (JSON.parse(raw) as FarmProfile) : null;
   } catch {
@@ -56,29 +58,80 @@ export function farmContext(profile: FarmProfile | null): string | undefined {
 }
 
 export function useFarmProfile() {
-  const [profile, setProfile] = useState<FarmProfile | null>(() => readCachedFarmProfile());
+  const [profile, setProfile] = useState<FarmProfile | null>(null);
+  const loadRequestRef = useRef(0);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      setUserId(null);
-      setProfile(null);
-      localStorage.removeItem(CACHE_KEY);
-      setLoading(false);
-      return;
+    const requestId = ++loadRequestRef.current;
+    setLoading(true);
+
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError) throw authError;
+      if (requestId !== loadRequestRef.current) return;
+
+      if (!user) {
+        setUserId(null);
+        setProfile(null);
+        localStorage.removeItem(CACHE_KEY);
+        localStorage.removeItem(CACHE_USER_KEY);
+        return;
+      }
+
+      setUserId(user.id);
+      const cached = readCachedFarmProfile(user.id);
+      setProfile(cached);
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select(FIELDS)
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (error) throw error;
+      if (requestId !== loadRequestRef.current) return;
+
+      const nextProfile = (data as FarmProfile | null) ?? null;
+      setProfile(nextProfile);
+      if (nextProfile) {
+        try {
+          localStorage.setItem(CACHE_USER_KEY, user.id);
+          localStorage.setItem(CACHE_KEY, JSON.stringify(nextProfile));
+        } catch { /* storage unavailable or full */ }
+      } else {
+        localStorage.removeItem(CACHE_KEY);
+        localStorage.removeItem(CACHE_USER_KEY);
+      }
+    } catch (error) {
+      if (requestId === loadRequestRef.current) {
+        setUserId(null);
+        setProfile(null);
+        console.error('Failed to load farm profile:', error);
+      }
+    } finally {
+      if (requestId === loadRequestRef.current) setLoading(false);
     }
-    setUserId(user.id);
-    const { data } = await supabase.from('profiles').select(FIELDS).eq('user_id', user.id).maybeSingle();
-    if (data) {
-      setProfile(data as FarmProfile);
-      try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch { /* storage full */ }
-    }
-    setLoading(false);
   }, []);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    let active = true;
+    const refresh = () => {
+      if (active) void load();
+    };
+
+    refresh();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      // Defer Supabase queries until the auth callback has released its lock.
+      window.setTimeout(refresh, 0);
+    });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+      loadRequestRef.current += 1;
+    };
+  }, [load]);
 
   const save = useCallback(async (values: Partial<FarmProfile>) => {
     const { data: { user } } = await supabase.auth.getUser();

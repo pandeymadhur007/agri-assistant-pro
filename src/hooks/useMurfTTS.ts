@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -8,13 +8,15 @@ const BROWSER_LANG_MAP: Record<string, string> = {
   en: 'en-IN', hi: 'hi-IN', mr: 'mr-IN', te: 'te-IN', ta: 'ta-IN', bn: 'bn-IN',
 };
 
-function speakWithBrowser(text: string, language: string): boolean {
+function speakWithBrowser(text: string, language: string, onDone: () => void): boolean {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return false;
   try {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = BROWSER_LANG_MAP[language] || 'en-IN';
     utterance.rate = 0.95;
+    utterance.onend = onDone;
+    utterance.onerror = onDone;
     window.speechSynthesis.speak(utterance);
     return true;
   } catch {
@@ -26,16 +28,25 @@ export function useMurfTTS() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioUrlRef = useRef<string | null>(null);
+  const requestIdRef = useRef(0);
   const { toast } = useToast();
 
   const stop = useCallback(() => {
+    requestIdRef.current += 1;
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
     if (audioRef.current) {
+      audioRef.current.onended = null;
+      audioRef.current.onerror = null;
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
       audioRef.current = null;
+    }
+    if (audioUrlRef.current) {
+      URL.revokeObjectURL(audioUrlRef.current);
+      audioUrlRef.current = null;
     }
     setIsPlaying(false);
     setIsLoading(false);
@@ -46,26 +57,23 @@ export function useMurfTTS() {
 
     // Stop any current playback
     stop();
+    const requestId = requestIdRef.current;
     setIsLoading(true);
 
     try {
       const { data, error } = await supabase.functions.invoke('murf-tts', {
         body: { text, language },
       });
+      if (requestId !== requestIdRef.current) return;
 
-      // Cloud TTS failed → silently fall back to browser SpeechSynthesis
+      // Cloud TTS failed → fall back to browser SpeechSynthesis
       if (error || data?.fallback || !data?.audio) {
         if (error) console.warn('Murf TTS unavailable, falling back to browser TTS');
         setIsLoading(false);
-        const ok = speakWithBrowser(text, language);
-        if (ok) {
-          setIsPlaying(true);
-          // Approximate "ended" — browser speechSynthesis doesn't always fire reliably
-          const u = (window.speechSynthesis as any);
-          const checkDone = setInterval(() => {
-            if (!u?.speaking) { setIsPlaying(false); clearInterval(checkDone); }
-          }, 300);
-        }
+        const ok = speakWithBrowser(text, language, () => {
+          if (requestId === requestIdRef.current) setIsPlaying(false);
+        });
+        if (ok && requestId === requestIdRef.current) setIsPlaying(true);
         return;
       }
 
@@ -73,37 +81,59 @@ export function useMurfTTS() {
       const mimeType = data.mime || 'audio/mpeg';
       const audioBlob = base64ToBlob(data.audio, mimeType);
       const audioUrl = URL.createObjectURL(audioBlob);
+      audioUrlRef.current = audioUrl;
       
       const audio = new Audio(audioUrl);
       audioRef.current = audio;
 
       audio.onloadeddata = () => {
+        if (requestId !== requestIdRef.current) return;
         setIsLoading(false);
         setIsPlaying(true);
       };
 
       audio.onended = () => {
+        if (requestId !== requestIdRef.current) return;
         setIsPlaying(false);
-        URL.revokeObjectURL(audioUrl);
+        if (audioUrlRef.current === audioUrl) {
+          URL.revokeObjectURL(audioUrl);
+          audioUrlRef.current = null;
+        }
         audioRef.current = null;
       };
 
       audio.onerror = () => {
+        if (requestId !== requestIdRef.current) return;
         console.error('Audio playback error');
         setIsPlaying(false);
         setIsLoading(false);
-        URL.revokeObjectURL(audioUrl);
+        if (audioUrlRef.current === audioUrl) {
+          URL.revokeObjectURL(audioUrl);
+          audioUrlRef.current = null;
+        }
         audioRef.current = null;
       };
 
       await audio.play();
 
     } catch (err) {
+      if (requestId !== requestIdRef.current) return;
       console.error('TTS error:', err);
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      if (audioUrlRef.current) {
+        URL.revokeObjectURL(audioUrlRef.current);
+        audioUrlRef.current = null;
+      }
       setIsLoading(false);
       // Last-resort fallback
-      const ok = speakWithBrowser(text, language);
-      if (!ok) {
+      const ok = speakWithBrowser(text, language, () => {
+        if (requestId === requestIdRef.current) setIsPlaying(false);
+      });
+      if (ok) setIsPlaying(true);
+      else {
         toast({
           title: 'Voice Error',
           description: 'Could not play audio. Please try again.',
@@ -112,6 +142,8 @@ export function useMurfTTS() {
       }
     }
   }, [stop, toast]);
+
+  useEffect(() => () => stop(), [stop]);
 
   return {
     isPlaying,

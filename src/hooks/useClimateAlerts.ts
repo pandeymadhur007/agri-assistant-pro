@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface ClimateAlert {
@@ -61,18 +61,34 @@ export function useClimateAlerts(language: string = 'en') {
   const [alerts, setAlerts] = useState<ClimateAlert[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   const [userState, setUserState] = useState<string | null>(null);
+  const authSyncIdRef = useRef(0);
 
   // Track auth + profile state
   useEffect(() => {
+    let active = true;
     const sync = async (uid: string | null) => {
+      if (!active) return;
+      const requestId = ++authSyncIdRef.current;
       setUserId(uid);
-      if (!uid) { setUserState(null); return; }
+      if (!uid) {
+        setUserState(null);
+        setAlerts([]);
+        return;
+      }
       const { data } = await supabase.from('profiles').select('state').eq('user_id', uid).maybeSingle();
-      setUserState(data?.state ?? null);
+      if (active && requestId === authSyncIdRef.current) setUserState(data?.state ?? null);
     };
     supabase.auth.getSession().then(({ data }) => sync(data.session?.user?.id ?? null));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => sync(s?.user?.id ?? null));
-    return () => subscription.unsubscribe();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+      window.setTimeout(() => {
+        if (active) void sync(session?.user?.id ?? null);
+      }, 0);
+    });
+    return () => {
+      active = false;
+      authSyncIdRef.current += 1;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchAlerts = useCallback(async () => {
@@ -90,25 +106,31 @@ export function useClimateAlerts(language: string = 'en') {
   // Generate fresh alerts at most once per 6h based on weather
   const generateFromWeather = useCallback(async () => {
     if (!userId) return;
-    const last = localStorage.getItem(LAST_GEN_KEY);
+    const lastGenKey = `${LAST_GEN_KEY}:${userId}`;
+    const last = localStorage.getItem(lastGenKey);
     if (last && Date.now() - Number(last) < 6 * 3600 * 1000) return;
 
     try {
       const { getCachedPosition } = await import('@/lib/geolocation');
       const pos = await getCachedPosition();
       try {
+        const controller = new AbortController();
+        const timeoutId = window.setTimeout(() => controller.abort(), 10000);
         const r = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${pos.latitude}&longitude=${pos.longitude}&daily=temperature_2m_min,temperature_2m_max,precipitation_probability_max&forecast_days=2&timezone=auto`
-        );
+          `https://api.open-meteo.com/v1/forecast?latitude=${pos.latitude}&longitude=${pos.longitude}&daily=temperature_2m_min,temperature_2m_max,precipitation_probability_max&forecast_days=2&timezone=auto`,
+          { signal: controller.signal }
+        ).finally(() => window.clearTimeout(timeoutId));
+        if (!r.ok) throw new Error('Weather unavailable');
         const j = await r.json();
-        const snap: WeatherSnapshot = {
-          tempMin: j.daily?.temperature_2m_min?.[0] ?? 20,
-          tempMax: j.daily?.temperature_2m_max?.[0] ?? 30,
-          rainProb: j.daily?.precipitation_probability_max?.[0] ?? 0,
-          state: userState,
-        };
+        const tempMin = j.daily?.temperature_2m_min?.[0];
+        const tempMax = j.daily?.temperature_2m_max?.[0];
+        const rainProb = j.daily?.precipitation_probability_max?.[0];
+        if (![tempMin, tempMax, rainProb].every(Number.isFinite)) {
+          throw new Error('Weather response is incomplete');
+        }
+        const snap: WeatherSnapshot = { tempMin, tempMax, rainProb, state: userState };
         const fresh = buildAlerts(snap, language);
-        if (fresh.length === 0) { localStorage.setItem(LAST_GEN_KEY, String(Date.now())); return; }
+        if (fresh.length === 0) { localStorage.setItem(lastGenKey, String(Date.now())); return; }
 
         // Avoid duplicates of same-type alert in last 6h
         const since = new Date(Date.now() - 6 * 3600 * 1000).toISOString();
@@ -130,7 +152,7 @@ export function useClimateAlerts(language: string = 'en') {
             });
           }
         }
-        localStorage.setItem(LAST_GEN_KEY, String(Date.now()));
+        localStorage.setItem(lastGenKey, String(Date.now()));
         fetchAlerts();
       } catch (e) {
         console.error('alert generation error', e);
@@ -147,19 +169,22 @@ export function useClimateAlerts(language: string = 'en') {
 
   const markRead = useCallback(async (id: string) => {
     if (!userId) return;
-    await supabase.from('climate_alerts').update({ is_read: true }).eq('id', id);
+    const { error } = await supabase.from('climate_alerts').update({ is_read: true }).eq('id', id).eq('user_id', userId);
+    if (error) return;
     setAlerts(prev => prev.map(a => a.id === id ? { ...a, is_read: true } : a));
   }, [userId]);
 
   const markAllRead = useCallback(async () => {
     if (!userId) return;
-    await supabase.from('climate_alerts').update({ is_read: true }).eq('user_id', userId).eq('is_read', false);
+    const { error } = await supabase.from('climate_alerts').update({ is_read: true }).eq('user_id', userId).eq('is_read', false);
+    if (error) return;
     setAlerts(prev => prev.map(a => ({ ...a, is_read: true })));
   }, [userId]);
 
   const dismiss = useCallback(async (id: string) => {
     if (!userId) return;
-    await supabase.from('climate_alerts').update({ is_dismissed: true }).eq('id', id);
+    const { error } = await supabase.from('climate_alerts').update({ is_dismissed: true }).eq('id', id).eq('user_id', userId);
+    if (error) return;
     setAlerts(prev => prev.filter(a => a.id !== id));
   }, [userId]);
 

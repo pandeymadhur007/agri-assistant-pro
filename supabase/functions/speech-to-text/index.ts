@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -29,10 +30,32 @@ serve(async (req: Request) => {
   }
 
   try {
+    const authorization = req.headers.get('Authorization') || '';
+    const accessToken = authorization.match(/^Bearer\s+(.+)$/i)?.[1];
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    if (!accessToken) return jsonResponse({ error: 'Authentication required' }, 401);
+    if (!supabaseUrl || !anonKey) return jsonResponse({ error: 'Speech service not configured' }, 500);
+
+    const authClient = createClient(supabaseUrl, anonKey);
+    const { data: { user }, error: authError } = await authClient.auth.getUser(accessToken);
+    if (authError || !user) return jsonResponse({ error: 'Authentication required' }, 401);
+
+    const contentLength = Number(req.headers.get('content-length') || 0);
+    if (contentLength > MAX_AUDIO_BYTES * 1.5) return jsonResponse({ error: 'Recording is too large.' }, 413);
+
     const { audio, language = 'en', mimeType = 'audio/wav' } = await req.json();
 
     if (!audio || typeof audio !== 'string') {
       return jsonResponse({ error: 'Audio data is required' }, 400);
+    }
+
+    if (typeof language !== 'string' || !SUPPORTED_LANGS.has(language)) {
+      return jsonResponse({ error: 'Unsupported language' }, 400);
+    }
+    const supportedMimeTypes = ['audio/wav', 'audio/x-wav', 'audio/webm', 'audio/mp4', 'audio/m4a', 'audio/mpeg', 'audio/ogg'];
+    if (typeof mimeType !== 'string' || !supportedMimeTypes.some((type) => mimeType.toLowerCase().startsWith(type))) {
+      return jsonResponse({ error: 'Unsupported audio format' }, 415);
     }
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
@@ -90,13 +113,13 @@ serve(async (req: Request) => {
         return jsonResponse({ error: 'Service credits exhausted. Please try again later.' }, 402);
       }
 
-      return jsonResponse({ error: 'Failed to transcribe audio', details: errorText }, response.status);
+      return jsonResponse({ error: 'Failed to transcribe audio' }, response.status);
     }
 
     const data = await response.json();
     const transcript = (data.text ?? data.transcript ?? '').trim();
 
-    console.log(`Transcription successful: "${transcript.substring(0, 50)}..."`);
+    console.log('Transcription successful');
 
     return jsonResponse({ transcript });
 

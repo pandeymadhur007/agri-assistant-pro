@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -22,15 +23,41 @@ serve(async (req) => {
   }
 
   try {
-    const body = await req.json();
-    const { imageBase64, imageUrl, language = "en" } = body;
-    const imageSource: string | undefined = imageUrl || imageBase64;
+    const authorization = req.headers.get("Authorization") || "";
+    const accessToken = authorization.match(/^Bearer\s+(.+)$/i)?.[1];
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    if (!accessToken) {
+      return new Response(JSON.stringify({ error: "Authentication required" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!supabaseUrl || !anonKey) {
+      return new Response(JSON.stringify({ error: "Service config error" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    if (!imageSource || typeof imageSource !== "string") {
-      return new Response(
-        JSON.stringify({ error: "Image data is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    const authClient = createClient(supabaseUrl, anonKey);
+    const { data: { user }, error: authError } = await authClient.auth.getUser(accessToken);
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "Authentication required" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const body = await req.json();
+    const { imagePath, language = "en" } = body;
+    if (
+      typeof imagePath !== "string" ||
+      imagePath.length > 512 ||
+      imagePath.split("/")[0] !== user.id ||
+      !imagePath.startsWith(`${user.id}/uploads/`) ||
+      imagePath.split("/").some((part: string) => !part || part === "." || part === "..")
+    ) {
+      return new Response(JSON.stringify({ error: "Invalid image path" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     if (!VALID_LANGUAGES.includes(language)) {
@@ -49,6 +76,22 @@ serve(async (req) => {
       );
     }
 
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!serviceRoleKey) {
+      return new Response(JSON.stringify({ error: "Service config error" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const serviceClient = createClient(supabaseUrl, serviceRoleKey);
+    const { data: signedImage, error: signingError } = await serviceClient.storage
+      .from("crop-scan-uploads")
+      .createSignedUrl(imagePath, 120);
+    if (signingError || !signedImage?.signedUrl) {
+      return new Response(JSON.stringify({ error: "Image is unavailable" }), {
+        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const imageSource = signedImage.signedUrl;
     const langPrompt = LANGUAGE_PROMPTS[language] || LANGUAGE_PROMPTS.en;
 
     const systemPrompt = `You are an expert agricultural scientist, plant pathologist, and entomologist with 30+ years of experience in Indian agriculture. ${langPrompt}

@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { ensureAnonymousSession } from '@/lib/sessionSupabase';
 import { useToast } from '@/hooks/use-toast';
 
 export function useCloudSpeechRecognition() {
@@ -21,6 +22,8 @@ export function useCloudSpeechRecognition() {
         new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
       );
 
+      const authenticatedUserId = await ensureAnonymousSession();
+      if (!authenticatedUserId) throw new Error('Sign in to use voice input.');
       const { data, error } = await supabase.functions.invoke('speech-to-text', {
         body: { audio: base64Audio, language }
       });

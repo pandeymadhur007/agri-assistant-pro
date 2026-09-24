@@ -41,21 +41,32 @@ export function useFarmPlan(profile: FarmProfile | null, userId: string | null, 
 
   useEffect(() => {
     let active = true;
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 10000);
     const loadWeather = async () => {
       try {
         const position = await getCachedPosition({ timeout: 7000 });
         const response = await fetch(
           `https://api.open-meteo.com/v1/forecast?latitude=${position.latitude}&longitude=${position.longitude}&current=temperature_2m,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&forecast_days=2&timezone=auto`,
+          { signal: controller.signal },
         );
         if (!response.ok) throw new Error('Weather unavailable');
         const data = await response.json();
         if (!active) return;
+        const currentTemperature = data.current?.temperature_2m;
+        const maxTemperature = data.daily?.temperature_2m_max?.[0];
+        const minTemperature = data.daily?.temperature_2m_min?.[0];
+        const rainProbability = data.daily?.precipitation_probability_max?.[0];
+        const windSpeed = data.current?.wind_speed_10m;
+        if (![maxTemperature, minTemperature, rainProbability, windSpeed].every(Number.isFinite)) {
+          throw new Error('Weather response is incomplete');
+        }
         setWeather({
-          temperature: Math.round(data.current?.temperature_2m ?? data.daily?.temperature_2m_max?.[0] ?? 0),
-          maxTemperature: Math.round(data.daily?.temperature_2m_max?.[0] ?? 0),
-          minTemperature: Math.round(data.daily?.temperature_2m_min?.[0] ?? 0),
-          rainProbability: Math.round(data.daily?.precipitation_probability_max?.[0] ?? 0),
-          windSpeed: Math.round(data.current?.wind_speed_10m ?? 0),
+          temperature: Number.isFinite(currentTemperature) ? Math.round(currentTemperature) : Math.round(maxTemperature),
+          maxTemperature: Math.round(maxTemperature),
+          minTemperature: Math.round(minTemperature),
+          rainProbability: Math.round(rainProbability),
+          windSpeed: Math.round(windSpeed),
         });
       } catch {
         if (active) setWeather(null);
@@ -64,7 +75,11 @@ export function useFarmPlan(profile: FarmProfile | null, userId: string | null, 
       }
     };
     void loadWeather();
-    return () => { active = false; };
+    return () => {
+      active = false;
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
   }, []);
 
   useEffect(() => {
