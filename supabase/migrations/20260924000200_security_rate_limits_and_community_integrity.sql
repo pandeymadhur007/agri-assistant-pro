@@ -1,4 +1,57 @@
 -- Prevent anonymous callers from spending shared AI/API quota and protect community trust fields.
+-- Reassert private storage rules, including the legacy crop-images bucket.
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES ('crop-scan-uploads', 'crop-scan-uploads', false, 5242880, ARRAY['image/jpeg','image/png','image/webp'])
+ON CONFLICT (id) DO UPDATE
+SET public = false, file_size_limit = 5242880,
+    allowed_mime_types = ARRAY['image/jpeg','image/png','image/webp'];
+
+UPDATE storage.buckets SET public = false WHERE id = 'crop-images';
+
+DROP POLICY IF EXISTS "Anyone can view crop images" ON storage.objects;
+DROP POLICY IF EXISTS "Anyone can upload crop images" ON storage.objects;
+DROP POLICY IF EXISTS "Anyone can update their crop images" ON storage.objects;
+DROP POLICY IF EXISTS "Anyone can delete their crop images" ON storage.objects;
+DROP POLICY IF EXISTS "Allow crop image uploads" ON storage.objects;
+DROP POLICY IF EXISTS "Allow crop image viewing" ON storage.objects;
+DROP POLICY IF EXISTS "Session-based storage read access" ON storage.objects;
+DROP POLICY IF EXISTS "Session-based storage insert access" ON storage.objects;
+DROP POLICY IF EXISTS "Users can upload to own folder" ON storage.objects;
+DROP POLICY IF EXISTS "Users can read own files" ON storage.objects;
+
+DROP POLICY IF EXISTS "Anyone can upload crop scan images" ON storage.objects;
+DROP POLICY IF EXISTS "Crop scan images are publicly readable" ON storage.objects;
+DROP POLICY IF EXISTS "Users can upload their crop scan images" ON storage.objects;
+DROP POLICY IF EXISTS "Crop scan images are private to their owner" ON storage.objects;
+
+CREATE POLICY "Crop scan owners can upload images"
+ON storage.objects FOR INSERT TO authenticated
+WITH CHECK (
+  bucket_id = 'crop-scan-uploads'
+  AND (storage.foldername(name))[1] = auth.uid()::text
+);
+CREATE POLICY "Crop scan owners can read images"
+ON storage.objects FOR SELECT TO authenticated
+USING (
+  bucket_id = 'crop-scan-uploads'
+  AND (storage.foldername(name))[1] = auth.uid()::text
+);
+
+CREATE POLICY "Legacy crop image owners can upload"
+ON storage.objects FOR INSERT TO authenticated
+WITH CHECK (
+  bucket_id = 'crop-images'
+  AND auth.uid() IS NOT NULL
+  AND (storage.foldername(name))[1] = auth.uid()::text
+);
+CREATE POLICY "Legacy crop image owners can read"
+ON storage.objects FOR SELECT TO authenticated
+USING (
+  bucket_id = 'crop-images'
+  AND auth.uid() IS NOT NULL
+  AND (storage.foldername(name))[1] = auth.uid()::text
+);
+
 CREATE TABLE IF NOT EXISTS public.edge_function_rate_limits (
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   function_name text NOT NULL,
@@ -69,8 +122,10 @@ AS $$
 DECLARE
   v_count integer;
 BEGIN
-  IF p_rows IS NULL OR jsonb_typeof(p_rows) <> 'array'
-     OR jsonb_array_length(p_rows) = 0 OR jsonb_array_length(p_rows) > 10000 THEN
+  IF p_rows IS NULL OR jsonb_typeof(p_rows) <> 'array' THEN
+    RAISE EXCEPTION 'Invalid market price batch';
+  END IF;
+  IF jsonb_array_length(p_rows) = 0 OR jsonb_array_length(p_rows) > 10000 THEN
     RAISE EXCEPTION 'Invalid market price batch';
   END IF;
 
