@@ -67,6 +67,7 @@ export function useClimateAlerts(language: string = 'en') {
   useEffect(() => {
     let active = true;
     const sync = async (uid: string | null) => {
+      if (!active) return;
       const requestId = ++authSyncIdRef.current;
       setUserId(uid);
       if (!uid) {
@@ -113,16 +114,21 @@ export function useClimateAlerts(language: string = 'en') {
       const { getCachedPosition } = await import('@/lib/geolocation');
       const pos = await getCachedPosition();
       try {
+        const controller = new AbortController();
+        const timeoutId = window.setTimeout(() => controller.abort(), 10000);
         const r = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${pos.latitude}&longitude=${pos.longitude}&daily=temperature_2m_min,temperature_2m_max,precipitation_probability_max&forecast_days=2&timezone=auto`
-        );
+          `https://api.open-meteo.com/v1/forecast?latitude=${pos.latitude}&longitude=${pos.longitude}&daily=temperature_2m_min,temperature_2m_max,precipitation_probability_max&forecast_days=2&timezone=auto`,
+          { signal: controller.signal }
+        ).finally(() => window.clearTimeout(timeoutId));
+        if (!r.ok) throw new Error('Weather unavailable');
         const j = await r.json();
-        const snap: WeatherSnapshot = {
-          tempMin: j.daily?.temperature_2m_min?.[0] ?? 20,
-          tempMax: j.daily?.temperature_2m_max?.[0] ?? 30,
-          rainProb: j.daily?.precipitation_probability_max?.[0] ?? 0,
-          state: userState,
-        };
+        const tempMin = j.daily?.temperature_2m_min?.[0];
+        const tempMax = j.daily?.temperature_2m_max?.[0];
+        const rainProb = j.daily?.precipitation_probability_max?.[0];
+        if (![tempMin, tempMax, rainProb].every(Number.isFinite)) {
+          throw new Error('Weather response is incomplete');
+        }
+        const snap: WeatherSnapshot = { tempMin, tempMax, rainProb, state: userState };
         const fresh = buildAlerts(snap, language);
         if (fresh.length === 0) { localStorage.setItem(lastGenKey, String(Date.now())); return; }
 
