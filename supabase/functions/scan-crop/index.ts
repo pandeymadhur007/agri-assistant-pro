@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { requireUserAndLimit } from "../_shared/security.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,28 +24,9 @@ serve(async (req) => {
   }
 
   try {
-    const authorization = req.headers.get("Authorization") || "";
-    const accessToken = authorization.match(/^Bearer\s+(.+)$/i)?.[1];
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-    if (!accessToken) {
-      return new Response(JSON.stringify({ error: "Authentication required" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    if (!supabaseUrl || !anonKey) {
-      return new Response(JSON.stringify({ error: "Service config error" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const authClient = createClient(supabaseUrl, anonKey);
-    const { data: { user }, error: authError } = await authClient.auth.getUser(accessToken);
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Authentication required" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const guard = await requireUserAndLimit(req, "scan-crop", corsHeaders);
+    if (guard instanceof Response) return guard;
+    const { user } = guard;
 
     const body = await req.json();
     const { imagePath, language = "en" } = body;
