@@ -13,6 +13,8 @@ import { Label } from '@/components/ui/label';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { useFarmProfile, cropAgeDays } from '@/hooks/useFarmProfile';
+import { supabase } from '@/integrations/supabase/client';
+import { ensureAnonymousSession } from '@/lib/sessionSupabase';
 
 interface Recommendation {
   crop_name: string;
@@ -95,11 +97,14 @@ const SmartRecommendations = () => {
     }
     setLoading(true);
     try {
+      const sessionId = await ensureAnonymousSession();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!sessionId || !session?.access_token) throw new Error("Please sign in to get crop recommendations.");
       const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/crop-recommendations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           state, soil, landSize, budget, language,

@@ -4,6 +4,7 @@ import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
+import { ensureAnonymousSession } from '@/lib/sessionSupabase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -63,6 +64,8 @@ const MarketPriceCrop = () => {
   const loadInsight = async () => {
     setInsightLoading(true);
     try {
+      const sessionId = await ensureAnonymousSession();
+      if (!sessionId) throw new Error('Could not start a secure session');
       const { data, error } = await supabase.functions.invoke('market-insight', {
         body: { crop_name: cropName, language },
       });
