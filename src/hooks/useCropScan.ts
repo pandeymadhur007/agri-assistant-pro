@@ -122,30 +122,58 @@ const compressImage = async (
   });
 };
 
-const uploadCompressedImage = async (blob: Blob, ext: string, mime: string) => {
-  const path = `uploads/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+const uploadCompressedImage = async (blob: Blob, ext: string, mime: string, userId: string) => {
+  const path = `${userId}/uploads/${Date.now()}-${crypto.randomUUID()}.${ext}`;
   const { error } = await supabase.storage
     .from('crop-scan-uploads')
     .upload(path, blob, { contentType: mime, upsert: false, cacheControl: '3600' });
 
   if (error) throw new Error(error.message);
-
-  const { data } = supabase.storage.from('crop-scan-uploads').getPublicUrl(path);
-  return data.publicUrl;
+  return path;
 };
 
-const callScanFunction = async (imageUrl: string, language: string) => {
+const storagePathFromReference = (reference: string): string | null => {
+  const marker = '/storage/v1/object/public/crop-scan-uploads/';
+  const markerIndex = reference.indexOf(marker);
+  const rawPath = markerIndex >= 0 ? reference.slice(markerIndex + marker.length) : reference;
+  try {
+    const path = decodeURIComponent(rawPath);
+    return path && !path.startsWith('/') ? path : null;
+  } catch {
+    return null;
+  }
+};
+
+const createSignedImageUrls = async (references: string[]): Promise<string[]> => {
+  const paths = references.map(storagePathFromReference);
+  const validPaths = paths.filter((path): path is string => Boolean(path));
+  if (validPaths.length === 0) return references.map(() => '');
+
+  const { data, error } = await supabase.storage
+    .from('crop-scan-uploads')
+    .createSignedUrls(validPaths, 3600);
+  if (error) throw new Error(error.message);
+
+  let signedIndex = 0;
+  return paths.map((path) => path ? (data?.[signedIndex++]?.signedUrl ?? '') : '');
+};
+
+const callScanFunction = async (imagePath: string, language: string) => {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 45_000);
 
   try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) throw new Error('Your session expired. Please sign in again.');
+
     return await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/scan-crop`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        Authorization: `Bearer ${session.access_token}`,
       },
-      body: JSON.stringify({ imageUrl, language }),
+      body: JSON.stringify({ imagePath, language }),
       signal: controller.signal,
     });
   } finally {
@@ -207,14 +235,15 @@ export const useCropScan = () => {
     setProgress(5);
 
     try {
-      // Must await session - storage upload now requires authenticated user (anon auth ok)
-      await ensureSessionState();
+      // Ensure the uploaded image is placed inside this authenticated user's folder.
+      const currentSessionId = await ensureSessionState();
+      if (!currentSessionId) throw new Error('Your session expired. Please sign in again.');
 
       const { blob, previewUrl, ext, mime } = await compressImage(file);
       setProgress(30);
 
       setStage('uploading');
-      const publicUrl = await uploadCompressedImage(blob, ext, mime);
+      const imagePath = await uploadCompressedImage(blob, ext, mime, currentSessionId);
       setProgress(55);
 
       setStage('analyzing');
@@ -222,11 +251,11 @@ export const useCropScan = () => {
 
       let response: Response;
       try {
-        response = await callScanFunction(publicUrl, language);
+        response = await callScanFunction(imagePath, language);
         if (!response.ok && response.status >= 500) throw new Error('retry');
       } catch {
         await new Promise((resolve) => setTimeout(resolve, 800));
-        response = await callScanFunction(publicUrl, language);
+        response = await callScanFunction(imagePath, language);
       }
 
       if (!response.ok) {
@@ -240,7 +269,7 @@ export const useCropScan = () => {
       const data = await response.json();
       setProgress(100);
       setStage('done');
-      return { diagnosis: data.diagnosis, imageDataUrl: previewUrl, imageUrl: publicUrl };
+      return { diagnosis: data.diagnosis, imageDataUrl: previewUrl, imageUrl: imagePath };
     } catch (err) {
       const message = err instanceof Error
         ? (err.name === 'AbortError' ? 'Analysis timed out. Check your connection and try again.' : err.message)
@@ -300,9 +329,11 @@ export const useCropScan = () => {
 
       if (queryError) throw new Error(queryError.message);
 
-      return (data || []).map((scan) => ({
+      const rows = data || [];
+      const imageUrls = await createSignedImageUrls(rows.map((scan) => scan.image_url ?? ''));
+      return rows.map((scan, index) => ({
         id: scan.id,
-        image_url: scan.image_url,
+        image_url: imageUrls[index],
         diagnosis: {
           is_plant: true,
           crop_name: scan.crop_name || '',
@@ -332,9 +363,10 @@ export const useCropScan = () => {
       if (queryError) throw new Error(queryError.message);
       if (!data) return null;
 
+      const [imageUrl] = await createSignedImageUrls([data.image_url ?? '']);
       return {
         id: data.id,
-        image_url: data.image_url,
+        image_url: imageUrl,
         diagnosis: {
           is_plant: true,
           crop_name: data.crop_name || '',
