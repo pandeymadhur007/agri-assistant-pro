@@ -9,46 +9,23 @@ interface LogoProps {
 }
 
 function SproutMark({ isDark, className }: { isDark: boolean; className?: string }) {
-  const leafStroke = isDark ? '#4ADE80' : '#5A9E72';
-  const leafFill = isDark ? 'transparent' : '#8FBC9A';
-  const stemStroke = isDark ? '#4ADE80' : '#4A8B62';
-  const soilFill = isDark ? '#8B6914' : '#9B7653';
+  const leaf = isDark ? '#45D483' : '#27824D';
+  const stem = isDark ? '#45D483' : '#347A4F';
+  const soil = isDark ? '#8F6D45' : '#8F6746';
 
   return (
     <svg
-      viewBox="0 0 44 48"
+      viewBox="0 0 64 64"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={cn('shrink-0', isDark && 'drop-shadow-[0_0_8px_rgba(74,222,128,0.35)]', className)}
+      className={cn('shrink-0', className)}
       aria-hidden
     >
-      <ellipse cx="22" cy="43" rx="13" ry="3.5" fill={soilFill} opacity={0.85} />
-      <path
-        d="M9 41C14 37 30 37 35 41"
-        stroke={soilFill}
-        strokeWidth="2.5"
-        strokeLinecap="round"
-      />
-      <path
-        d="M22 39C22 28 22 20 22 12"
-        stroke={stemStroke}
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-      <path
-        d="M22 16C16 10 10 12 8 18C13 20 18 18 22 16Z"
-        fill={leafFill}
-        stroke={leafStroke}
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M22 16C28 10 34 12 36 18C31 20 26 18 22 16Z"
-        fill={leafFill}
-        stroke={leafStroke}
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
+      <path d="M11 53.5C18.5 46.8 45.5 46.8 53 53.5" stroke={soil} strokeWidth="4" strokeLinecap="round" />
+      <path d="M32 50V22" stroke={stem} strokeWidth="4" strokeLinecap="round" />
+      <path d="M31.5 30.5C17.5 30.5 9.5 21.5 11.5 9.5C24 8.5 33.5 16 34.5 27.5L31.5 30.5Z" fill={leaf} />
+      <path d="M32.5 30.5C46.5 30.5 54.5 21.5 52.5 9.5C40 8.5 30.5 16 29.5 27.5L32.5 30.5Z" fill={leaf} />
+      <path d="M17.5 14.5L29.5 26.5M46.5 14.5L34.5 26.5" stroke={isDark ? '#0B2116' : '#EAF5ED'} strokeWidth="1.8" strokeLinecap="round" opacity="0.8" />
     </svg>
   );
 }
@@ -72,18 +49,16 @@ export function Logo({ className, 'aria-label': ariaLabel, showTagline = false, 
         >
           <span
             className={cn(
-              'font-medium',
-              isDarkMode ? 'text-zinc-300' : 'text-zinc-700',
+              'font-semibold',
+              isDarkMode ? 'text-zinc-100' : 'text-zinc-800',
             )}
           >
             Gram
           </span>
           <span
             className={cn(
-              'font-medium',
-              isDarkMode
-                ? 'text-emerald-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.45)]'
-                : 'text-emerald-700',
+              'font-semibold',
+              isDarkMode ? 'text-emerald-400' : 'text-emerald-700',
             )}
           >
             AI
