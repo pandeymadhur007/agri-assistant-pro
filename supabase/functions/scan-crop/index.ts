@@ -24,7 +24,7 @@ serve(async (req) => {
 
   try {
     const authorization = req.headers.get("Authorization") || "";
-    const accessToken = authorization.match(/^Bearer\\s+(.+)$/i)?.[1];
+    const accessToken = authorization.match(/^Bearer\s+(.+)$/i)?.[1];
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
     if (!accessToken) {
