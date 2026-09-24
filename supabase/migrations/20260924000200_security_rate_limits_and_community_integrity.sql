@@ -138,7 +138,7 @@ BEGIN
     )
     WHERE r.crop_name IS NULL OR r.state IS NULL OR r.district IS NULL
        OR r.mandi IS NULL OR r.price IS NULL OR r.price <= 0
-       OR r.price_date IS NULL OR r.price_trend NOT IN ('up', 'down', 'stable')
+       OR r.price_date IS NULL OR r.price_trend IS NULL OR r.price_trend NOT IN ('up', 'down', 'stable')
   ) THEN
     RAISE EXCEPTION 'Invalid market price record';
   END IF;
