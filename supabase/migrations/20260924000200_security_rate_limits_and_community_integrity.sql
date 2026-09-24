@@ -20,6 +20,7 @@ DROP POLICY IF EXISTS "Users can upload to own folder" ON storage.objects;
 DROP POLICY IF EXISTS "Users can read own files" ON storage.objects;
 
 DROP POLICY IF EXISTS "Anyone can upload crop scan images" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated users can upload crop scan images" ON storage.objects;
 DROP POLICY IF EXISTS "Crop scan images are publicly readable" ON storage.objects;
 DROP POLICY IF EXISTS "Users can upload their crop scan images" ON storage.objects;
 DROP POLICY IF EXISTS "Crop scan images are private to their owner" ON storage.objects;
