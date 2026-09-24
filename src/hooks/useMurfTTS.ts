@@ -119,6 +119,14 @@ export function useMurfTTS() {
     } catch (err) {
       if (requestId !== requestIdRef.current) return;
       console.error('TTS error:', err);
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      if (audioUrlRef.current) {
+        URL.revokeObjectURL(audioUrlRef.current);
+        audioUrlRef.current = null;
+      }
       setIsLoading(false);
       // Last-resort fallback
       const ok = speakWithBrowser(text, language, () => {
