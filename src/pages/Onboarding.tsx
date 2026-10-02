@@ -120,8 +120,13 @@ export default function Onboarding() {
       valid: () => state !== '' && location.trim().length > 1,
       body: (
         <div className="space-y-3">
-          <Input value={location} onChange={(e) => setLocation(e.target.value)} maxLength={80}
-            placeholder={t('Village / district', 'गाँव / जिला')} className="h-12" />
+          <label htmlFor="farm-location" className="block text-base font-bold text-foreground">
+            {t('Village / district', 'गाँव / जिला')} <span className="text-primary">*</span>
+          </label>
+          <Input id="farm-location" value={location} onChange={(e) => setLocation(e.target.value)} maxLength={80}
+            placeholder={t('Type your village or district', 'अपना गाँव या जिला लिखें')}
+            className="h-12 border-2 border-primary/60 bg-primary/5 text-base font-semibold placeholder:font-medium placeholder:text-foreground/60 focus-visible:border-primary" />
+          <p className="pt-1 text-sm font-semibold text-foreground">{t('Select your state', 'अपना राज्य चुनें')}</p>
           <div className="grid grid-cols-2 gap-2">
             {STATES.map((s) => (
               <button key={s} type="button" onClick={() => setState(s)}

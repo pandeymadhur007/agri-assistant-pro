@@ -122,6 +122,25 @@ export function useFarmPlan(profile: FarmProfile | null, userId: string | null, 
       { key: 'nutrient', title: isHi ? 'खाद और पोषण' : 'Fertilizer & nutrients', detail: isHi ? 'खाद देने से पहले मिट्टी की नमी और पत्तियों का रंग जाँचें; मात्रा मिट्टी जाँच के अनुसार रखें।' : 'Check soil moisture and leaf colour before feeding; follow your soil-test dose.' },
       { key: 'pest', title: isHi ? 'कीट और रोग' : 'Pest & disease', detail: hot ? (isHi ? 'गर्मी में रस चूसने वाले कीट तेजी से बढ़ सकते हैं। शाम को निरीक्षण करें।' : 'Heat can increase sucking pests. Inspect the crop this evening.') : (isHi ? 'सप्ताह में दो बार पत्तियों और तनों का निरीक्षण करें।' : 'Scout leaves and stems twice this week.') },
       { key: 'weather', title: isHi ? 'मौसम आधारित सलाह' : 'Weather-based advice', detail: weather ? (isHi ? `आज ${weather.minTemperature}–${weather.maxTemperature}°C, बारिश ${rain}% और हवा ${weather.windSpeed} किमी/घंटा।` : `Today: ${weather.minTemperature}–${weather.maxTemperature}°C, ${rain}% rain, wind ${weather.windSpeed} km/h.`) : (isHi ? 'स्थान अनुमति दें ताकि मौसम आधारित सलाह मिल सके।' : 'Allow location to receive weather-based advice.') },
+      (() => {
+        const humid = rain >= 50;
+        const sensitive = stage.toLowerCase().includes('flower') || stage.includes('फूल');
+        const needSpray = hot || (humid && (sensitive || (age ?? 0) > 14));
+        const why = hot
+          ? (isHi ? 'तेज गर्मी में माहू, सफेद मक्खी, थ्रिप्स बढ़ते हैं।' : 'High heat favours aphids, whitefly and thrips.')
+          : (isHi ? 'नमी वाले मौसम में फफूंद रोग (झुलसा, धब्बे) का खतरा है।' : 'Humid, rainy weather raises fungal disease risk (blight, leaf spot).');
+        return {
+          key: 'spray',
+          title: isHi ? 'कीटनाशक / दवा की ज़रूरत' : 'Pesticide needed?',
+          detail: needSpray
+            ? (isHi
+              ? `शायद हाँ — ${why} पहले खेत देखें; 10 में से 1–2 पौधों से ज़्यादा प्रभावित हों तभी छिड़काव करें। नीम तेल (5 मि.ली./लीटर) से शुरू करें, बारिश से पहले और दोपहर में छिड़काव न करें। सही दवा के लिए फसल स्कैन करें।`
+              : `Possibly yes — ${why} Scout first; spray only if more than 1–2 in 10 plants are affected. Start with neem oil (5 ml/litre); don't spray before rain or at midday. Scan the crop to get the exact product.`)
+            : (isHi
+              ? 'अभी नहीं — मौसम और फसल अवस्था के अनुसार अभी छिड़काव की ज़रूरत नहीं है। बिना लक्षण दवा न डालें; पैसा और मिट्टी दोनों बचेंगे।'
+              : 'Not right now — weather and crop stage show low pest risk. Avoid spraying without symptoms; it saves money and protects soil.'),
+        };
+      })(),
     ];
 
     return { priorities, guidance, stage };
