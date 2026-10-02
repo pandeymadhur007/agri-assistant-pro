@@ -18,6 +18,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { useFarmProfile, cropAgeDays } from '@/hooks/useFarmProfile';
 import { useFarmPlan } from '@/hooks/useFarmPlan';
+import { AskMyFarm } from '@/components/AskMyFarm';
 import { useClimateAlerts } from '@/hooks/useClimateAlerts';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
