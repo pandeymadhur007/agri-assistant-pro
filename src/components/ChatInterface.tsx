@@ -16,6 +16,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { toast } from '@/hooks/use-toast';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { History, SquarePen, Trash2 } from 'lucide-react';
 
 const MAX_ATTACHMENTS = 4;
 
@@ -59,7 +61,8 @@ function stripMarkdownForTTS(text: string): string {
 export function ChatInterface() {
   const { t, language } = useLanguage();
   const location = useLocation();
-  const { messages, isLoading, sendMessage } = useChat();
+  const { messages, isLoading, sendMessage, conversations, chatId, newChat, openChat, deleteChat } = useChat();
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [input, setInput] = useState('');
   const [attachments, setAttachments] = useState<string[]>([]);
   const [attaching, setAttaching] = useState(false);
@@ -72,7 +75,7 @@ export function ChatInterface() {
 
   // Auto-send prefill from scan result page
   useEffect(() => {
-    const prefill = (location.state as { prefill?: string } | null)?.prefill;
+    const prefill = (location.state as { prefill?: string } | null)?.prefill?.trim();
     if (prefill && !prefillSentRef.current && messages.length === 0) {
       prefillSentRef.current = true;
       sendMessage(prefill);
@@ -110,6 +113,16 @@ export function ChatInterface() {
     onTranscript: handleTranscript,
     pushToTalk: true,
   });
+
+  // Voice requested from My Farm: start listening once.
+  const voiceAutoRef = useRef(false);
+  useEffect(() => {
+    const wantVoice = (location.state as { voice?: boolean } | null)?.voice;
+    if (wantVoice && !voiceAutoRef.current && voiceSupported) {
+      voiceAutoRef.current = true;
+      void startListening();
+    }
+  }, [location.state, voiceSupported, startListening]);
 
   // Press-and-hold voice control (ChatGPT / Claude style).
   const holdRef = useRef<{ x: number; y: number } | null>(null);
@@ -214,6 +227,40 @@ export function ChatInterface() {
 
   return (
     <div className="flex h-full flex-col">
+      <div className="flex items-center justify-between border-b px-3 py-2">
+        <Button variant="ghost" size="sm" className="h-10 gap-2" onClick={() => setHistoryOpen(true)}>
+          <History className="h-4 w-4" /> {language === 'hi' ? 'पिछली बातचीत' : 'Chat history'}
+        </Button>
+        <Button variant="ghost" size="sm" className="h-10 gap-2" onClick={newChat} disabled={isLoading}>
+          <SquarePen className="h-4 w-4" /> {language === 'hi' ? 'नई बातचीत' : 'New chat'}
+        </Button>
+      </div>
+      <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
+        <SheetContent side="left" className="w-[85vw] max-w-sm p-0">
+          <SheetHeader className="border-b p-4"><SheetTitle>{language === 'hi' ? 'पिछली बातचीत' : 'Chat history'}</SheetTitle></SheetHeader>
+          <div className="p-3">
+            <Button className="mb-3 h-11 w-full gap-2" onClick={() => { newChat(); setHistoryOpen(false); }} disabled={isLoading}>
+              <SquarePen className="h-4 w-4" /> {language === 'hi' ? 'नई बातचीत' : 'New chat'}
+            </Button>
+            {conversations.length === 0 && (
+              <p className="px-2 py-6 text-center text-sm text-muted-foreground">{language === 'hi' ? 'अभी कोई बातचीत नहीं।' : 'No chats yet. Your conversations will appear here.'}</p>
+            )}
+            <ul className="max-h-[calc(100dvh-160px)] space-y-1 overflow-y-auto">
+              {conversations.map(c => (
+                <li key={c.id} className={cn('group flex items-center gap-1 rounded-lg', c.id === chatId && 'bg-muted')}>
+                  <button type="button" disabled={isLoading} onClick={() => { openChat(c.id); setHistoryOpen(false); }} className="min-h-[44px] flex-1 truncate px-3 py-2 text-left text-sm">
+                    <span className="block truncate font-medium">{c.title}</span>
+                    <span className="block text-xs text-muted-foreground">{new Date(c.updatedAt).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                  </button>
+                  <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" aria-label="Delete chat" onClick={() => deleteChat(c.id)}>
+                    <Trash2 className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </SheetContent>
+      </Sheet>
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center px-4">
