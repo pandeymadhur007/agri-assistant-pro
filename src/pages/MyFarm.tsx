@@ -18,6 +18,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { useFarmProfile, cropAgeDays } from '@/hooks/useFarmProfile';
 import { useFarmPlan } from '@/hooks/useFarmPlan';
+import { AskMyFarm } from '@/components/AskMyFarm';
 import { useClimateAlerts } from '@/hooks/useClimateAlerts';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
@@ -28,7 +29,7 @@ const IRRIGATION = [['rainfed', 'Rain-fed'], ['canal', 'Canal'], ['borewell', 'B
 const GOALS = [['higher_yield', 'Higher yield'], ['lower_cost', 'Lower input cost'], ['better_price', 'Better market price'], ['organic', 'Move to organic']];
 
 const pretty = (list: string[][], value?: string | null) => list.find(([key]) => key === value)?.[1] ?? value ?? '—';
-const guideIcons = { crop: Sprout, water: Droplets, nutrient: FlaskConical, pest: ScanLine, weather: CloudSun };
+const guideIcons = { crop: Sprout, water: Droplets, nutrient: FlaskConical, pest: ScanLine, weather: CloudSun, spray: AlertTriangle };
 type FarmForm = { location: string; state: string; land_size: string; soil_type: string; irrigation: string; current_crop: string; crop_sown_date: string; farming_goal: string };
 
 export default function MyFarm() {
@@ -142,7 +143,7 @@ export default function MyFarm() {
                 <div><div className="flex items-center justify-between mb-5"><h2 className="font-display text-2xl font-semibold">{t('Reminders', 'रिमाइंडर')}</h2><CalendarDays className="h-5 w-5 text-primary" /></div>{reminders.length ? <div className="space-y-3">{reminders.map(reminder => <div key={reminder.id} className="rounded-lg border border-border p-3"><p className="text-xs text-primary font-semibold">{new Date(`${reminder.reminder_date}T00:00:00`).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</p><p className="font-medium text-sm mt-1">{reminder.message || reminder.reminder_type || t('Farm task', 'खेत का काम')}</p></div>)}</div> : <div className="rounded-lg border border-dashed border-border p-5 text-center"><CheckCircle2 className="h-6 w-6 text-primary mx-auto" /><p className="text-sm font-medium mt-2">{t('No upcoming reminders', 'कोई आगामी रिमाइंडर नहीं')}</p><p className="text-xs text-muted-foreground mt-1">{t('Your next farm tasks will appear here.', 'आपके अगले खेत के काम यहां दिखाई देंगे।')}</p></div>}</div>
               </section>
 
-              <section className="border-t border-border pt-7"><div className="grid sm:grid-cols-2 gap-3"><Button className="h-12 justify-between" onClick={() => navigate('/chat')}><span>{t('Ask Gram AI about my farm', 'मेरे खेत के बारे में ग्राम AI से पूछें')}</span><ChevronRight className="h-4 w-4" /></Button><Button variant="outline" className="h-12 justify-between" onClick={() => navigate('/scan')}><span>{t('Scan my crop', 'मेरी फसल स्कैन करें')}</span><ScanLine className="h-4 w-4 text-primary" /></Button></div></section>
+              <section className="border-t border-border pt-7"><AskMyFarm onAsk={(q, voice) => navigate('/chat', { state: { prefill: q, voice, newChat: true } })} t={t} /><Button variant="outline" className="mt-3 h-12 w-full justify-between" onClick={() => navigate('/scan')}><span>{t('Scan my crop', 'मेरी फसल स्कैन करें')}</span><ScanLine className="h-4 w-4 text-primary" /></Button></section>
             </>
           )}
         </div>

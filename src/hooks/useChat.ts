@@ -29,6 +29,18 @@ function toApiMessage(m: Message): { role: string; content: string | ApiBlock[] 
 }
 
 
+export interface Conversation { id: string; title: string; updatedAt: number; messages: Message[] }
+const HISTORY_KEY = 'gramai_chat_history';
+const MAX_CHATS = 50;
+const newId = () => (crypto.randomUUID?.() ?? String(Date.now()));
+function loadHistory(): Conversation[] {
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { return []; }
+}
+function saveHistory(list: Conversation[]) {
+  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(list.slice(0, MAX_CHATS))); }
+  catch { try { localStorage.setItem(HISTORY_KEY, JSON.stringify(list.slice(0, 15))); } catch { /* storage full */ } }
+}
+
 export function useChat() {
   const { language } = useLanguage();
   const { profile } = useFarmProfile();
@@ -36,6 +48,38 @@ export function useChat() {
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const sendLockRef = useRef(false);
+  const [conversations, setConversations] = useState<Conversation[]>(() => loadHistory());
+  const [chatId, setChatId] = useState<string>(() => newId());
+
+  // Persist the current conversation once a reply finishes (images dropped to save space).
+  useEffect(() => {
+    if (isLoading || messages.length === 0) return;
+    setConversations(prev => {
+      const firstUser = messages.find(m => m.role === 'user');
+      const title = (firstUser?.content || (firstUser?.images ? 'Crop photo' : 'New chat')).slice(0, 60);
+      const stored = messages.map(m => ({ role: m.role, content: m.content || (m.images ? '[Photo]' : '') }));
+      const next = [{ id: chatId, title, updatedAt: Date.now(), messages: stored }, ...prev.filter(c => c.id !== chatId)];
+      saveHistory(next);
+      return next;
+    });
+  }, [messages, isLoading, chatId]);
+
+  const newChat = useCallback(() => {
+    if (sendLockRef.current) return;
+    setMessages([]);
+    setChatId(newId());
+  }, []);
+  const openChat = useCallback((id: string) => {
+    if (sendLockRef.current) return;
+    const c = loadHistory().find(x => x.id === id);
+    if (!c) return;
+    setChatId(c.id);
+    setMessages(c.messages);
+  }, []);
+  const deleteChat = useCallback((id: string) => {
+    setConversations(prev => { const next = prev.filter(c => c.id !== id); saveHistory(next); return next; });
+    if (id === chatId) { setMessages([]); setChatId(newId()); }
+  }, [chatId]);
 
   // Initialize session on mount
   useEffect(() => {
@@ -181,5 +225,5 @@ export function useChat() {
     setMessages([]);
   }, []);
 
-  return { messages, isLoading, sendMessage, clearMessages };
+  return { messages, isLoading, sendMessage, clearMessages, conversations, chatId, newChat, openChat, deleteChat };
 }
