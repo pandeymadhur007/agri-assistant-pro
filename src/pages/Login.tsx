@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { lovable } from '@/integrations/lovable/index';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { SEO } from '@/components/SEO';
@@ -39,14 +40,13 @@ export default function Login() {
   const [accountTypeOther, setAccountTypeOther] = useState('');
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session?.user) {
-        // Check if profile exists; if not, ask for details
-        checkProfile(data.session.user.id);
-      }
+    // Guest (anonymous) sessions are created by chat — they are not real logins.
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user && !data.user.is_anonymous) checkProfile(data.user.id);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session?.user) checkProfile(session.user.id);
+      const u = session?.user;
+      if (u && !u.is_anonymous) setTimeout(() => checkProfile(u.id), 0);
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -71,13 +71,26 @@ export default function Login() {
   const handleGoogle = async () => {
     setLoading(true);
     try {
-      // Use Supabase's OAuth flow directly. The Lovable cloud-auth helper sends
-      // production users to /~oauth/initiate, which is not available on Netlify.
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: `${window.location.origin}/login` },
-      });
-      if (error) throw error;
+      const host = window.location.hostname;
+      const onLovable = host.endsWith('lovable.app') || host.endsWith('lovableproject.com') || host === 'localhost';
+      if (onLovable) {
+        // Managed Google sign-in (works without custom OAuth setup)
+        const result = await lovable.auth.signInWithOAuth('google', {
+          redirect_uri: `${window.location.origin}/login`,
+        });
+        if (result.error) throw result.error;
+        if (!result.redirected) {
+          const { data } = await supabase.auth.getUser();
+          if (data.user) await checkProfile(data.user.id);
+          setLoading(false);
+        }
+      } else {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo: `${window.location.origin}/login` },
+        });
+        if (error) throw error;
+      }
     } catch (error) {
       toast({
         title: 'Google sign-in failed',

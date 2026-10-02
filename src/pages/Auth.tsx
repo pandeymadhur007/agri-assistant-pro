@@ -27,13 +27,13 @@ const Auth = () => {
   useEffect(() => {
     // Check if already logged in
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) navigate('/');
+      if (user && !user.is_anonymous) navigate('/login');
     });
 
-    // Listen for auth changes
+    // Listen for auth changes (ignore guest sessions used by chat)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        navigate('/');
+      if (session?.user && !session.user.is_anonymous) {
+        navigate('/login');
       }
     });
 
