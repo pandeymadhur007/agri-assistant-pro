@@ -73,6 +73,16 @@ const Auth = () => {
       }
 
       if (data.user) {
+        if (!data.session) {
+          toast({
+            title: language === 'hi' ? 'ईमेल की पुष्टि करें' : 'Confirm your email',
+            description: language === 'hi'
+              ? 'लॉगिन करने से पहले पुष्टि लिंक के लिए अपना ईमेल देखें।'
+              : 'Check your inbox for the confirmation link before signing in.',
+          });
+          return;
+        }
+
         // Create profile
         await supabase.from('profiles').insert({
           user_id: data.user.id,
@@ -89,10 +99,10 @@ const Auth = () => {
 
         toast({
           title: language === 'hi' ? 'अकाउंट बन गया!' : 'Account Created!',
-          description: language === 'hi' ? 'आप अब लॉग इन हैं।' : 'You are now logged in.',
+          description: language === 'hi' ? 'अपनी प्रोफ़ाइल पूरी करने के लिए आगे बढ़ें।' : 'Continue to complete your profile.',
         });
 
-        navigate('/');
+        navigate('/login');
       }
     } catch (error: any) {
       console.error('Signup error:', error);
@@ -134,7 +144,7 @@ const Auth = () => {
         title: language === 'hi' ? 'लॉगिन सफल!' : 'Login Successful!',
       });
 
-      navigate('/');
+      navigate('/login');
     } catch (error: any) {
       console.error('Login error:', error);
       toast({

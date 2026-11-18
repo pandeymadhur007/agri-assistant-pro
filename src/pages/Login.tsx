@@ -22,8 +22,11 @@ const INDIAN_STATES = [
 ];
 
 const GoogleIcon = () => (
-  <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
-    <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.4-1.7 4.1-5.5 4.1-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.7 3.4 14.6 2.4 12 2.4 6.7 2.4 2.4 6.7 2.4 12s4.3 9.6 9.6 9.6c5.5 0 9.2-3.9 9.2-9.4 0-.6-.07-1.1-.16-1.6H12z"/>
+  <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" aria-hidden="true">
+    <path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z" />
+    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09C3.26 21.3 7.31 24 12 24z" />
+    <path fill="#FBBC05" d="M5.27 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.98-3.09z" />
+    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96z" />
   </svg>
 );
 
@@ -71,32 +74,24 @@ export default function Login() {
   const handleGoogle = async () => {
     setLoading(true);
     try {
-      const host = window.location.hostname;
-      const onLovable = host.endsWith('lovable.app') || host.endsWith('lovableproject.com') || host === 'localhost';
-      if (onLovable) {
-        // Managed Google sign-in (works without custom OAuth setup)
-        const result = await lovable.auth.signInWithOAuth('google', {
-          redirect_uri: `${window.location.origin}/login`,
-        });
-        if (result.error) throw result.error;
-        if (!result.redirected) {
-          const { data } = await supabase.auth.getUser();
-          if (data.user) await checkProfile(data.user.id);
-          setLoading(false);
-        }
-      } else {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: { redirectTo: `${window.location.origin}/login` },
-        });
-        if (error) throw error;
+      const result = await lovable.auth.signInWithOAuth('google', {
+        redirect_uri: `${window.location.origin}/login`,
+      });
+      if (result.error) throw result.error;
+      if (result.redirected) return;
+
+      const { data, error } = await supabase.auth.getUser();
+      if (error) throw error;
+      if (data.user && !data.user.is_anonymous) {
+        await checkProfile(data.user.id);
       }
     } catch (error) {
       toast({
         title: 'Google sign-in failed',
-        description: error instanceof Error ? error.message : String(error),
+        description: `${t('Check that this website is allowed for Google sign-in in your authentication settings.', 'जांचें कि आपकी प्रमाणीकरण सेटिंग में इस वेबसाइट से Google साइन-इन की अनुमति है।')} (${window.location.origin})`,
         variant: 'destructive',
       });
+    } finally {
       setLoading(false);
     }
   };
